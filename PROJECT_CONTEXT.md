@@ -165,8 +165,11 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
   instructions for anything in the command line, and jargon explained when used.
 - **Working style**: Prototype-first. Explores visually before committing to a build.
   Appreciates being challenged and getting suggestions, not just "yes and."
-- **Deploying**: Adrian wants Claude to always publish updates to GitHub Pages for him at the
-  end of each change (repo `AZ-build/speeder`, https://az-build.github.io/speeder/).
+- **Deploying**: Adrian wants Claude to always publish updates for him at the end of each change.
+  How: in a claude.ai session, attach the repo `AZ-build/speeder` (push access), commit, and push
+  to `main`. GitHub Pages republishes https://az-build.github.io/speeder/ about a minute later.
+  Remember to bump `CACHE` in sw.js so installed phones pick up the update. Claude can't change
+  GitHub Pages settings or Firebase rules from its tools; those are one-time jobs for Adrian.
 
 ---
 

@@ -10,8 +10,8 @@ actually working on right now?
 
 ## 🔨 This Session
 
-- [ ] **Adrian:** create the empty repo `AZ-build/speeder` on GitHub (README, step 1), then tell Claude
-- [ ] **Claude:** upload the files and turn on GitHub Pages
+- [x] Repo `AZ-build/speeder` created and files uploaded (v0.4.0)
+- [ ] **Adrian:** turn on GitHub Pages once (Settings → Pages → main / root). Claude's tools can't flip this switch.
 - [ ] **Adrian:** add the Speeder block to ORBit's Firebase rules (README, step 2), or the world leaderboard can't save scores
 - [ ] **Adrian:** play v0.3 on your phone: how do bends, the outward push and the new zones feel?
 - [ ] **Adrian:** on an older phone, check Settings → Graphics to see which level Auto chose
@@ -30,7 +30,7 @@ actually working on right now?
 
 | Task | Blocked by | Who/What |
 |------|------------|----------|
-| Going live on GitHub Pages | Empty repo needs creating | Adrian (GitHub blocked Claude from creating a public repo) |
+| Going live on GitHub Pages | Pages switch is off | Adrian, one-time in repo Settings → Pages |
 | World leaderboard saving scores | Firebase rules for `speeder_scores` | Adrian, in the Firebase console |
 | Difficulty tuning | Real playtest on a phone | Adrian |
 
