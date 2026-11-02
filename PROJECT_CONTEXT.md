@@ -18,10 +18,10 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.2 |
-| **Phase** | Prototype / Exploration (playable, with menus + world leaderboard) |
+| **Current Version** | v0.4.0 |
+| **Phase** | Prototype / Exploration (playable, curving track, 5 zones, world leaderboard) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-10-30 |
+| **Last Updated** | 2026-11-01 |
 | **GitHub Repo** | `AZ-build/speeder` (Adrian creating the empty repo; target URL https://az-build.github.io/speeder/) |
 
 ---
@@ -48,7 +48,10 @@ shot, or pick which gate to take), all with a single control.
 
 - **Steering:** relative drag. Put your thumb down anywhere and slide; the speeder moves by
   the same amount. It doesn't jump to where your thumb is. Desktop: arrow keys or A/D.
-- **Shooting:** automatic and straight ahead, so to aim you have to steer.
+- **Shooting:** automatic and straight ahead, so to aim you have to steer. Bullets fly in a true
+  straight line (v0.3.1), so in a bend they drift toward the outside rail.
+- **Jumps (v0.3.1):** drive onto a lime ramp to launch for about a second. Fly over mines for an
+  AIR bonus; later, full-width barriers can only be cleared from the ramp. Pylons are too tall to jump.
 - **Hull:** 3 hits and you're wrecked. A hit makes you invulnerable for a moment and slows you down briefly.
 - **Speed:** starts at about 160 km/h and climbs toward about 450 km/h the farther you go.
 - **Obstacles:** pylons (tall, can't be destroyed), walls with a gap, slalom half-walls,
@@ -63,6 +66,12 @@ shot, or pick which gate to take), all with a single control.
 - **Menus (v0.2):** pause button → Resume / Leaderboard / Settings / Quit run, with a 3-2-1
   countdown on resume. Auto-pauses when you leave the app. Settings (per device): sound,
   volume, engine hum, vibration, steering speed, leaderboard name.
+- **Curving track (v0.3):** the road bends, runs S-curves and climbs onto sky roads. Bends get
+  sharper with distance. Turns push you gently toward the outside; yellow chevrons warn of bends.
+  Gameplay still runs on a straight "track space" underneath, so collisions are unaffected.
+- **Zones (v0.3):** every 1.4 km the world blends into the next zone: Neon Desert, Neon City,
+  Sky Islands, Crystal Wastes, Cosmic Highway (then repeats). Same system, different colors,
+  sky objects and roadside props.
 - **World leaderboard (v0.2):** one entry per player (their best), top 25, plus a "This device"
   tab (10 best local runs). You enter a name after your first run, and new personal bests
   upload by themselves. If you're offline, scores wait and upload later.
@@ -96,6 +105,11 @@ Speeder/
 ### Key tuning knobs (top of the script in index.html)
 
 `CAM_H` camera height · `PLAYER_Z` how far ahead of the camera the speeder sits ·
+`SHIP_AT` where the speeder sits on screen · `SHIP_SCALE` / `SHIP_TILT` speeder size and tilt ·
+`SHIP` / `PYLON_MESH` the 3D models (lists of corner points and faces) ·
+`DRIFT` how hard turns push you outward · `kMaxAt()` how sharp bends get with distance ·
+`planCourse()` the bend and hill generator · `THEMES` zone colors, sky layers, props and hills ·
+`ZONE_LEN` zone length · `RAMP_*` / `JUMP_T` / `JUMP_G` ramp size and jump feel · `QUALS` what each graphics level turns on ·
 `FAR` draw distance · `TRACK_HALF` track half-width · `PATTERNS` which hazards appear and
 from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))`) ·
 steering sensitivity in `steerSensitivity()`.
@@ -105,7 +119,7 @@ steering sensitivity in `steerSensitivity()`.
 Local storage keys: `speeder.settings`, `speeder.best`, `speeder.local`, `speeder.pid` (player ID), `speeder.onlineBest`, `speeder.pending`.
 
 `window.SPEEDER` in the browser console exposes game state (e.g. `SPEEDER.G.d = 3000`
-jumps ahead in difficulty, `SPEEDER.G.invuln = 999` makes you invincible).
+jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics, `SPEEDER.G.invuln = 999` makes you invincible).
 
 ---
 
@@ -123,7 +137,14 @@ jumps ahead in difficulty, `SPEEDER.G.invuln = 999` makes you invincible).
 | Leaderboard | Global, in ORBit's Firebase project | Adrian chose global. Reusing ORBit's project avoids a new account and setup. |
 | Leaderboard entries | One per player, can only go up | Shows each person once and keeps the database small. |
 | Game over restart | "Ride again" button, not tap-anywhere | Stops accidental restarts while typing a name. |
-| Camera | Height 4.0, speeder ~77% down the screen | Leaves room for the thumb and keeps the speeder at about a fifth of the screen width in portrait. |
+| Camera | Height 2.6, speeder ~60% down the screen (v0.4) | Kids' thumbs covered the speeder at 77%. Higher + closer keeps it visible and feels more like driving. Trade-off: road ahead is a little more squeezed. |
+| Speeder and pylons | Small homemade 3D models (flat-shaded faces) | Lets the speeder really roll and turn, without adding a 3D library. |
+| Scenery vs road | Scenery drawn with the nearer road cut out | Stops buildings appearing on top of raised roads. |
+| Curves | Bend the drawing, not the gameplay | Everything is drawn through one per-frame bend table, so rails, hazards, gates and bullets can't misalign, and collisions didn't change. |
+| Hills | Track only lifts above the ground; never hides behind a crest | Keeps hazards visible at all times. |
+| Scenery | Recycled pool, drawn under gameplay, kept off the track | Rich world without hurting readability or frame rate. |
+| Zones | One shared system, 5 color/prop mixes that blend | Variety without five separate environments to maintain. |
+| Graphics quality | Auto steps down if the frame rate drops | Keeps older phones smooth without asking players to tune anything. |
 
 ---
 
@@ -131,7 +152,6 @@ jumps ahead in difficulty, `SPEEDER.G.invuln = 999` makes you invincible).
 
 - Player accounts or logins (the leaderboard uses a random ID saved on each device)
 - A second button (boost, bomb, etc.). One input is the design.
-- Curves/hills in the track (in the backlog; adds a lot of complexity)
 - Native app store builds
 
 ---
@@ -145,9 +165,16 @@ jumps ahead in difficulty, `SPEEDER.G.invuln = 999` makes you invincible).
   instructions for anything in the command line, and jargon explained when used.
 - **Working style**: Prototype-first. Explores visually before committing to a build.
   Appreciates being challenged and getting suggestions, not just "yes and."
+- **Deploying**: Adrian wants Claude to always publish updates to GitHub Pages for him at the
+  end of each change (repo `AZ-build/speeder`, https://az-build.github.io/speeder/).
 
 ---
 
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**Next session focus (after v0.4.0):**
+- Playtest with the kids: does the thumb still cover the speeder? Is it too big? Are hazards
+  still readable at top speed with the higher camera?
+- Possible next art pass: ramps, zone-specific hazards, speeder color skins.

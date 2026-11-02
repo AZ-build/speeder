@@ -71,6 +71,7 @@
     box-sizing: border-box;
   }
   .hidden { display: none !important; }
+  .spacer { flex: 1 1 auto; min-height: 150px; }
   #title {
     justify-content: flex-start;
     padding-top: calc(env(safe-area-inset-top, 0px) + 11vh);
@@ -261,6 +262,7 @@
   }
   .setting.col { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 0; }
   .setting small { color: #9c88d8; font-size: 12px; margin-left: 4px; }
+  .btn.chip { min-width: 92px; padding: 8px 14px; font-size: 13px; flex: none; }
   .switch {
     -webkit-appearance: none;
     appearance: none;
@@ -387,7 +389,9 @@
     <div><b>Drag</b> anywhere to steer</div>
     <div>Your guns fire <b>on their own</b></div>
     <div>Drive through a <b>gate</b> to take its power</div>
+    <div>Hit a <b>ramp</b> to jump</div>
   </div>
+  <div class="spacer"></div>
   <div class="cta">Touch to ride</div>
   <div class="best" id="titleBest"></div>
   <div class="row ui">
@@ -437,6 +441,8 @@
     <div class="setting"><label for="setEngine">Engine hum</label><input type="checkbox" id="setEngine" class="switch"></div>
     <div class="setting"><label for="setHaptics">Vibration <small>Android only</small></label><input type="checkbox" id="setHaptics" class="switch"></div>
     <div class="setting"><label for="setSens">Steering speed <small id="sensLabel"></small></label><input type="range" id="setSens" min="50" max="160" step="10"></div>
+    <div class="setting"><label for="setGfx">Graphics <small id="gfxNote"></small></label><button class="btn chip" id="setGfx" type="button">Auto</button></div>
+    <div class="setting"><label for="setShake">Screen shake</label><input type="checkbox" id="setShake" class="switch"></div>
     <div class="setting col"><label for="setName">Leaderboard name</label><input id="setName" class="name-input" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="YOUR NAME" enterkeyhint="done"></div>
     <button class="btn primary" id="settingsDone">Done</button>
   </div>
@@ -469,16 +475,24 @@ const ctx = cvs.getContext('2d');
 const $ = (id) => document.getElementById(id);
 
 // ---------- Tuning ----------
-const CAM_H = 4.0;          // camera height above the ground
+const CAM_H = 2.6;          // camera height above the ground (lower = more 'in the seat')
 const PLAYER_Z = 9;         // how far in front of the camera the speeder sits
+const SHIP_AT = 0.6;        // where the speeder sits on screen (0 = top, 1 = bottom), portrait
 const FAR = 240;            // draw distance
 const SPAWN_AHEAD = 250;    // new things appear this far ahead
 const TRACK_HALF = 5.5;     // half-width of the track
 const PLAYER_HALF_W = 0.3;  // collision half-width (a little forgiving)
 const MAX_HULL = 3;
+// Jumps: ramps on the track launch you into the air.
+const RAMP_H = 0.8;          // height of the ramp's top edge
+const RAMP_LEN = 6;          // how long the ramp is
+const RAMP_W = 3.6;          // how wide the ramp is
+const JUMP_T = 0.95;         // seconds in the air
+const JUMP_G = 16;           // gravity while airborne
+const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.2.0';
+const VERSION = '0.4.0';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -529,6 +543,7 @@ const PATTERNS = [
   { name: 'turrets', min: 0.8, w: 1.6 },
   { name: 'rams',    min: 1.1, w: 1.8 },
   { name: 'mixed',   min: 2.0, w: 2.2 },
+  { name: 'jump',    min: 0.15, w: 2.8 },
 ];
 
 // ---------- Small helpers ----------
@@ -564,7 +579,7 @@ function vibrate(p) {
 }
 
 // ---------- Settings (saved on this device) ----------
-const SETTINGS_DEFAULT = { sound: true, volume: 70, engine: true, haptics: true, sens: 100, name: '' };
+const SETTINGS_DEFAULT = { sound: true, volume: 70, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true };
 function loadSettings() {
   let saved = {};
   try { saved = JSON.parse(storeGet('speeder.settings') || '{}') || {}; } catch (e) { saved = {}; }
@@ -574,65 +589,518 @@ function loadSettings() {
 const SET = loadSettings();
 function saveSettings() { storeSet('speeder.settings', JSON.stringify(SET)); }
 
+// ---------- Graphics quality ----------
+// Auto starts on High and steps down by itself if the phone can't keep up.
+const QUALS = [
+  { name: 'Low',  dprCap: 1,   scn: 0.5,  grid: 5, streaks: 26, trails: false, nebula: false },
+  { name: 'Med',  dprCap: 1.5, scn: 0.75, grid: 7, streaks: 36, trails: true,  nebula: true },
+  { name: 'High', dprCap: 2,   scn: 1,    grid: 9, streaks: 46, trails: true,  nebula: true },
+];
+let qLevel = SET.gfx === 'low' ? 0 : 2;
+let QUAL = QUALS[qLevel];
+
 // ---------- Screen + projection ----------
-let W = 0, H = 0, DPR = 1, HORIZON = 0, FOCAL = 1, CX = 0, SAFE_TOP = 0;
-let skyGrad, groundGrad, vlineGrad, hazeGrad, sunCanvas, sunR = 100;
+let W = 0, H = 0, DPR = 1, HORIZON = 0, FOCAL = 1, BASE_FOCAL = 1, CX = 0, SAFE_TOP = 0, SHIP_Y = 0;
+let HZ = 0;            // where the horizon really is this frame (it dips and rises with hills)
+let VIEW_Z = PLAYER_Z; // camera-to-speeder distance this frame (shrinks a bit at speed = wider view)
+let VIEW_D = 0;        // camera position along the track this frame
+let ROLL = 0;          // camera lean in turns (radians)
+const OS = 90;         // overscan, so leaning the camera never shows the canvas edge
 const cam = { x: 0 };
 
 function resize() {
-  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  DPR = Math.min(window.devicePixelRatio || 1, QUAL.dprCap);
   W = window.innerWidth;
   H = window.innerHeight;
   cvs.width = Math.round(W * DPR);
   cvs.height = Math.round(H * DPR);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  HORIZON = Math.round(H * 0.24);
+  const portrait = H > W;
+  HORIZON = Math.round(H * (portrait ? 0.2 : 0.22));
   CX = W / 2;
-  // Put the speeder's ground point ~3/4 of the way down (leaves room for your thumb).
-  FOCAL = ((H * (H > W ? 0.77 : 0.72)) - HORIZON) * PLAYER_Z / CAM_H;
+  // Put the speeder's ground point a bit above the lower third, so the bottom of the
+  // screen is free for your thumb and the speeder never hides under it.
+  BASE_FOCAL = ((H * (portrait ? SHIP_AT : SHIP_AT + 0.04)) - HORIZON) * PLAYER_Z / CAM_H;
+  FOCAL = BASE_FOCAL;
+  SHIP_Y = HORIZON + CAM_H * BASE_FOCAL / PLAYER_Z;
   SAFE_TOP = $('safe').offsetHeight || 0;
   buildBackdrop();
 }
 
-// world -> screen
-function sx(x, z) { return CX + (x - cam.x) * FOCAL / z; }
-function sy(y, z) { return HORIZON + (CAM_H - y) * FOCAL / z; }
+/* ---------- Track shape: curves and hills ----------
+   Gameplay never leaves "track space": x = across the track, d = distance along it.
+   Collisions, steering and spawning all work in that space, exactly as before.
+   Only the drawing bends: every frame we build a small table of how far the track
+   has curved sideways (bendX) and up/down (bendY) at each distance ahead, and the
+   projection functions sx/sy add those offsets. So rails, obstacles, gates,
+   bullets and the speeder can never drift out of line with each other. */
+const SEG = 3;                                 // table spacing, in world units
+const NS = Math.ceil((FAR + 90) / SEG) + 1;    // table length
+const bendX = new Float32Array(NS);
+const bendY = new Float32Array(NS);
+let bendXEnd = 0, bendYEnd = 0;
+let HC = 0;          // track height under the camera (above the ground plane)
+let PITCH = 0;       // camera tilt from climbing/descending
+let HEADING = 0;     // how far the road has turned since the start (radians), scrolls the sky
+let CAM_LIFT = 0;    // the camera rises a little when you jump
+const AIM_Z = 40;    // the camera looks a little into each turn
+const DRIFT = 0.06;  // how strongly turns push the speeder outward
+const curves = [];   // { d0, len, k }   k = curvature (+ bends right)
+const hills = [];    // { d0, len, amp } amp = how high the track lifts off the ground
+let curveEnd = 0, hillEnd = 0, planHeading = 0;
+
+// 0 -> 1 -> 0 with gentle starts and ends, so bends and hills ease in and out
+function bump(t) { return 0.5 - 0.5 * Math.cos(t * 6.283185307); }
+
+function curvAt(d) {
+  for (let i = 0; i < curves.length; i++) {
+    const c = curves[i];
+    if (d < c.d0 + c.len) return d < c.d0 ? 0 : c.k * bump((d - c.d0) / c.len);
+  }
+  return 0;
+}
+function hillAt(d) {
+  for (let i = 0; i < hills.length; i++) {
+    const h = hills[i];
+    if (d < h.d0 + h.len) return d < h.d0 ? 0 : h.amp * bump((d - h.d0) / h.len);
+  }
+  return 0;
+}
+// the strongest bend the course will use at this distance (bends get sharper as you go)
+// true from the start of a run until you leave the game-over screen (the title has its own calm course)
+function inRun() { return G.state === 'play' || G.state === 'dying' || G.state === 'over'; }
+function kMaxAt(d) {
+  const lvl = inRun() ? d / 1000 : 0.4;
+  return 0.001 + Math.min(lvl, 5) * 0.00055;
+}
+function pushCurve(len, k) {
+  curves.push({ d0: curveEnd, len, k });
+  curveEnd += len;
+  planHeading += k * len * 0.5;
+}
+function pushHill(len, amp) {
+  hills.push({ d0: hillEnd, len, amp });
+  hillEnd += len;
+}
+
+function planCourse(upTo) {
+  while (curveEnd < upTo) {
+    if (curveEnd < 170) { pushCurve(170 - curveEnd, 0); continue; }
+    const lvl = inRun() ? curveEnd / 1000 : 0.4;
+    const kMax = kMaxAt(curveEnd);
+    if (Math.random() < Math.max(0.12, 0.36 - lvl * 0.05)) { pushCurve(rand(70, 170), 0); continue; }
+    // Lean toward turning back the way we came, so the sun is usually somewhere ahead.
+    let dir = Math.random() < 0.5 ? -1 : 1;
+    if ((Math.abs(planHeading) > 0.35 && Math.random() < 0.8) || Math.abs(planHeading) > 1) dir = -Math.sign(planHeading);
+    if (lvl > 2 && Math.random() < 0.12) {
+      pushCurve(rand(480, 640), dir * kMax * 1.2);   // a big sweeping bend
+    } else {
+      pushCurve(rand(200, 420), dir * rand(0.45, 1) * kMax);
+      if (Math.random() < 0.3 + Math.min(lvl, 4) * 0.06) {
+        pushCurve(rand(200, 360), -dir * rand(0.5, 1) * kMax);   // S-curve
+      }
+    }
+  }
+  while (hillEnd < upTo) {
+    const th = THEMES[zoneThemeAt(hillEnd)].hills;
+    if (hillEnd < 420 || Math.random() > th.chance) { pushHill(rand(120, 320), 0); continue; }
+    const lvl = inRun() ? hillEnd / 1000 : 0.5;
+    const amp = rand(th.amp[0], th.amp[1]) * Math.min(1, 0.45 + lvl * 0.3);
+    // long enough that the climb is never steeper than about 1 in 18
+    pushHill(Math.max(rand(260, 480), amp * 55), amp);
+  }
+  // forget the parts of the course we've already passed
+  while (curves.length > 1 && curves[0].d0 + curves[0].len < VIEW_D - 30) curves.shift();
+  while (hills.length > 1 && hills[0].d0 + hills[0].len < VIEW_D - 30) hills.shift();
+}
+
+function resetCourse() {
+  curves.length = 0; hills.length = 0;
+  curveEnd = 0; hillEnd = 0; planHeading = 0; HEADING = 0;
+}
+
+function lx(z) {
+  const f = z / SEG;
+  if (f <= 0) return 0;
+  if (f >= NS - 1) return bendX[NS - 1] + (z - (NS - 1) * SEG) * bendXEnd;
+  const i = f | 0;
+  const a = bendX[i];
+  return a + (bendX[i + 1] - a) * (f - i);
+}
+function ly(z) {
+  const f = z / SEG;
+  if (f <= 0) return 0;
+  if (f >= NS - 1) return bendY[NS - 1] + (z - (NS - 1) * SEG) * bendYEnd;
+  const i = f | 0;
+  const a = bendY[i];
+  return a + (bendY[i + 1] - a) * (f - i);
+}
+
+// world -> screen. y is height above the track surface.
+function sx(x, z) { return CX + (x + lx(z) - cam.x) * FOCAL / z; }
+function sy(y, z) { return HORIZON + (CAM_H + CAM_LIFT - y - ly(z)) * FOCAL / z; }
+// height above the flat ground plane (for scenery; the track can lift above it)
+function gy(y, z) { return HORIZON + (CAM_H + CAM_LIFT + HC + z * PITCH - y) * FOCAL / z; }
 function fogA(z) { return clamp((FAR - z) / 60, 0, 1); }
+
+// Rebuild the bend table for this frame.
+function buildView(dt) {
+  const sp = clamp((G.speed - 32) / 58, 0, 1);
+  // Wider view at speed: the speeder stays put on screen, the world ahead stretches away.
+  const k = 1 - 0.13 * sp - 0.05 * G.kick;
+  VIEW_Z = PLAYER_Z * k;
+  FOCAL = BASE_FOCAL * k;
+  VIEW_D = G.d - VIEW_Z;
+  CAM_LIFT = player.y * 0.55;
+  planCourse(VIEW_D + NS * SEG + 60);
+
+  let lat = 0, slope = 0;
+  bendX[0] = 0;
+  for (let i = 1; i < NS; i++) {
+    const kc = curvAt(VIEW_D + (i - 0.5) * SEG);
+    lat += slope * SEG + 0.5 * kc * SEG * SEG;
+    slope += kc * SEG;
+    bendX[i] = lat;
+  }
+  const aim = lx(AIM_Z) / AIM_Z;
+  for (let i = 1; i < NS; i++) bendX[i] -= i * SEG * aim;
+  bendXEnd = slope - aim;
+
+  const h0 = hillAt(VIEW_D);
+  HC = h0;
+  PITCH = (hillAt(G.d) - h0) / VIEW_Z;
+  bendY[0] = 0;
+  let prevY = 0;
+  for (let i = 1; i < NS; i++) {
+    const z = i * SEG;
+    let v = hillAt(VIEW_D + z) - h0 - z * PITCH;
+    let Y = (CAM_H - v) / z;
+    // Never let the road ahead dip out of sight behind a crest: hazards must stay visible.
+    if (i > 1) {
+      const lim = prevY - 0.35 * CAM_H * SEG / (z * (z - SEG));
+      if (Y > lim) { Y = lim; v = CAM_H - Y * z; }
+    }
+    prevY = Y;
+    bendY[i] = v;
+  }
+  bendYEnd = (bendY[NS - 1] - bendY[NS - 2]) / SEG;
+  HZ = HORIZON + PITCH * FOCAL;
+
+  // camera lean into turns + the sky turning with the road
+  const kp = curvAt(G.d);
+  if (dt > 0) {
+    HEADING += kp * G.speed * dt;
+    const rollT = clamp(-kp * G.speed * 0.55, -0.075, 0.075);
+    ROLL += (rollT - ROLL) * (1 - Math.exp(-dt * 3));
+  }
+  zoneMix(G.d);
+}
+
+/* ---------- Zones / themes ----------
+   One shared world system; each zone is just a different mix of colors,
+   backdrop layers and roadside props, and they blend into each other. */
+const ZONE_LEN = 1400, ZONE_FADE = 360;
+const THEMES = [
+  {
+    name: 'NEON DESERT',
+    sky: ['#05010f', '#260845', '#7a1263', '#ff2d95'],
+    ground: ['#2a0838', '#140424', '#07010f'],
+    grid: [255, 60, 220], road: [30, 8, 58], rail: [41, 243, 255], accent: [255, 43, 214], haze: [255, 60, 170],
+    mtnFill: [[28, 5, 51], [18, 2, 34]], mtnEdge: [[255, 43, 214], [41, 243, 255]],
+    propFill: [22, 5, 40], propEdge: [255, 70, 210],
+    layers: { sun: 1, moon: 0, planet: 0, mtn: 1, skyline: 0, isles: 0, clouds: 0, nebula: 0.25, stars: 0.75, grid: 1, gstars: 0 },
+    props: { peak: 4, mesa: 2, monolith: 1.2, antenna: 0.8, crystal: 0.4, arch: 0.15 },
+    hills: { chance: 0.3, amp: [1.5, 5] },
+  },
+  {
+    name: 'NEON CITY',
+    sky: ['#02020c', '#0d0a3a', '#3a1470', '#c22a9a'],
+    ground: ['#140b34', '#0a0620', '#04020c'],
+    grid: [130, 100, 255], road: [22, 14, 60], rail: [41, 243, 255], accent: [255, 60, 200], haze: [160, 80, 255],
+    mtnFill: [[20, 10, 52], [14, 6, 38]], mtnEdge: [[150, 90, 255], [41, 243, 255]],
+    propFill: [12, 8, 34], propEdge: [140, 110, 255],
+    layers: { sun: 0.7, moon: 0, planet: 0, mtn: 0.3, skyline: 1, isles: 0, clouds: 0, nebula: 0.3, stars: 0.35, grid: 1, gstars: 0 },
+    props: { tower: 7, antenna: 2, arch: 0.45, monolith: 0.4 },
+    hills: { chance: 0.4, amp: [5, 10] },
+  },
+  {
+    name: 'SKY ISLANDS',
+    sky: ['#0a0228', '#3b0f6b', '#a2378f', '#ffb36b'],
+    ground: ['#6a3a88', '#341458', '#14062c'],
+    grid: [255, 170, 230], road: [34, 10, 64], rail: [41, 243, 255], accent: [255, 190, 90], haze: [255, 180, 210],
+    mtnFill: [[60, 22, 90], [40, 14, 70]], mtnEdge: [[255, 160, 220], [255, 200, 120]],
+    propFill: [38, 14, 60], propEdge: [255, 170, 220],
+    layers: { sun: 1, moon: 0, planet: 0, mtn: 0.45, skyline: 0, isles: 1, clouds: 1, nebula: 0.3, stars: 0.35, grid: 0.18, gstars: 0 },
+    props: { island: 6, monolith: 1, peak: 0.8, arch: 0.25 },
+    hills: { chance: 0.85, amp: [9, 16] },
+  },
+  {
+    name: 'CRYSTAL WASTES',
+    sky: ['#010814', '#062a4a', '#0d6e8a', '#5ef0d0'],
+    ground: ['#0a2a40', '#05121f', '#020810'],
+    grid: [60, 230, 255], road: [6, 30, 52], rail: [255, 60, 210], accent: [140, 255, 230], haze: [80, 240, 220],
+    mtnFill: [[6, 30, 52], [4, 20, 38]], mtnEdge: [[90, 240, 255], [255, 80, 220]],
+    propFill: [6, 26, 44], propEdge: [110, 250, 240],
+    layers: { sun: 0, moon: 1, planet: 0, mtn: 1, skyline: 0, isles: 0, clouds: 0, nebula: 0.5, stars: 0.9, grid: 0.8, gstars: 0.3 },
+    props: { crystal: 6, peak: 2, beam: 1.2, monolith: 0.6 },
+    hills: { chance: 0.35, amp: [2, 6] },
+  },
+  {
+    name: 'COSMIC HIGHWAY',
+    sky: ['#000004', '#090320', '#24104d', '#6a2a9e'],
+    ground: ['#0c0524', '#05021a', '#000008'],
+    grid: [170, 120, 255], road: [20, 10, 50], rail: [41, 243, 255], accent: [255, 210, 60], haze: [140, 90, 255],
+    mtnFill: [[16, 6, 40], [10, 4, 28]], mtnEdge: [[170, 120, 255], [41, 243, 255]],
+    propFill: [14, 6, 34], propEdge: [190, 140, 255],
+    layers: { sun: 0, moon: 0, planet: 1, mtn: 0, skyline: 0, isles: 0, clouds: 0, nebula: 1, stars: 1, grid: 0.4, gstars: 1 },
+    props: { poly: 4, monolith: 3, arch: 0.8, beam: 1 },
+    hills: { chance: 0.6, amp: [6, 14] },
+  },
+];
+const LAYER_KEYS = Object.keys(THEMES[0].layers);
+const ZONE = { a: 0, b: 0, t: 0, idx: 0 };
+const PAL = { L: {}, grid: [0, 0, 0], road: [0, 0, 0], rail: [0, 0, 0], accent: [0, 0, 0], haze: [0, 0, 0],
+  mtnFill0: [0, 0, 0], mtnFill1: [0, 0, 0], mtnEdge0: [0, 0, 0], mtnEdge1: [0, 0, 0], propFill: [0, 0, 0], propEdge: [0, 0, 0] };
+
+function zoneThemeAt(d) {
+  if (!inRun()) return 0;
+  return Math.floor(Math.max(0, d) / ZONE_LEN) % THEMES.length;
+}
+function mix3(out, a, b, t) {
+  out[0] = a[0] + (b[0] - a[0]) * t;
+  out[1] = a[1] + (b[1] - a[1]) * t;
+  out[2] = a[2] + (b[2] - a[2]) * t;
+}
+function rgba(c, a) {
+  return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + (a < 0 ? 0 : a > 1 ? 1 : a).toFixed(3) + ')';
+}
+function zoneMix(d) {
+  const zi = inRun() ? Math.floor(Math.max(0, d) / ZONE_LEN) : 0;
+  const b = zi % THEMES.length;
+  const a = zi > 0 ? (zi - 1) % THEMES.length : b;
+  const local = d - zi * ZONE_LEN;
+  let t = clamp(local / ZONE_FADE, 0, 1);
+  t = t * t * (3 - 2 * t);
+  ZONE.a = a; ZONE.b = b; ZONE.t = a === b ? 1 : t; ZONE.idx = zi;
+  const A = THEMES[a], B = THEMES[b], tt = ZONE.t;
+  for (const k of LAYER_KEYS) PAL.L[k] = A.layers[k] + (B.layers[k] - A.layers[k]) * tt;
+  mix3(PAL.grid, A.grid, B.grid, tt);
+  mix3(PAL.road, A.road, B.road, tt);
+  mix3(PAL.rail, A.rail, B.rail, tt);
+  mix3(PAL.accent, A.accent, B.accent, tt);
+  mix3(PAL.haze, A.haze, B.haze, tt);
+  mix3(PAL.mtnFill0, A.mtnFill[0], B.mtnFill[0], tt);
+  mix3(PAL.mtnFill1, A.mtnFill[1], B.mtnFill[1], tt);
+  mix3(PAL.mtnEdge0, A.mtnEdge[0], B.mtnEdge[0], tt);
+  mix3(PAL.mtnEdge1, A.mtnEdge[1], B.mtnEdge[1], tt);
+  mix3(PAL.propFill, A.propFill, B.propFill, tt);
+  mix3(PAL.propEdge, A.propEdge, B.propEdge, tt);
+}
 
 // ---------- Backdrop (sky, sun, mountains, stars) ----------
 let stars = [];
 const mountainLayers = [];
+const themeGrads = [];
+const SPR = {};       // pre-drawn sprites (drawn once, stamped every frame: cheap)
+let trailGrad = null;
+let sunCanvas = null, sunR = 100;
 
 function makeMountainPoints(n, rough) {
   const pts = [];
   const first = rand(0.2, 0.6);
   for (let i = 0; i <= n; i++) {
-    let h = i === 0 || i === n ? first : rand(0.1, 1) * (Math.random() < rough ? 1 : 0.55);
-    pts.push({ x: i / n, h });
+    let h = i === 0 || i === n ? first : rand(0.1, 1) * (Math.random() < rough ? 1 : 0.5);
+    if (i > 0 && i < n && Math.random() < 0.35) h *= 0.35;   // deep notches = jagged
+    pts.push({ x: (i + (i > 0 && i < n ? rand(-0.35, 0.35) : 0)) / n, h });
   }
   return pts;
 }
 
+function makeCanvas(w, h) {
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(w));
+  c.height = Math.max(1, Math.round(h));
+  return c;
+}
+
+// A soft round glow, drawn once per color.
+function glowSprite(rgb) {
+  const c = makeCanvas(64, 64);
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.12, 'rgba(' + rgb + ',0.9)');
+  grad.addColorStop(0.45, 'rgba(' + rgb + ',0.25)');
+  grad.addColorStop(1, 'rgba(' + rgb + ',0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 64);
+  return c;
+}
+function glow(spr, x, y, rx, ry, a) {
+  if (a <= 0.01 || rx < 0.5) return;
+  ctx.globalAlpha = a;
+  ctx.drawImage(spr, x - rx, y - ry, rx * 2, ry * 2);
+}
+
+function buildSprites() {
+  if (!SPR.cyan) {
+    SPR.cyan = glowSprite('41,243,255');
+    SPR.pink = glowSprite('255,43,214');
+    SPR.orange = glowSprite('255,150,40');
+    SPR.red = glowSprite('255,43,78');
+    SPR.white = glowSprite('230,230,255');
+    SPR.yellow = glowSprite('255,210,60');
+    SPR.violet = glowSprite('170,110,255');
+    SPR.teal = glowSprite('110,255,230');
+  }
+  const r = sunR;
+  // moon (crystal zone)
+  {
+    const size = r * 2.2, c = makeCanvas(size * DPR, size * DPR), g = c.getContext('2d');
+    g.scale(DPR, DPR);
+    const m = size / 2, mr = r * 0.55;
+    const gl = g.createRadialGradient(m, m, mr * 0.9, m, m, m);
+    gl.addColorStop(0, 'rgba(120, 255, 240, 0.35)');
+    gl.addColorStop(1, 'rgba(120, 255, 240, 0)');
+    g.fillStyle = gl; g.fillRect(0, 0, size, size);
+    const body = g.createLinearGradient(m - mr, m - mr, m + mr, m + mr);
+    body.addColorStop(0, '#effffb'); body.addColorStop(0.6, '#8ff0ea'); body.addColorStop(1, '#2a7fa8');
+    g.fillStyle = body; g.beginPath(); g.arc(m, m, mr, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(30, 90, 130, 0.35)';
+    for (const [cx, cy, cr] of [[-0.3, -0.2, 0.18], [0.25, 0.15, 0.24], [-0.05, 0.4, 0.12], [0.35, -0.35, 0.1]]) {
+      g.beginPath(); g.arc(m + cx * mr, m + cy * mr, cr * mr, 0, Math.PI * 2); g.fill();
+    }
+    SPR.moon = c; SPR.moonSize = size;
+  }
+  // ringed planet (cosmic zone)
+  {
+    const size = r * 2.6, c = makeCanvas(size * DPR, size * DPR), g = c.getContext('2d');
+    g.scale(DPR, DPR);
+    const m = size / 2, pr = r * 0.62;
+    const gl = g.createRadialGradient(m, m, pr * 0.8, m, m, m * 0.95);
+    gl.addColorStop(0, 'rgba(180, 90, 255, 0.35)');
+    gl.addColorStop(1, 'rgba(180, 90, 255, 0)');
+    g.fillStyle = gl; g.fillRect(0, 0, size, size);
+    g.save(); g.translate(m, m); g.rotate(-0.35);
+    const ringBack = () => { g.beginPath(); g.ellipse(0, 0, pr * 1.75, pr * 0.42, 0, Math.PI, Math.PI * 2); };
+    const ringFront = () => { g.beginPath(); g.ellipse(0, 0, pr * 1.75, pr * 0.42, 0, 0, Math.PI); };
+    g.lineWidth = pr * 0.16; g.strokeStyle = 'rgba(255, 190, 120, 0.55)'; ringBack(); g.stroke();
+    const body = g.createLinearGradient(0, -pr, 0, pr);
+    body.addColorStop(0, '#ffd27a'); body.addColorStop(0.35, '#ff5fa8'); body.addColorStop(0.7, '#7a2bd6'); body.addColorStop(1, '#250a5a');
+    g.fillStyle = body; g.beginPath(); g.arc(0, 0, pr, 0, Math.PI * 2); g.fill();
+    g.globalAlpha = 0.25; g.fillStyle = '#ffffff';
+    for (let i = -3; i <= 3; i++) g.fillRect(-pr, i * pr * 0.22, pr * 2, pr * 0.05);
+    g.globalAlpha = 1;
+    g.globalCompositeOperation = 'destination-in';
+    g.beginPath(); g.rect(-size, -size, size * 2, size * 2); g.fill();
+    g.globalCompositeOperation = 'source-over';
+    g.lineWidth = pr * 0.16; g.strokeStyle = 'rgba(255, 220, 160, 0.85)'; ringFront(); g.stroke();
+    g.lineWidth = pr * 0.04; g.strokeStyle = 'rgba(255, 255, 255, 0.7)'; ringFront(); g.stroke();
+    g.restore();
+    SPR.planet = c; SPR.planetSize = size;
+  }
+  // nebula clouds (soft colored blobs across the sky)
+  {
+    const w = W * 1.6, h = HORIZON * 1.1, c = makeCanvas(w, h), g = c.getContext('2d');
+    const cols = ['170,60,255', '41,200,255', '255,43,180', '90,60,255'];
+    for (let i = 0; i < 9; i++) {
+      const x = rand(0, w), y = rand(0, h * 0.8), rr = rand(h * 0.25, h * 0.6);
+      const gr = g.createRadialGradient(x, y, 0, x, y, rr);
+      const col = cols[i % cols.length];
+      gr.addColorStop(0, 'rgba(' + col + ',0.28)');
+      gr.addColorStop(1, 'rgba(' + col + ',0)');
+      g.fillStyle = gr;
+      // draw wrapped so the strip tiles seamlessly
+      for (const ox of [-w, 0, w]) g.fillRect(x + ox - rr, y - rr, rr * 2, rr * 2);
+    }
+    SPR.nebula = c;
+  }
+  // city skyline strip
+  {
+    const w = Math.round(W * 1.5), h = Math.round(H * 0.17), c = makeCanvas(w * DPR, h * DPR), g = c.getContext('2d');
+    g.scale(DPR, DPR);
+    let x = 0;
+    const lights = [];
+    g.fillStyle = '#0a0626';
+    while (x < w) {
+      const bw = rand(10, 34), bh = h * (Math.random() < 0.15 ? rand(0.6, 1) : rand(0.18, 0.55));
+      g.fillRect(x, h - bh, bw, bh);
+      if (Math.random() < 0.3) g.fillRect(x + bw * 0.45, h - bh - rand(6, 16), 1.5, 16);
+      for (let wy = h - bh + 4; wy < h - 3; wy += 5) {
+        for (let wx = x + 3; wx < x + bw - 3; wx += 4) if (Math.random() < 0.22) lights.push(wx, wy);
+      }
+      lights.push(-1, x, h - bh, bw);
+      x += bw + rand(0, 4);
+    }
+    for (let i = 0; i < lights.length;) {
+      if (lights[i] === -1) {
+        g.fillStyle = Math.random() < 0.5 ? 'rgba(255, 60, 210, 0.8)' : 'rgba(41, 243, 255, 0.7)';
+        g.fillRect(lights[i + 1], lights[i + 2], lights[i + 3], 1.2);
+        i += 4;
+      } else {
+        g.fillStyle = Math.random() < 0.7 ? 'rgba(255, 200, 120, 0.75)' : 'rgba(120, 220, 255, 0.8)';
+        g.fillRect(lights[i], lights[i + 1], 1.6, 1.6);
+        i += 2;
+      }
+    }
+    SPR.skyline = c; SPR.skylineW = w; SPR.skylineH = h;
+  }
+  // a far-off floating island with a waterfall
+  {
+    const w = r * 1.3, h = r * 1.5, c = makeCanvas(w * DPR, h * DPR), g = c.getContext('2d');
+    g.scale(DPR, DPR);
+    const top = h * 0.18;
+    const wf = g.createLinearGradient(0, top, 0, h);
+    wf.addColorStop(0, 'rgba(140, 240, 255, 0.85)');
+    wf.addColorStop(1, 'rgba(140, 240, 255, 0)');
+    g.fillStyle = wf; g.fillRect(w * 0.62, top + 4, w * 0.05, h - top);
+    g.fillStyle = '#2a0f45';
+    g.beginPath();
+    g.moveTo(w * 0.05, top); g.lineTo(w * 0.95, top); g.lineTo(w * 0.8, top + h * 0.12);
+    g.lineTo(w * 0.55, top + h * 0.38); g.lineTo(w * 0.42, top + h * 0.3); g.lineTo(w * 0.2, top + h * 0.12);
+    g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(255, 160, 230, 0.7)'; g.lineWidth = 1.2; g.stroke();
+    g.fillStyle = '#1b0830';
+    g.fillRect(w * 0.3, top - h * 0.1, w * 0.06, h * 0.1);
+    g.fillRect(w * 0.48, top - h * 0.16, w * 0.05, h * 0.16);
+    g.fillStyle = 'rgba(120, 255, 200, 0.8)'; g.fillRect(w * 0.05, top - 1.5, w * 0.9, 1.5);
+    SPR.isle = c; SPR.isleW = w; SPR.isleH = h;
+  }
+  // cloud sea along the horizon
+  {
+    const w = Math.round(W * 1.5), h = Math.round(H * 0.06), c = makeCanvas(w, h), g = c.getContext('2d');
+    for (let i = 0; i < 45; i++) {
+      const x = rand(0, w), y = rand(h * 0.35, h), rr = rand(h * 0.3, h * 0.8);
+      g.fillStyle = 'rgba(255, ' + (190 + (Math.random() * 50 | 0)) + ', 235, 0.09)';
+      for (const ox of [-w, 0, w]) { g.beginPath(); g.ellipse(x + ox, y, rr * 2.2, rr, 0, 0, Math.PI * 2); g.fill(); }
+    }
+    SPR.clouds = c; SPR.cloudsW = w; SPR.cloudsH = h;
+  }
+}
+
 function buildBackdrop() {
-  skyGrad = ctx.createLinearGradient(0, 0, 0, HORIZON);
-  skyGrad.addColorStop(0, '#05010f');
-  skyGrad.addColorStop(0.55, '#260845');
-  skyGrad.addColorStop(0.85, '#7a1263');
-  skyGrad.addColorStop(1, '#ff2d95');
-
-  groundGrad = ctx.createLinearGradient(0, HORIZON, 0, H);
-  groundGrad.addColorStop(0, '#2a0838');
-  groundGrad.addColorStop(0.25, '#140424');
-  groundGrad.addColorStop(1, '#07010f');
-
-  vlineGrad = ctx.createLinearGradient(0, HORIZON, 0, H);
-  vlineGrad.addColorStop(0, 'rgba(160, 70, 255, 0)');
-  vlineGrad.addColorStop(0.2, 'rgba(160, 70, 255, 0.35)');
-  vlineGrad.addColorStop(1, 'rgba(120, 90, 255, 0.65)');
-
-  hazeGrad = ctx.createLinearGradient(0, HORIZON - 2, 0, HORIZON + H * 0.09);
-  hazeGrad.addColorStop(0, 'rgba(255, 60, 170, 0.55)');
-  hazeGrad.addColorStop(1, 'rgba(255, 60, 170, 0)');
+  themeGrads.length = 0;
+  for (const th of THEMES) {
+    const sky = ctx.createLinearGradient(0, 0, 0, HORIZON);
+    sky.addColorStop(0, th.sky[0]);
+    sky.addColorStop(0.55, th.sky[1]);
+    sky.addColorStop(0.85, th.sky[2]);
+    sky.addColorStop(1, th.sky[3]);
+    const ground = ctx.createLinearGradient(0, HORIZON, 0, H);
+    ground.addColorStop(0, th.ground[0]);
+    ground.addColorStop(0.25, th.ground[1]);
+    ground.addColorStop(1, th.ground[2]);
+    const haze = ctx.createLinearGradient(0, HORIZON - H * 0.03, 0, HORIZON + H * 0.09);
+    const hz = th.haze.join(',');
+    haze.addColorStop(0, 'rgba(' + hz + ', 0)');
+    haze.addColorStop(0.25, 'rgba(' + hz + ', 0.5)');
+    haze.addColorStop(1, 'rgba(' + hz + ', 0)');
+    themeGrads.push({ sky, ground, haze });
+  }
+  trailGrad = ctx.createLinearGradient(0, SHIP_Y, 0, H);
+  trailGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+  trailGrad.addColorStop(0.15, 'rgba(41, 243, 255, 0.55)');
+  trailGrad.addColorStop(1, 'rgba(255, 43, 214, 0)');
 
   // Sun (drawn once to an offscreen canvas, with the classic stripes)
   sunR = Math.round(Math.min(W, H) * 0.3);
@@ -643,10 +1111,10 @@ function buildBackdrop() {
   const s = sunCanvas.getContext('2d');
   s.scale(DPR, DPR);
   const c = size / 2;
-  const glow = s.createRadialGradient(c, c, sunR * 0.8, c, c, sunR * 1.5);
-  glow.addColorStop(0, 'rgba(255, 60, 160, 0.45)');
-  glow.addColorStop(1, 'rgba(255, 60, 160, 0)');
-  s.fillStyle = glow;
+  const glowG = s.createRadialGradient(c, c, sunR * 0.8, c, c, sunR * 1.5);
+  glowG.addColorStop(0, 'rgba(255, 60, 160, 0.45)');
+  glowG.addColorStop(1, 'rgba(255, 60, 160, 0)');
+  s.fillStyle = glowG;
   s.fillRect(0, 0, size, size);
   const g = s.createLinearGradient(0, c - sunR, 0, c + sunR);
   g.addColorStop(0, '#fff3a0');
@@ -664,126 +1132,767 @@ function buildBackdrop() {
   }
 
   if (!stars.length) {
-    for (let i = 0; i < 80; i++) {
-      stars.push({ x: Math.random(), y: Math.random() * 0.92, r: Math.random() < 0.15 ? 2 : 1, tw: rand(0.5, 3), ph: rand(0, 6) });
+    for (let i = 0; i < 110; i++) {
+      stars.push({ x: Math.random(), y: Math.random() * 0.95, r: Math.random() < 0.15 ? 2 : 1, tw: rand(0.5, 3), ph: rand(0, 6) });
     }
-    mountainLayers.push({ pts: makeMountainPoints(18, 0.4), par: 3, hmax: 0.07, fill: '#1c0533', edge: 'rgba(255, 43, 214, 0.55)' });
-    mountainLayers.push({ pts: makeMountainPoints(12, 0.6), par: 6, hmax: 0.045, fill: '#120222', edge: 'rgba(41, 243, 255, 0.45)' });
+    mountainLayers.push({ pts: makeMountainPoints(26, 0.45), par: 3, hmax: 0.085, fill: 0, edge: 0, turn: 0.9 });
+    mountainLayers.push({ pts: makeMountainPoints(16, 0.6), par: 6, hmax: 0.05, fill: 1, edge: 1, turn: 1 });
   }
+  buildSprites();
 }
 
-function drawMountains(layer) {
+// wrap a value into [0, span)
+function wrap(v, span) { return ((v % span) + span) % span; }
+
+function drawMountains(layer, w) {
   const span = W * 1.5;
-  const off = (((-cam.x * layer.par) % span) + span) % span;
+  const off = wrap(-cam.x * layer.par - HEADING * FOCAL * layer.turn, span);
   const hmax = H * layer.hmax;
   ctx.beginPath();
-  ctx.moveTo(-10, HORIZON + 1);
-  for (let x0 = off - span; x0 < W + 1; x0 += span) {
-    for (const p of layer.pts) {
-      ctx.lineTo(x0 + p.x * span, HORIZON - p.h * hmax);
-    }
+  ctx.moveTo(-OS, HZ + 1);
+  for (let x0 = off - span * 2; x0 < W + OS; x0 += span) {
+    if (x0 + span < -OS) continue;
+    for (const p of layer.pts) ctx.lineTo(x0 + p.x * span, HZ - p.h * hmax);
   }
-  ctx.lineTo(W + 10, HORIZON + 1);
+  ctx.lineTo(W + OS, HZ + 1);
   ctx.closePath();
-  ctx.fillStyle = layer.fill;
+  ctx.globalAlpha = w;
+  ctx.fillStyle = rgba(layer.fill ? PAL.mtnFill1 : PAL.mtnFill0, 1);
   ctx.fill();
-  ctx.strokeStyle = layer.edge;
+  ctx.strokeStyle = rgba(layer.edge ? PAL.mtnEdge1 : PAL.mtnEdge0, 0.55);
   ctx.lineWidth = 1.5;
   ctx.stroke();
+  ctx.globalAlpha = 1;
 }
 
+// x position of something "at infinity" straight down the original road
+function skyX(par) { return CX - cam.x * 2 - Math.tan(clamp(HEADING, -1.3, 1.3)) * FOCAL * par; }
+
 function drawSky() {
-  ctx.fillStyle = skyGrad;
-  ctx.fillRect(0, 0, W, HORIZON + 1);
-  ctx.fillStyle = '#fff';
-  for (const s of stars) {
-    ctx.globalAlpha = 0.35 + 0.65 * Math.abs(Math.sin(G.t * s.tw + s.ph));
-    ctx.fillRect(s.x * W, s.y * HORIZON * 0.9, s.r, s.r);
+  const L = PAL.L;
+  const ga = themeGrads[ZONE.a], gb = themeGrads[ZONE.b];
+  ctx.save();
+  ctx.translate(0, HZ - HORIZON);
+  ctx.fillStyle = ga.sky;
+  ctx.fillRect(-OS, -OS - 200, W + OS * 2, HORIZON + OS + 202);
+  if (ZONE.t < 1 && ZONE.a !== ZONE.b) {
+    ctx.globalAlpha = ZONE.t;
+    ctx.fillStyle = gb.sky;
+    ctx.fillRect(-OS, -OS - 200, W + OS * 2, HORIZON + OS + 202);
+    ctx.globalAlpha = 1;
   }
-  ctx.globalAlpha = 1;
-  const size = sunR * 3;
-  ctx.drawImage(sunCanvas, CX - cam.x * 2 - size / 2, HORIZON - sunR * 0.3 - size / 2, size, size);
-  drawMountains(mountainLayers[0]);
-  drawMountains(mountainLayers[1]);
+  ctx.restore();
+
+  // nebula + stars
+  if (L.nebula > 0.02 && QUAL.nebula) {
+    const nw = SPR.nebula.width;
+    const off = wrap(-HEADING * FOCAL * 0.5 - cam.x, nw);
+    ctx.globalAlpha = L.nebula * (0.75 + 0.25 * Math.sin(G.t * 0.4));
+    for (let x0 = off - nw; x0 < W + OS; x0 += nw) ctx.drawImage(SPR.nebula, x0, HZ - HORIZON * 1.05, nw, HORIZON * 1.1);
+    ctx.globalAlpha = 1;
+  }
+  if (L.stars > 0.02) {
+    ctx.fillStyle = '#fff';
+    const soff = -HEADING * FOCAL * 0.3;
+    for (const s of stars) {
+      ctx.globalAlpha = L.stars * (0.35 + 0.65 * Math.abs(Math.sin(G.t * s.tw + s.ph)));
+      ctx.fillRect(wrap(s.x * W + soff, W + OS) - OS * 0.5, HZ - HORIZON + s.y * HORIZON * 0.92, s.r, s.r);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // celestial bodies
+  if (L.sun > 0.02) {
+    const size = sunR * 3;
+    ctx.globalAlpha = L.sun;
+    ctx.drawImage(sunCanvas, skyX(1) - size / 2, HZ - sunR * 0.3 - size / 2, size, size);
+    ctx.globalAlpha = 1;
+  }
+  if (L.moon > 0.02) {
+    const size = SPR.moonSize;
+    ctx.globalAlpha = L.moon;
+    ctx.drawImage(SPR.moon, skyX(1) + W * 0.18 - size / 2, HZ - HORIZON * 0.55 - size / 2, size, size);
+    ctx.globalAlpha = 1;
+  }
+  if (L.planet > 0.02) {
+    const size = SPR.planetSize;
+    ctx.globalAlpha = L.planet;
+    ctx.drawImage(SPR.planet, skyX(1) - W * 0.12 - size / 2, HZ - HORIZON * 0.5 - size / 2, size, size);
+    ctx.globalAlpha = 1;
+  }
+  // far floating islands drifting in the sky
+  if (L.isles > 0.02) {
+    const iw = SPR.isleW, ih = SPR.isleH;
+    const span = W * 1.7;
+    for (let i = 0; i < 3; i++) {
+      const sc = [0.55, 0.85, 0.4][i];
+      const x = wrap(span * (i * 0.37 + 0.1) - HEADING * FOCAL * (0.6 + i * 0.1) - cam.x * (1 + i), span) - W * 0.35;
+      const y = HZ - HORIZON * [0.62, 0.38, 0.8][i] + Math.sin(G.t * 0.5 + i * 2) * 4;
+      ctx.globalAlpha = L.isles * (0.55 + i * 0.12);
+      ctx.drawImage(SPR.isle, x, y, iw * sc, ih * sc);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // skyline, mountains, clouds
+  if (L.skyline > 0.02) {
+    const sw = SPR.skylineW, sh = SPR.skylineH;
+    const off = wrap(-cam.x * 4 - HEADING * FOCAL * 0.95, sw);
+    ctx.globalAlpha = L.skyline;
+    for (let x0 = off - sw; x0 < W + OS; x0 += sw) ctx.drawImage(SPR.skyline, x0, HZ - sh + 1, sw, sh);
+    ctx.globalAlpha = 1;
+  }
+  if (L.mtn > 0.02) {
+    drawMountains(mountainLayers[0], L.mtn);
+    drawMountains(mountainLayers[1], L.mtn);
+  }
+  if (L.clouds > 0.02) {
+    const cw = SPR.cloudsW, ch = SPR.cloudsH;
+    const off = wrap(-cam.x * 7 - HEADING * FOCAL - G.t * 6, cw);
+    ctx.globalAlpha = L.clouds;
+    for (let x0 = off - cw; x0 < W + OS; x0 += cw) ctx.drawImage(SPR.clouds, x0, HZ - ch * 0.7, cw, ch);
+    ctx.globalAlpha = 1;
+  }
+}
+
+// polyline sample points along the table: dense close up, sparser far away
+const SAMPLE_I = [];
+for (let i = 1; i < NS; i += (i < 14 ? 1 : i < 40 ? 2 : 3)) SAMPLE_I.push(i);
+if (SAMPLE_I[SAMPLE_I.length - 1] !== NS - 1) SAMPLE_I.push(NS - 1);
+const ZN = 1.0;
+
+// trace a line along the track at side-position x and height y (track = true: rides the track; false: the ground)
+function traceLine(x, y, onTrack, zMax, first) {
+  const fy = onTrack ? sy : gy;
+  if (first) ctx.moveTo(sx(x, ZN), fy(y, ZN)); else ctx.lineTo(sx(x, ZN), fy(y, ZN));
+  for (let j = 0; j < SAMPLE_I.length; j++) {
+    const z = SAMPLE_I[j] * SEG;
+    if (z > zMax) { ctx.lineTo(sx(x, zMax), fy(y, zMax)); break; }
+    ctx.lineTo(sx(x, z), fy(y, z));
+  }
+}
+function traceLineBack(x, y, zMax) {
+  let j = SAMPLE_I.length - 1;
+  while (j > 0 && SAMPLE_I[j] * SEG > zMax) j--;
+  ctx.lineTo(sx(x, zMax), sy(y, zMax));
+  for (; j >= 0; j--) {
+    const z = SAMPLE_I[j] * SEG;
+    ctx.lineTo(sx(x, z), sy(y, z));
+  }
+  ctx.lineTo(sx(x, ZN), sy(y, ZN));
 }
 
 function drawGround() {
-  ctx.fillStyle = groundGrad;
-  ctx.fillRect(0, HORIZON, W, H - HORIZON);
+  const L = PAL.L;
+  const camD = VIEW_D;
+  const ga = themeGrads[ZONE.a], gb = themeGrads[ZONE.b];
+  const top = Math.min(HZ, sy(0, FAR)) - 2;
 
-  const zn = 1.0;
-  const camD = G.d - PLAYER_Z;
-
-  // Track surface
-  ctx.beginPath();
-  ctx.moveTo(sx(-TRACK_HALF, zn), sy(0, zn));
-  ctx.lineTo(sx(-TRACK_HALF, FAR), sy(0, FAR));
-  ctx.lineTo(sx(TRACK_HALF, FAR), sy(0, FAR));
-  ctx.lineTo(sx(TRACK_HALF, zn), sy(0, zn));
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(255, 43, 214, 0.07)';
-  ctx.fill();
-
-  // Long lines (running toward the horizon)
-  ctx.strokeStyle = vlineGrad;
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  for (let x = -40; x <= 40; x += 2.75) {
-    ctx.moveTo(sx(x, zn), sy(0, zn));
-    ctx.lineTo(sx(x, FAR), sy(0, FAR));
+  // ground base
+  ctx.save();
+  ctx.translate(0, HZ - HORIZON);
+  ctx.fillStyle = ga.ground;
+  ctx.fillRect(-OS, top - (HZ - HORIZON), W + OS * 2, H + OS * 2);
+  if (ZONE.t < 1 && ZONE.a !== ZONE.b) {
+    ctx.globalAlpha = ZONE.t;
+    ctx.fillStyle = gb.ground;
+    ctx.fillRect(-OS, top - (HZ - HORIZON), W + OS * 2, H + OS * 2);
+    ctx.globalAlpha = 1;
   }
+  ctx.restore();
+
+  // ground grid (off the track)
+  if (L.grid > 0.02) {
+    ctx.strokeStyle = rgba(PAL.grid, 0.38 * L.grid);
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    for (let j = 1; j <= QUAL.grid; j++) {
+      const off = TRACK_HALF + 0.6 + j * 3;
+      traceLine(-off, 0, false, FAR, true);
+      traceLine(off, 0, false, FAR, true);
+    }
+    ctx.stroke();
+    const spacing = 4;
+    let ld = Math.ceil((camD + 1.2) / spacing) * spacing;
+    ctx.lineWidth = 1;
+    for (; ld < camD + FAR; ld += spacing) {
+      const z = ld - camD;
+      const y = gy(0, z);
+      const a = clamp((1 - z / FAR) * 1.3, 0, 1) * 0.7 * L.grid;
+      if (a < 0.02) continue;
+      ctx.strokeStyle = rgba(PAL.grid, a);
+      ctx.lineWidth = clamp(0.03 * FOCAL / z, 0.5, 2.5);
+      ctx.beginPath();
+      ctx.moveTo(-OS, y);
+      ctx.lineTo(W + OS, y);
+      ctx.stroke();
+    }
+  }
+  // drifting cloud bands below a sky-high track
+  if (L.clouds > 0.02) {
+    ctx.fillStyle = 'rgba(255, 225, 245, 1)';
+    const spacing = 11;
+    for (let ld = Math.ceil((camD + 2) / spacing) * spacing; ld < camD + FAR; ld += spacing) {
+      const z = ld - camD;
+      const y = gy(0, z);
+      const th = clamp(0.9 * FOCAL / z, 0.5, 40);
+      ctx.globalAlpha = L.clouds * 0.05 * fogA(z) * (0.6 + 0.4 * Math.sin(ld * 0.37));
+      ctx.fillRect(-OS, y - th, W + OS * 2, th);
+    }
+    ctx.globalAlpha = 1;
+  }
+  // ground star-dust that rushes past (crystal + cosmic)
+  if (L.gstars > 0.02) {
+    ctx.fillStyle = '#d8ccff';
+    for (const p of groundDust) {
+      const z = p.d - camD;
+      if (z < 1 || z > FAR) continue;
+      const r = clamp(0.08 * FOCAL / z, 0.6, 3);
+      ctx.globalAlpha = L.gstars * fogA(z) * p.a;
+      ctx.fillRect(sx(p.x, z) - r / 2, gy(0, z) - r / 2, r, r);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // haze where the ground meets the sky
+  ctx.save();
+  ctx.translate(0, HZ - HORIZON);
+  ctx.fillStyle = ga.haze;
+  ctx.fillRect(-OS, HORIZON - H * 0.03, W + OS * 2, H * 0.12);
+  if (ZONE.t < 1 && ZONE.a !== ZONE.b) {
+    ctx.globalAlpha = ZONE.t;
+    ctx.fillStyle = gb.haze;
+    ctx.fillRect(-OS, HORIZON - H * 0.03, W + OS * 2, H * 0.12);
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+
+  // support pillars wherever the track lifts off the ground
+  const pg = 16;
+  ctx.lineCap = 'butt';
+  for (let pd = Math.ceil((camD + 2) / pg) * pg; pd < camD + FAR; pd += pg) {
+    const z = pd - camD;
+    if (hillAt(pd) < 1.2) continue;
+    const yTop = sy(0, z), yBot = gy(0, z);
+    if (yBot - yTop < 3) continue;
+    const a = fogA(z);
+    const w = clamp(0.7 * FOCAL / z, 1, 40);
+    for (const side of [-1, 1]) {
+      const x = sx(side * (TRACK_HALF - 0.6), z);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#0d0420';
+      ctx.fillRect(x - w / 2, yTop, w, yBot - yTop);
+      ctx.globalAlpha = a * 0.5;
+      ctx.fillStyle = rgba(PAL.accent, 1);
+      ctx.fillRect(x - w / 2, yTop, Math.max(1, w * 0.12), yBot - yTop);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // track surface (dark, so hazards pop against it)
+  ctx.beginPath();
+  traceLine(-TRACK_HALF, 0, true, FAR, true);
+  traceLineBack(TRACK_HALF, 0, FAR);
+  ctx.closePath();
+  ctx.fillStyle = rgba(PAL.road, 0.96);
+  ctx.fill();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillStyle = rgba(PAL.accent, 0.05);
+  ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+
+  // lane lines running down the track
+  ctx.strokeStyle = rgba(PAL.grid, 0.22);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  traceLine(-TRACK_HALF / 2, 0, true, FAR, true);
+  traceLine(TRACK_HALF / 2, 0, true, FAR, true);
   ctx.stroke();
 
-  // Cross lines (these scroll, which is what sells the speed)
+  // cross lines on the track (these scroll, which is what sells the speed)
   const spacing = 4;
-  let ld = Math.ceil((camD + 1.2) / spacing) * spacing;
-  for (; ld < camD + FAR; ld += spacing) {
+  for (let ld = Math.ceil((camD + 1.2) / spacing) * spacing; ld < camD + FAR; ld += spacing) {
     const z = ld - camD;
     const y = sy(0, z);
     const a = clamp((1 - z / FAR) * 1.3, 0, 1);
-    ctx.strokeStyle = 'rgba(255, 60, 220, ' + (a * 0.75).toFixed(3) + ')';
+    ctx.strokeStyle = rgba(PAL.grid, a * 0.6);
     ctx.lineWidth = clamp(0.035 * FOCAL / z, 0.5, 3);
     ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(W, y);
+    ctx.moveTo(sx(-TRACK_HALF, z), y);
+    ctx.lineTo(sx(TRACK_HALF, z), y);
     ctx.stroke();
   }
 
-  // Rails at the track edges
+  // center dashes
+  ctx.fillStyle = rgba(PAL.rail, 1);
+  const dash = 9;
+  for (let ld = Math.ceil((camD + 1) / dash) * dash; ld < camD + FAR * 0.8; ld += dash) {
+    const z1 = ld - camD, z2 = z1 + 3.6;
+    const w1 = 0.055 * FOCAL / z1, w2 = 0.055 * FOCAL / z2;
+    const x1 = sx(0, z1), x2 = sx(0, z2), y1 = sy(0, z1), y2 = sy(0, z2);
+    ctx.globalAlpha = clamp((1 - z1 / (FAR * 0.8)) * 1.4, 0, 1) * clamp((z1 - 3) / 14, 0, 1) * 0.6;
+    ctx.beginPath();
+    ctx.moveTo(x1 - w1, y1); ctx.lineTo(x1 + w1, y1); ctx.lineTo(x2 + w2, y2); ctx.lineTo(x2 - w2, y2);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // rails: a glowing band with a bright top edge
   for (const side of [-1, 1]) {
     const x = side * TRACK_HALF;
     ctx.beginPath();
-    ctx.moveTo(sx(x, zn), sy(0, zn));
-    ctx.lineTo(sx(x, FAR), sy(0, FAR));
-    ctx.strokeStyle = 'rgba(41, 243, 255, 0.25)';
-    ctx.lineWidth = 7;
+    traceLine(x, 0, true, FAR, true);
+    traceLineBack(x, 0.42, FAR);
+    ctx.closePath();
+    ctx.fillStyle = rgba(PAL.rail, 0.2);
+    ctx.fill();
+    ctx.beginPath();
+    traceLine(x, 0.42, true, FAR, true);
+    ctx.strokeStyle = rgba(PAL.rail, 0.3);
+    ctx.lineWidth = 6;
     ctx.stroke();
-    ctx.strokeStyle = '#8ff9ff';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(225, 255, 255, 0.95)';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+    ctx.beginPath();
+    traceLine(x, 0, true, FAR, true);
+    ctx.strokeStyle = rgba(PAL.rail, 0.8);
+    ctx.lineWidth = 1.2;
     ctx.stroke();
   }
 
-  // Rail posts
+  // rail posts with lights
   const postGap = 12;
-  ctx.strokeStyle = COLORS.cyan;
+  const railC = rgba(PAL.rail, 1);
   for (let pd = Math.ceil((camD + 1) / postGap) * postGap; pd < camD + FAR; pd += postGap) {
     const z = pd - camD;
     const lw = clamp(0.1 * FOCAL / z, 1, 7);
+    const a = fogA(z);
     ctx.lineWidth = lw;
-    ctx.globalAlpha = fogA(z);
+    ctx.strokeStyle = railC;
+    ctx.globalAlpha = a;
     ctx.beginPath();
     for (const side of [-1, 1]) {
       const x = sx(side * (TRACK_HALF + 0.12), z);
       ctx.moveTo(x, sy(0, z));
-      ctx.lineTo(x, sy(0.6, z));
+      ctx.lineTo(x, sy(0.75, z));
+    }
+    ctx.stroke();
+    if ((pd / postGap) % 2 === 0) {
+      ctx.globalCompositeOperation = 'lighter';
+      const r = clamp(0.5 * FOCAL / z, 2, 26);
+      const blink = 0.65 + 0.35 * Math.sin(G.t * 6 + pd * 0.05);
+      for (const side of [-1, 1]) glow(SPR.cyan, sx(side * (TRACK_HALF + 0.12), z), sy(0.8, z), r, r, a * blink * 0.8);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // chevrons on the outside of upcoming bends, so turns never surprise you
+  const cg = 14;
+  for (let cd = Math.ceil((camD + 6) / cg) * cg; cd < camD + FAR * 0.85; cd += cg) {
+    const k = curvAt(cd);
+    if (Math.abs(k) < 0.0011) continue;
+    const z = cd - camD;
+    const dir = k > 0 ? 1 : -1;
+    const x = -dir * (TRACK_HALF + 1.1);
+    const s = FOCAL / z;
+    const px = sx(x, z), py = sy(1.0, z);
+    const hh = 0.45 * s, ww = 0.32 * s;
+    if (hh < 1.5) continue;
+    ctx.globalAlpha = fogA(z) * clamp((Math.abs(k) - 0.0011) / 0.001, 0.35, 1);
+    ctx.fillStyle = 'rgba(10, 4, 24, 0.85)';
+    ctx.fillRect(px - ww * 1.6, py - hh, ww * 3.2, hh * 2);
+    ctx.strokeStyle = COLORS.yellow;
+    ctx.lineWidth = Math.max(1, 0.07 * s);
+    ctx.beginPath();
+    for (const o of [-0.7, 0.4]) {
+      const cx2 = px + o * ww * dir;
+      ctx.moveTo(cx2 - ww * 0.4 * dir, py - hh * 0.6);
+      ctx.lineTo(cx2 + ww * 0.4 * dir, py);
+      ctx.lineTo(cx2 - ww * 0.4 * dir, py + hh * 0.6);
     }
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
-
-  ctx.fillStyle = hazeGrad;
-  ctx.fillRect(0, HORIZON - 2, W, H * 0.09 + 2);
 }
+
+/* ---------- Roadside scenery ----------
+   A fixed pool of props that gets recycled: when one passes behind the camera
+   it is re-used further up the road. Nothing is created during play. All props
+   sit well outside the rails (arches pass high over the track). */
+const SCN_MAX = 80;
+const scenery = [];
+for (let i = 0; i < SCN_MAX; i++) scenery.push({ on: false, type: '', x: 0, d: 0, w: 1, h: 1, dep: 1, y: 0, seed: 0, alt: 0, pts: new Float32Array(24), _z: 0 });
+let scnNext = 0;
+const scnDraw = [];
+const groundDust = [];
+for (let i = 0; i < 70; i++) groundDust.push({ x: 0, d: 0, a: 1 });
+function resetDust(p, initial) {
+  p.x = (Math.random() < 0.5 ? -1 : 1) * rand(TRACK_HALF + 1, 40);
+  p.d = (initial ? VIEW_D + rand(0, FAR) : VIEW_D + FAR * rand(0.7, 1));
+  p.a = rand(0.3, 1);
+}
+
+function pickProp(d) {
+  const ti = zoneThemeAt(d);
+  // during a zone change, mix in props from the zone you're leaving
+  const local = d - Math.floor(d / ZONE_LEN) * ZONE_LEN;
+  let th = THEMES[ti];
+  if (inRun() && d > ZONE_LEN && local < ZONE_FADE && Math.random() > local / ZONE_FADE) {
+    th = THEMES[(ti + THEMES.length - 1) % THEMES.length];
+  }
+  let total = 0;
+  for (const k in th.props) total += th.props[k];
+  let r = Math.random() * total;
+  for (const k in th.props) { r -= th.props[k]; if (r <= 0) return k; }
+  return 'peak';
+}
+
+function spawnProp(d) {
+  let o = null;
+  for (const s of scenery) if (!s.on) { o = s; break; }
+  if (!o) return;
+  const type = pickProp(d);
+  const side = Math.random() < 0.5 ? -1 : 1;
+  o.on = true; o.type = type; o.d = d; o.seed = Math.random() * 100; o.y = 0; o.alt = Math.random();
+  const P = o.pts;
+  if (type === 'peak' || type === 'mesa') {
+    o.w = rand(18, 48); o.h = rand(8, 26) * (type === 'mesa' ? 0.55 : 1);
+    o.x = side * (TRACK_HALF + 7 + o.w / 2 + rand(0, 34));
+    // jagged outline: 8 points across, as (u, v) pairs
+    for (let i = 0; i < 8; i++) {
+      const u = i / 7 - 0.5;
+      let v = type === 'mesa' ? (i === 0 || i === 7 ? 0 : rand(0.85, 1)) : (i === 0 || i === 7 ? 0 : (1 - Math.abs(u) * 1.7) * rand(0.6, 1.15));
+      P[i * 2] = u + (i > 0 && i < 7 ? rand(-0.04, 0.04) : 0);
+      P[i * 2 + 1] = Math.max(0, v);
+    }
+  } else if (type === 'tower') {
+    o.w = rand(3, 7); o.dep = rand(3, 7); o.h = rand(12, 46);
+    o.x = side * (TRACK_HALF + 5 + o.w / 2 + rand(0, 26));
+  } else if (type === 'antenna') {
+    o.h = rand(12, 28); o.w = 0.3;
+    o.x = side * (TRACK_HALF + rand(6, 26));
+  } else if (type === 'monolith') {
+    o.w = rand(1.6, 3.2); o.dep = o.w * 0.5; o.h = rand(5, 10); o.y = rand(1.5, 7);
+    o.x = side * (TRACK_HALF + 4 + rand(0, 22));
+  } else if (type === 'crystal') {
+    o.h = rand(3, 10); o.w = o.h * 0.9;
+    o.x = side * (TRACK_HALF + 3 + o.w / 2 + rand(0, 24));
+    for (let i = 0; i < 4; i++) {
+      P[i * 4] = rand(-0.4, 0.4);       // base offset
+      P[i * 4 + 1] = rand(-0.35, 0.35); // lean
+      P[i * 4 + 2] = rand(0.4, 1);      // height
+      P[i * 4 + 3] = rand(0.08, 0.16);  // width
+    }
+  } else if (type === 'island') {
+    o.w = rand(6, 13); o.h = o.w * rand(0.35, 0.5); o.y = rand(4, 14);
+    o.x = side * (TRACK_HALF + 12 + o.w / 2 + rand(0, 34));
+  } else if (type === 'arch') {
+    o.x = 0; o.w = rand(11, 15); o.h = o.w;
+  } else if (type === 'poly') {
+    o.w = rand(1.8, 3.6); o.y = rand(4, 11);
+    o.x = side * (TRACK_HALF + 5 + rand(0, 22));
+  } else if (type === 'beam') {
+    o.w = 0.6; o.h = 60;
+    o.x = side * (TRACK_HALF + rand(8, 40));
+  }
+}
+
+function updateScenery(dt) {
+  const camD = VIEW_D;
+  for (const s of scenery) if (s.on && s.d - camD < 0.5) s.on = false;
+  if (scnNext < camD) scnNext = camD + rand(2, 10);
+  const ahead = camD + FAR + 50;
+  while (scnNext < ahead) {
+    spawnProp(scnNext);
+    // big props are rarer up close to keep the view clear
+    scnNext += rand(7, 20) / QUAL.scn;
+  }
+  for (const p of groundDust) if (p.d - camD < 1) resetDust(p, false);
+}
+
+function resetScenery() {
+  for (const s of scenery) s.on = false;
+  scnNext = 0;
+  for (const p of groundDust) resetDust(p, true);
+}
+
+function drawScenery() {
+  const camD = VIEW_D;
+  scnDraw.length = 0;
+  for (const s of scenery) {
+    if (!s.on) continue;
+    s._z = s.d - camD;
+    if (s._z > 1.5 && s._z < FAR + 50) scnDraw.push(s);
+  }
+  scnDraw.sort((a, b) => b._z - a._z);
+  const fill = rgba(PAL.propFill, 1);
+  const edgeRGB = PAL.propEdge;
+  // scenery: dark bodies, softer edges than gameplay objects
+  SCN_BOX.face = fill;
+  SCN_BOX.side = rgba(PAL.propFill, 1);
+  SCN_BOX.top = rgba(PAL.propEdge, 0.25);
+  SCN_BOX.edge = rgba(PAL.propEdge, 0.45);
+  ctx.lineJoin = 'round';
+  // Props sit outside the rails, but on hills and sky roads the track rises above the
+  // ground, so a far-away building could be painted over the nearer road. To stop that,
+  // each prop is drawn with the road in front of it cut out (grouped into depth bands,
+  // so this only costs a handful of clips per frame).
+  let band = -1, clipped = false;
+  for (const o of scnDraw) {
+    const z = o._z;
+    let b = 0;
+    while (b < SCN_BANDS.length - 1 && SCN_BANDS[b + 1] <= z) b++;
+    if (b !== band) {
+      band = b;
+      if (clipped) { ctx.restore(); clipped = false; }
+      const zc = SCN_BANDS[b];
+      if (zc > ZN + 0.5) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(-OS * 3, -OS * 3, W + OS * 6, H + OS * 6);
+        traceLine(-(TRACK_HALF + 1.7), 1.6, true, zc, true);
+        traceLineBack(TRACK_HALF + 1.7, 1.6, zc);
+        ctx.closePath();
+        ctx.clip('evenodd');
+        ctx.lineJoin = 'round';
+        clipped = true;
+      }
+    }
+    const s = FOCAL / z;
+    // fade in at the far end, and keep scenery a step dimmer than the action
+    const a = clamp((FAR + 50 - z) / 70, 0, 1) * clamp((z - 1.5) / 4, 0, 1);
+    if (a < 0.02) continue;
+    const bx = sx(o.x, z);
+    const reach = Math.max(o.w, o.h, 6) * s;
+    if (bx + reach < -OS || bx - reach > W + OS) continue;
+    const by = gy(0, z);
+    switch (o.type) {
+      case 'peak':
+      case 'mesa': {
+        const P = o.pts;
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+          const px = bx + P[i * 2] * o.w * s, py = by - P[i * 2 + 1] * o.h * s;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.globalAlpha = a;
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.strokeStyle = rgba(edgeRGB, 0.5);
+        ctx.lineWidth = clamp(0.06 * s, 1, 2.5);
+        ctx.stroke();
+        // facet lines (polygon look)
+        ctx.strokeStyle = rgba(edgeRGB, 0.18);
+        ctx.beginPath();
+        for (let i = 2; i < 6; i += 2) {
+          ctx.moveTo(bx + P[i * 2] * o.w * s, by - P[i * 2 + 1] * o.h * s);
+          ctx.lineTo(bx + (P[i * 2] * 0.4 + (o.alt - 0.5) * 0.3) * o.w * s, by);
+        }
+        ctx.stroke();
+        break;
+      }
+      case 'tower': {
+        const r = drawBox(o.x, 0, z, o.w, o.h, o.dep, null, a, true);
+        if (!r) break;
+        // lit window bands + neon roof line
+        const rows = Math.min(14, Math.floor(o.h / 3));
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = rgba(o.alt < 0.5 ? PAL.accent : PAL.rail, 0.22);
+        ctx.lineWidth = clamp(0.12 * s, 0.6, 3);
+        ctx.beginPath();
+        for (let i = 1; i <= rows; i++) {
+          if (((i * 7 + (o.seed | 0)) % 5) === 0) continue;
+          const y = r.nyb + (r.nyt - r.nyb) * (i / (rows + 1));
+          ctx.moveTo(r.nxl + 2, y); ctx.lineTo(r.nxr - 2, y);
+        }
+        ctx.stroke();
+        ctx.strokeStyle = rgba(o.alt < 0.5 ? PAL.accent : PAL.rail, 0.85);
+        ctx.lineWidth = clamp(0.15 * s, 1, 3);
+        ctx.beginPath(); ctx.moveTo(r.nxl, r.nyt); ctx.lineTo(r.nxr, r.nyt); ctx.stroke();
+        if (o.alt > 0.6) {
+          const bl = Math.sin(G.t * 3 + o.seed) > 0.3 ? 1 : 0.25;
+          glow(SPR.red, (r.nxl + r.nxr) / 2, r.nyt - 0.6 * s, 0.9 * s, 0.9 * s, a * bl);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+        break;
+      }
+      case 'antenna': {
+        const ty = gy(o.h, z);
+        ctx.globalAlpha = a;
+        ctx.strokeStyle = rgba(edgeRGB, 0.6);
+        ctx.lineWidth = clamp(0.25 * s, 1, 6);
+        ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx, ty);
+        ctx.moveTo(bx - 1.2 * s, gy(o.h * 0.7, z)); ctx.lineTo(bx + 1.2 * s, gy(o.h * 0.7, z));
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'lighter';
+        const bl = 0.4 + 0.6 * Math.abs(Math.sin(G.t * 2 + o.seed));
+        glow(SPR.red, bx, ty, 1.4 * s + 3, 1.4 * s + 3, a * bl);
+        if (o.alt > 0.55) {
+          // energy beam into the sky
+          ctx.globalAlpha = a * 0.22 * (0.7 + 0.3 * Math.sin(G.t * 4 + o.seed));
+          ctx.fillStyle = rgba(PAL.accent, 1);
+          const bw = clamp(0.5 * s, 1, 10);
+          ctx.fillRect(bx - bw / 2, -OS, bw, ty + OS);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+        break;
+      }
+      case 'monolith': {
+        const bob = Math.sin(G.t * 0.9 + o.seed) * 0.4;
+        ctx.globalCompositeOperation = 'lighter';
+        glow(SPR.violet, bx, by, o.w * 1.4 * s, o.w * 0.35 * s, a * 0.5);
+        ctx.globalCompositeOperation = 'source-over';
+        const r = drawBox(o.x, o.y + bob, z, o.w, o.h, o.dep, null, a, true);
+        if (r) {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.globalAlpha = a * (0.45 + 0.25 * Math.sin(G.t * 2 + o.seed));
+          ctx.fillStyle = rgba(o.alt < 0.5 ? PAL.accent : PAL.rail, 1);
+          const sw = Math.max(1, 0.12 * r.s);
+          ctx.fillRect((r.nxl + r.nxr) / 2 - sw / 2, r.nyt, sw, r.nyb - r.nyt);
+          ctx.globalCompositeOperation = 'source-over';
+        }
+        break;
+      }
+      case 'crystal': {
+        const P = o.pts;
+        ctx.globalAlpha = a;
+        for (let i = 0; i < 4; i++) {
+          const b0 = bx + P[i * 4] * o.w * s;
+          const lean = P[i * 4 + 1] * o.h * s, hh = P[i * 4 + 2] * o.h * s, ww = P[i * 4 + 3] * o.w * s * 2;
+          ctx.beginPath();
+          ctx.moveTo(b0 - ww, by);
+          ctx.lineTo(b0 - ww + lean * 0.8, by - hh * 0.8);
+          ctx.lineTo(b0 + lean, by - hh);
+          ctx.lineTo(b0 + ww + lean * 0.8, by - hh * 0.8);
+          ctx.lineTo(b0 + ww, by);
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(20, 60, 90, 0.75)';
+          ctx.fill();
+          ctx.strokeStyle = rgba(edgeRGB, 0.65);
+          ctx.lineWidth = clamp(0.08 * s, 1, 2.5);
+          ctx.stroke();
+        }
+        ctx.globalCompositeOperation = 'lighter';
+        const pulse = 0.5 + 0.5 * Math.sin(G.t * 2 + o.seed);
+        glow(SPR.teal, bx, by - o.h * 0.35 * s, o.w * 0.9 * s, o.h * 0.6 * s, a * (0.25 + 0.2 * pulse));
+        ctx.globalCompositeOperation = 'source-over';
+        break;
+      }
+      case 'island': {
+        const ty = gy(o.y, z), hw = o.w / 2 * s, dh = o.h * s;
+        const bob = Math.sin(G.t * 0.7 + o.seed) * 0.3 * s;
+        // waterfall pouring off the edge
+        if (o.alt > 0.35) {
+          const wx = bx + (o.alt - 0.65) * hw * 1.2, ww = clamp(0.6 * s, 1, 14);
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.globalAlpha = a * 0.35;
+          ctx.fillStyle = 'rgb(140, 230, 255)';
+          ctx.fillRect(wx - ww / 2, ty + bob, ww, by - ty);
+          ctx.globalAlpha = a * 0.5;
+          ctx.fillStyle = '#e8fbff';
+          const step = Math.max(6, 1.6 * s);
+          const off = (G.t * 4 * s) % step;
+          for (let y = ty + bob + off; y < by; y += step) ctx.fillRect(wx - ww * 0.25, y, ww * 0.5, step * 0.4);
+          glow(SPR.cyan, wx, by, ww * 3, ww, a * 0.6);
+          ctx.globalCompositeOperation = 'source-over';
+        }
+        ctx.globalAlpha = a;
+        ctx.beginPath();
+        ctx.moveTo(bx - hw, ty + bob);
+        ctx.lineTo(bx + hw, ty + bob);
+        ctx.lineTo(bx + hw * 0.55, ty + bob + dh * 0.45);
+        ctx.lineTo(bx + hw * 0.1, ty + bob + dh * 1.25);
+        ctx.lineTo(bx - hw * 0.35, ty + bob + dh * 0.7);
+        ctx.lineTo(bx - hw * 0.75, ty + bob + dh * 0.3);
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.strokeStyle = rgba(edgeRGB, 0.45);
+        ctx.lineWidth = clamp(0.06 * s, 1, 2);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(120, 255, 200, 0.75)';
+        ctx.lineWidth = clamp(0.12 * s, 1, 3);
+        ctx.beginPath(); ctx.moveTo(bx - hw, ty + bob); ctx.lineTo(bx + hw, ty + bob); ctx.stroke();
+        // a little glowing tower on top
+        ctx.fillStyle = '#12051f';
+        ctx.fillRect(bx - hw * 0.25, ty + bob - o.h * 0.5 * s, hw * 0.12, o.h * 0.5 * s);
+        ctx.globalCompositeOperation = 'lighter';
+        glow(SPR.yellow, bx - hw * 0.19, ty + bob - o.h * 0.5 * s, 0.8 * s, 0.8 * s, a * 0.8);
+        ctx.globalCompositeOperation = 'source-over';
+        break;
+      }
+      case 'arch': {
+        // a huge neon ring the track passes through
+        const cy = sy(0, z), r = o.w * s;
+        ctx.globalAlpha = a * 0.9;
+        ctx.strokeStyle = 'rgba(10, 4, 24, 0.9)';
+        ctx.lineWidth = clamp(1.2 * s, 2, 60);
+        ctx.beginPath(); ctx.arc(bx, cy, r, Math.PI, 0); ctx.stroke();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = rgba(o.alt < 0.5 ? PAL.accent : PAL.rail, 0.55);
+        ctx.lineWidth = clamp(0.25 * s, 1, 12);
+        ctx.beginPath(); ctx.arc(bx, cy, r * 1.04, Math.PI, 0); ctx.stroke();
+        ctx.beginPath(); ctx.arc(bx, cy, r * 0.96, Math.PI, 0); ctx.stroke();
+        // running lights
+        const n = 9, ph = (G.t * 1.5) % 1;
+        for (let i = 0; i < n; i++) {
+          const ang = Math.PI + Math.PI * ((i + ph) / n);
+          glow(SPR.white, bx + Math.cos(ang) * r, cy + Math.sin(ang) * r, 0.5 * s + 2, 0.5 * s + 2, a * 0.7);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+        break;
+      }
+      case 'poly': {
+        // a slowly tumbling wireframe octahedron
+        const cy = gy(o.y + Math.sin(G.t + o.seed) * 0.5, z), r = o.w * s;
+        const t1 = G.t * 0.7 + o.seed, t2 = G.t * 0.45 + o.seed * 2;
+        const c1 = Math.cos(t1), s1 = Math.sin(t1), c2 = Math.cos(t2), s2 = Math.sin(t2);
+        // 6 vertices: ±x, ±y, ±z rotated
+        const P = o.pts;
+        for (let i = 0; i < 6; i++) {
+          const vx = OCTA_V[i * 3], vy = OCTA_V[i * 3 + 1], vz = OCTA_V[i * 3 + 2];
+          const x1 = vx * c1 - vz * s1, z1 = vx * s1 + vz * c1;
+          const y1 = vy * c2 - z1 * s2;
+          P[i * 2] = bx + x1 * r; P[i * 2 + 1] = cy + y1 * r;
+        }
+        ctx.globalAlpha = a;
+        ctx.globalCompositeOperation = 'lighter';
+        glow(SPR.violet, bx, cy, r * 1.6, r * 1.6, a * 0.35);
+        ctx.strokeStyle = rgba(o.alt < 0.5 ? PAL.accent : edgeRGB, 0.8);
+        ctx.lineWidth = clamp(0.08 * s, 1, 3);
+        ctx.beginPath();
+        for (let q = 0; q < 24; q += 2) { const i = OCTA_EDGES[q], j = OCTA_EDGES[q + 1]; ctx.moveTo(P[i * 2], P[i * 2 + 1]); ctx.lineTo(P[j * 2], P[j * 2 + 1]); }
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
+        break;
+      }
+      case 'beam': {
+        ctx.globalCompositeOperation = 'lighter';
+        const bw = clamp(0.7 * s, 1.5, 22);
+        const pulse = 0.6 + 0.4 * Math.sin(G.t * 3 + o.seed);
+        ctx.globalAlpha = a * 0.16 * pulse;
+        ctx.fillStyle = rgba(edgeRGB, 1);
+        ctx.fillRect(bx - bw, -OS, bw * 2, by + OS);
+        ctx.globalAlpha = a * 0.45 * pulse;
+        ctx.fillRect(bx - bw * 0.2, -OS, bw * 0.4, by + OS);
+        glow(SPR.teal, bx, by, bw * 4, bw * 1.2, a * 0.7);
+        ctx.globalCompositeOperation = 'source-over';
+        break;
+      }
+    }
+  }
+  if (clipped) ctx.restore();
+  ctx.globalAlpha = 1;
+}
+// depth bands for the road cut-out (closer together near the camera, where it matters most)
+const SCN_BANDS = [0];
+for (let z = 5; z < FAR + 60; z *= 1.22) SCN_BANDS.push(z);
+const OCTA_EDGES = [0, 2, 0, 3, 0, 4, 0, 5, 1, 2, 1, 3, 1, 4, 1, 5, 2, 4, 2, 5, 3, 4, 3, 5];
+const OCTA_V = [1, 0, 0, -1, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 1, 0, 0, -1];
 
 // ---------- Game state ----------
 const G = {
@@ -792,8 +1901,9 @@ const G = {
   invuln: 0, slow: 0, fireT: 0, nextSpawn: 0, nextGate: 0, overT: 0,
   flash: 0, flashColor: '#fff', shake: 0,
   toast: '', toastColor: '#fff', toastT: 0, dragged: false, runT: 0,
+  kick: 0, pulse: 0, pulseColor: '#fff', zoneT: 0, zoneName: '', zoneIdx: 0, air: 0,
 };
-const player = { x: 0, tx: 0, vx: 0, bank: 0, alive: true };
+const player = { x: 0, tx: 0, vx: 0, bank: 0, alive: true, y: 0, vy: 0, ramp: null };
 const objs = [];      // obstacles: pylons, walls, mines
 const enemies = [];   // drones, rams, turrets
 const shots = [];     // your bullets
@@ -806,19 +1916,38 @@ const PLAYER_ITEM = { kind: 'player', _z: PLAYER_Z };
 let paused = false;
 let drag = null;
 const keys = {};
+const STATS = { jumps: 0, air: 0, wallHits: 0 };   // counters for testing
 
 G.best = parseInt(storeGet('speeder.best') || '0', 10) || 0;
 
+// Speed lines: most hang in the air beside the track, some skim along the rails.
 function resetStreak(s, initial) {
-  s.x = rand(-16, 16);
-  if (Math.abs(s.x) < 1.6) s.x = (s.x < 0 ? -1 : 1) * rand(1.6, 4);
-  s.y = rand(0.1, 3.4);
+  if (Math.random() < 0.35) {
+    s.x = (Math.random() < 0.5 ? -1 : 1) * (TRACK_HALF + rand(-0.1, 0.5));
+    s.y = rand(0.15, 0.9);
+    s.rail = true;
+  } else {
+    s.x = rand(-16, 16);
+    if (Math.abs(s.x) < 1.6) s.x = (s.x < 0 ? -1 : 1) * rand(1.6, 4);
+    s.y = rand(0.1, 3.4);
+    s.rail = false;
+  }
   s.d = G.d + (initial ? rand(0, FAR) : rand(FAR * 0.3, FAR));
 }
-for (let i = 0; i < 44; i++) {
+for (let i = 0; i < 46; i++) {
   const s = {};
   resetStreak(s, true);
   streaks.push(s);
+}
+
+// Thruster trail: where the speeder has been, so the light trails curve when you steer.
+const TRAIL_N = 18;
+const trailX = new Float32Array(TRAIL_N);
+const trailD = new Float32Array(TRAIL_N);
+const trailY = new Float32Array(TRAIL_N);
+let trailHead = 0, trailTimer = 0;
+function resetTrail() {
+  for (let i = 0; i < TRAIL_N; i++) { trailX[i] = player.x; trailD[i] = G.d; trailY[i] = 0; }
 }
 
 function resetRun() {
@@ -826,12 +1955,17 @@ function resetRun() {
     t: 0, speed: 32, d: 0, score: 0, kills: 0,
     hull: MAX_HULL, shield: 0, weapon: 1, rapid: 0, mult: 0,
     invuln: 0, slow: 0, fireT: 0.3, nextSpawn: 110, nextGate: 420, overT: 0,
-    flash: 0, shake: 0, toastT: 0, runT: 0,
+    flash: 0, shake: 0, toastT: 0, runT: 0, kick: 0, pulse: 0, zoneT: 0, zoneIdx: 0,
   });
   player.x = 0; player.tx = 0; player.vx = 0; player.bank = 0; player.alive = true;
+  player.y = 0; player.vy = 0; player.ramp = null; G.air = 0;
   cam.x = 0;
   objs.length = 0; enemies.length = 0; shots.length = 0; eshots.length = 0;
   parts.length = 0; gates.length = 0; popups.length = 0;
+  resetCourse();
+  VIEW_D = -PLAYER_Z;
+  resetScenery();
+  resetTrail();
   for (const s of streaks) resetStreak(s, true);
 }
 
@@ -847,6 +1981,7 @@ function addWallSpan(x1, x2, d) {
   if (x2 - x1 < 0.15) return;
   addObj('wall', (x1 + x2) / 2, d, x2 - x1, { h: 1.1, dep: 0.5 });
 }
+function addRamp(x, d) { return addObj('ramp', x, d, RAMP_W, { h: RAMP_H, dep: RAMP_LEN }); }
 function addEnemy(type, props) {
   const e = Object.assign({ kind: 'enemy', type, t: 0, flashT: 0, dep: 1 }, props);
   enemies.push(e);
@@ -937,6 +2072,23 @@ function spawnPattern(at) {
     }
     return d - at;
   }
+  if (name === 'jump') {
+    // A ramp, then something to fly over. Early on it's a cluster of mines you can jump
+    // for an AIR bonus (or just steer around). Later it can be a barrier across the whole
+    // track that you can only clear by taking the ramp.
+    const rx = rand(-half + RAMP_W / 2 + 0.2, half - RAMP_W / 2 - 0.2);
+    addRamp(rx, at);
+    const v = 32 + 58 * (1 - Math.exp(-at / 4500));   // about how fast you'll be going there
+    const flight = v * JUMP_T;
+    const end = at + RAMP_LEN;
+    if (lvl >= 1.2 && Math.random() < 0.55) {
+      addObj('wall', 0, end + flight * 0.42, half * 2, { h: 1.2, dep: 0.5, jump: true });
+    } else {
+      const n = 3 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < n; i++) addMine(clamp(rx + rand(-1.3, 1.3), -half + 0.5, half - 0.5), end + flight * rand(0.25, 0.7));
+    }
+    return RAMP_LEN + flight;
+  }
   // mixed: a pylon field with a drone overhead
   let d = at;
   const n = 3 + Math.floor(Math.random() * 3);
@@ -1006,7 +2158,7 @@ function toast(text, color) {
 }
 
 function popup(text, x, y, d, color) {
-  const z = d - (G.d - PLAYER_Z);
+  const z = d - VIEW_D;
   if (z < 1) return;
   popups.push({ text, x: sx(x, z), y: sy(y + 0.6, z), t: 0, color: color || '#fff' });
 }
@@ -1108,14 +2260,17 @@ function applyPower(type) {
   }
   if (type === 'nova') { nova(); toast('NOVA!', P.color); }
   if (type === 'mult') { G.mult = 15; toast('2X SCORE', P.color); }
-  if (type !== 'nova') { G.flash = Math.max(G.flash, 0.35); G.flashColor = P.color; }
+  if (type !== 'nova') { G.flash = Math.max(G.flash, 0.3); G.flashColor = P.color; }
+  // a ring bursts off the speeder and the view surges forward for a moment
+  G.pulse = 1; G.pulseColor = P.color; G.kick = 1;
+  G.shake = Math.max(G.shake, 0.12);
   sfx.power();
   vibrate(30);
 }
 
 function fire() {
   for (const [ox, vx] of GUNS[G.weapon]) {
-    shots.push({ kind: 'shot', x: player.x + ox, d: G.d + 0.6, pd: G.d + 0.6, vx, vd: G.speed + 110 });
+    shots.push({ kind: 'shot', x: player.x + ox, d: G.d + 0.6, pd: G.d + 0.6, vx, vd: G.speed + 110, y: 0.5 + player.y * 0.8, turn: 0 });
   }
   sfx.shoot();
 }
@@ -1137,6 +2292,9 @@ function update(dt) {
   G.t += dt;
   G.flash = Math.max(0, G.flash - dt * 2.5);
   G.shake = Math.max(0, G.shake - dt * 2.2);
+  G.kick = Math.max(0, G.kick - dt * 1.6);
+  G.pulse = Math.max(0, G.pulse - dt * 1.8);
+  if (G.zoneT > 0) G.zoneT -= dt;
   if (G.toastT > 0) G.toastT -= dt;
 
   if (G.state === 'title') {
@@ -1157,6 +2315,21 @@ function update(dt) {
 
     if (keys.left) player.tx -= 11 * dt;
     if (keys.right) player.tx += 11 * dt;
+
+    // Turns gently push you toward the outside, like a real car. It builds
+    // up smoothly with the bend, so you can feel it coming and steer against it.
+    if (player.alive) {
+      const push = clamp(-curvAt(G.d) * G.speed * G.speed * DRIFT, -2, 2) * dt;
+      player.tx += push;
+      if (drag) drag.t0 += push;
+    }
+
+    const zi = Math.floor(G.d / ZONE_LEN);
+    if (zi !== G.zoneIdx) {
+      G.zoneIdx = zi;
+      G.zoneName = THEMES[zi % THEMES.length].name;
+      G.zoneT = 3;
+    }
 
     runSpawner();
 
@@ -1184,19 +2357,57 @@ function update(dt) {
   player.bank += (bankTarget - player.bank) * (1 - Math.exp(-dt * 10));
   cam.x += (player.x * 0.85 - cam.x) * (1 - Math.exp(-dt * 6));
 
-  const camD = G.d - PLAYER_Z;
+  // In the air: gravity pulls you back down; you can still steer.
+  if (player.y > 0 || player.vy > 0) {
+    player.vy -= JUMP_G * dt;
+    player.y += player.vy * dt;
+    if (player.y <= 0) {
+      const hard = player.vy < -4;
+      player.y = 0; player.vy = 0;
+      if (hard && player.alive) {
+        G.shake = Math.max(G.shake, 0.18);
+        burst(player.x, 0.1, G.d, COLORS.cyan, 14, 4, G.speed * 0.8, 0.4);
+        sfx.land();
+        vibrate(20);
+        if (G.air > 0 && G.state === 'play') {
+          const pts = 150 * G.air;
+          addScore(pts);
+          popup('AIR +' + pts * (G.mult > 0 ? 2 : 1), player.x, 1.2, G.d + 4, RAMP_C);
+        }
+      }
+      G.air = 0;
+    }
+  }
+
+  buildView(dt);
+  updateScenery(dt);
+  const camD = VIEW_D;
   const playing = G.state === 'play' && player.alive;
   const lvl = G.d / 1000;
 
   // Speed lines
   for (const s of streaks) if (s.d - camD < 1) resetStreak(s, false);
 
+  // Thruster trail history (a sample every ~1/40 s)
+  trailTimer -= dt;
+  if (trailTimer <= 0) {
+    trailTimer = 0.025;
+    trailHead = (trailHead + 1) % TRAIL_N;
+    trailX[trailHead] = player.x;
+    trailD[trailHead] = G.d;
+    trailY[trailHead] = player.y;
+  }
+
   // Your bullets
   for (const b of shots) {
     b.pd = b.d;
-    b.d += b.vd * dt;
-    b.x += b.vx * dt;
-    if (b.d - G.d > 170) b.dead = true;
+    const step = b.vd * dt;
+    b.d += step;
+    // Bullets fly dead straight. When the road bends, it turns away underneath them,
+    // so in a bend they drift toward the outside and sail off over the rail.
+    b.turn += curvAt(b.d) * step;
+    b.x += b.vx * dt - b.turn * step;
+    if (b.d - G.d > 170 || Math.abs(b.x) > 40) b.dead = true;
   }
 
   // Obstacles
@@ -1205,6 +2416,25 @@ function update(dt) {
     const rel = o.d - G.d;
     if (rel < -PLAYER_Z - 2) { o.dead = true; continue; }
     if (rel > FAR) continue;
+    if (o.type === 'ramp') {
+      // Riding up the ramp lifts you; leaving the top edge launches you.
+      const on = -rel;   // how far along the ramp you are
+      if (player.alive && on >= 0 && on < o.dep && Math.abs(player.x - o.x) < o.w / 2 + 0.15 && player.vy <= 0) {
+        const h = RAMP_H * on / o.dep;
+        if (player.y <= h + 0.05) { player.y = h; player.vy = 0; player.ramp = o; }
+      } else if (player.ramp === o) {
+        player.ramp = null;
+        if (on >= o.dep - 0.01 && player.alive) {
+          player.y = RAMP_H;
+          player.vy = JUMP_VY;
+          G.kick = Math.max(G.kick, 0.6);
+          STATS.jumps++;
+          sfx.jump();
+          vibrate(15);
+        }
+      }
+      continue;
+    }
     // bullets hit obstacles
     for (const b of shots) {
       if (b.dead) continue;
@@ -1225,9 +2455,12 @@ function update(dt) {
         }
       }
     }
-    // you hit obstacles
+    // you hit obstacles (unless you're flying over them)
     if (playing && !o.dead && !o.hit && rel < 0.5 && rel + o.dep > -0.5 && Math.abs(player.x - o.x) < o.w / 2 + PLAYER_HALF_W) {
       o.hit = true;
+      const top = o.type === 'mine' ? 1.0 : o.y + o.h;
+      if (player.y > top - 0.1) { G.air++; STATS.air++; continue; }
+      if (o.jump) STATS.wallHits++;
       if (hurt()) {
         if (o.type === 'mine') {
           o.dead = true;
@@ -1310,7 +2543,7 @@ function update(dt) {
       }
     }
     // rams and turrets can hit you
-    if (playing && !e.dead && e.type !== 'drone' && rel < 0.6 && rel > -0.8 && Math.abs(player.x - e.x) < e.w / 2 + PLAYER_HALF_W) {
+    if (playing && !e.dead && e.type !== 'drone' && player.y < 0.9 && rel < 0.6 && rel > -0.8 && Math.abs(player.x - e.x) < e.w / 2 + PLAYER_HALF_W) {
       if (hurt()) {
         e.dead = true;
         explode(e.x, 0.5, e.d, COLORS.red, true, 0);
@@ -1326,7 +2559,7 @@ function update(dt) {
     s.x += s.vx * dt;
     s.y = Math.max(0.3, s.y + s.vy * dt);
     const rel = s.d - G.d;
-    if (playing && prevRel > -0.4 && rel < 0.4 && Math.abs(s.x - player.x) < 0.42) {
+    if (playing && prevRel > -0.4 && rel < 0.4 && Math.abs(s.x - player.x) < 0.42 && player.y < s.y + 0.3) {
       s.dead = true;
       hurt();
       continue;
@@ -1393,30 +2626,34 @@ function quad(ax, ay, bx, by, cx2, cy2, dx, dy) {
 }
 
 // A 3D box sitting at height y0, front face at depth z.
-function drawBox(x, y0, z, w, h, dep, c, a) {
+// ground = true measures height from the ground plane (scenery) instead of the track.
+const SCN_BOX = { face: '', side: '', top: '', edge: '' };
+function drawBox(x, y0, z, w, h, dep, c, a, ground) {
   const zn = Math.max(0.9, z);
   const zf = z + dep;
   if (zf <= zn) return null;
+  const fy = ground ? gy : sy;
   const xl = x - w / 2, xr = x + w / 2, yt = y0 + h;
-  const s1 = FOCAL / zn, s2 = FOCAL / zf;
-  const nxl = CX + (xl - cam.x) * s1, nxr = CX + (xr - cam.x) * s1;
-  const nyb = HORIZON + (CAM_H - y0) * s1, nyt = HORIZON + (CAM_H - yt) * s1;
-  const fxl = CX + (xl - cam.x) * s2, fxr = CX + (xr - cam.x) * s2;
-  const fyb = HORIZON + (CAM_H - y0) * s2, fyt = HORIZON + (CAM_H - yt) * s2;
+  const s1 = FOCAL / zn;
+  const nxl = sx(xl, zn), nxr = sx(xr, zn);
+  const nyb = fy(y0, zn), nyt = fy(yt, zn);
+  const fxl = sx(xl, zf), fxr = sx(xr, zf);
+  const fyb = fy(y0, zf), fyt = fy(yt, zf);
+  if (!c) c = SCN_BOX;   // scenery colors, set once per frame in drawScenery
   ctx.globalAlpha = a;
   const lw = clamp(0.04 * s1, 1, 3.5);
   ctx.lineWidth = lw;
   ctx.strokeStyle = c.edge;
   ctx.lineJoin = 'round';
-  if (cam.x < xl) {
+  if (nxl > fxl) {
     quad(nxl, nyt, fxl, fyt, fxl, fyb, nxl, nyb);
     ctx.fillStyle = c.side; ctx.fill(); ctx.stroke();
   }
-  if (cam.x > xr) {
+  if (nxr < fxr) {
     quad(nxr, nyt, fxr, fyt, fxr, fyb, nxr, nyb);
     ctx.fillStyle = c.side; ctx.fill(); ctx.stroke();
   }
-  if (yt < CAM_H) {
+  if (nyt > fyt) {
     quad(nxl, nyt, nxr, nyt, fxr, fyt, fxl, fyt);
     ctx.fillStyle = c.top; ctx.fill(); ctx.stroke();
   }
@@ -1427,8 +2664,9 @@ function drawBox(x, y0, z, w, h, dep, c, a) {
   return { nxl, nxr, nyt, nyb, s: s1 };
 }
 
-const PYLON_C = { face: '#1d0838', side: '#2c0d52', top: '#3a1466', edge: '#b85cff' };
-const WALL_C = { face: '#2a0a3a', side: '#3a0f4f', top: '#5a1a70', edge: '#ff2bd6' };
+const RAMP_C = '#b6ff2e';
+const PYLON_C = { face: '#1d0838', side: '#2c0d52', top: '#7a3ac0', edge: '#d58cff' };
+const WALL_C = { face: '#1c0628', side: '#33104a', top: '#7a2a96', edge: '#ff5fe0' };
 const TURRET_C = { face: '#2a0710', side: '#3d0a18', top: '#511023', edge: '#ff2b4e' };
 
 function shadow(x, z, rw, a) {
@@ -1441,61 +2679,220 @@ function shadow(x, z, rw, a) {
   ctx.globalAlpha = 1;
 }
 
+function drawRamp(o, z, a) {
+  const z1 = Math.max(z, 1), z2 = z + o.dep;
+  if (z2 <= 1.05) return;
+  const h1 = RAMP_H * (z1 - z) / o.dep;
+  const xl = o.x - o.w / 2, xr = o.x + o.w / 2;
+  const flx = sx(xl, z1), frx = sx(xr, z1), fly = sy(h1, z1), fgy = sy(0, z1);
+  const blx = sx(xl, z2), brx = sx(xr, z2), bty = sy(RAMP_H, z2), bgy = sy(0, z2);
+  ctx.globalAlpha = a;
+  ctx.lineJoin = 'round';
+  // glow on the road leading in
+  ctx.globalCompositeOperation = 'lighter';
+  const gs = FOCAL / z1;
+  glow(SPR.yellow, (flx + frx) / 2, fgy, o.w * 0.75 * gs, 0.35 * gs, a * 0.5);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = a;
+  // sides
+  ctx.fillStyle = '#16260a';
+  ctx.strokeStyle = RAMP_C;
+  ctx.lineWidth = clamp(0.04 * gs, 1, 3);
+  quad(flx, fgy, flx, fly, blx, bty, blx, bgy); ctx.fill(); ctx.stroke();
+  quad(frx, fgy, frx, fly, brx, bty, brx, bgy); ctx.fill(); ctx.stroke();
+  // sloped surface
+  quad(flx, fly, frx, fly, brx, bty, blx, bty);
+  ctx.fillStyle = '#2c4a0c';
+  ctx.fill();
+  ctx.stroke();
+  // bright top lip
+  ctx.strokeStyle = '#f2ffd0';
+  ctx.lineWidth = clamp(0.08 * FOCAL / z2, 1, 4);
+  ctx.beginPath(); ctx.moveTo(blx, bty); ctx.lineTo(brx, bty); ctx.stroke();
+  // chevrons running up the ramp
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = RAMP_C;
+  ctx.lineWidth = clamp(0.07 * gs, 1, 5);
+  ctx.beginPath();
+  for (let i = 0; i < 3; i++) {
+    const f = ((i / 3) + G.t * 1.2) % 1;
+    const zc = z + o.dep * f;
+    if (zc < 1.05) continue;
+    const zt = Math.min(z2, zc + o.dep * 0.18);
+    const yc = RAMP_H * (zc - z) / o.dep, yt = RAMP_H * (zt - z) / o.dep;
+    ctx.moveTo(sx(o.x - o.w * 0.3, zc), sy(yc, zc));
+    ctx.lineTo(sx(o.x, zt), sy(yt, zt));
+    ctx.lineTo(sx(o.x + o.w * 0.3, zc), sy(yc, zc));
+  }
+  ctx.stroke();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+}
+
+// Things you've already passed fade out quickly, so they don't clutter the space under the speeder.
+function passFade(zFar) { return clamp((zFar - (VIEW_Z - 3.2)) / 2.6, 0, 1); }
+
 function drawObj(o) {
   const z = o._z;
-  const a = fogA(z);
+  const a = fogA(z) * passFade(z + o.dep);
+  if (a < 0.01) return;
+  if (o.type === 'ramp') { drawRamp(o, z, a); return; }
   if (o.type === 'pylon') {
-    const r = drawBox(o.x, 0, z, o.w, o.h, o.dep, PYLON_C, a);
-    if (!r) return;
+    const zc = z + o.dep / 2;
+    if (zc < 1.2) return;
+    const gs = FOCAL / zc;
+    const bx = sx(o.x, zc), by = sy(0, zc);
+    // warning ring pulsing on the road around its base
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = a * 0.9;
-    const cxp = (r.nxl + r.nxr) / 2;
-    const sw = Math.max(1, 0.1 * r.s);
-    ctx.fillStyle = '#ff7bf0';
-    ctx.fillRect(cxp - sw / 2, r.nyt, sw, r.nyb - r.nyt);
-    ctx.globalAlpha = a * 0.25;
-    ctx.fillRect(cxp - sw * 2, r.nyt, sw * 4, r.nyb - r.nyt);
+    glow(SPR.pink, bx, by, 1.5 * gs, 0.32 * gs, a * 0.6);
+    const ring = (G.t * 1.6 + o.t) % 1;
+    ctx.globalAlpha = a * (1 - ring) * 0.8;
+    ctx.strokeStyle = '#ff5fe0';
+    ctx.lineWidth = clamp(0.05 * gs, 1, 3);
+    ctx.beginPath(); ctx.ellipse(bx, by, (0.7 + ring * 0.9) * gs, (0.7 + ring * 0.9) * gs * 0.16, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalCompositeOperation = 'source-over';
+    if (0.9 * gs < 7) {
+      // far away: a simple glowing spike is enough
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#5a1a8a';
+      const hw = 0.34 * gs, ty = sy(o.h, zc);
+      ctx.beginPath(); ctx.moveTo(bx - hw, by); ctx.lineTo(bx - hw * 0.75, sy(4.3, zc)); ctx.lineTo(bx, ty); ctx.lineTo(bx + hw * 0.75, sy(4.3, zc)); ctx.lineTo(bx + hw, by); ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#ff5fe0'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.globalAlpha = 1;
+      return;
+    }
+    MT.x = o.x; MT.y = 0; MT.z = zc; MT.roll = 0; MT.pitch = 0; MT.yaw = o.t * 0.7; MT.scale = 1;
+    if (!drawMesh(PYLON_MESH, MT, a, 0.045)) return;
+    // energy rings sliding up the tower (only the half facing you)
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = '#ff7bf0';
+    for (let i = 0; i < 3; i++) {
+      const f = (G.t * 0.45 + i / 3 + o.t * 0.13) % 1;
+      const y = 0.4 + f * 3.7, r = 0.42 - f * 0.11 + 0.03;
+      ctx.globalAlpha = a * Math.sin(f * Math.PI) * 0.95;
+      ctx.lineWidth = clamp(0.07 * gs, 1, 5);
+      ctx.beginPath();
+      for (let k = 0; k <= 12; k++) {
+        const t = Math.PI * (k / 12);   // front half only
+        const X = o.x + Math.cos(t) * r, Z = zc - Math.sin(t) * r;
+        if (k === 0) ctx.moveTo(sx(X, Z), sy(y, Z)); else ctx.lineTo(sx(X, Z), sy(y, Z));
+      }
+      ctx.stroke();
+    }
+    // beacon blinking on the tip
+    const bl = Math.sin(G.t * 6 + o.t * 3) > 0 ? 1 : 0.35;
+    glow(SPR.pink, bx, sy(4.95, zc), 0.55 * gs, 0.55 * gs, a * bl);
+    glow(SPR.white, bx, sy(4.95, zc), 0.18 * gs, 0.18 * gs, a * bl);
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
   } else if (o.type === 'wall') {
+    ctx.globalCompositeOperation = 'lighter';
+    const gs = FOCAL / Math.max(z, 1);
+    glow(SPR.pink, sx(o.x, z), sy(0, z), (o.w * 0.7 + 0.5) * gs, 0.3 * gs, a * 0.45);
+    ctx.globalCompositeOperation = 'source-over';
     const r = drawBox(o.x, 0, z, o.w, o.h, o.dep, WALL_C, a);
     if (!r) return;
+    const fw = r.nxr - r.nxl, fh = r.nyb - r.nyt;
+    // which way is the way through? (arrows on the barrier point to the gap)
+    const touchL = o.x - o.w / 2 <= -TRACK_HALF + 0.05, touchR = o.x + o.w / 2 >= TRACK_HALF - 0.05;
+    const dir = touchL && !touchR ? 1 : touchR && !touchL ? -1 : 0;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(r.nxl, r.nyt, fw, fh); ctx.clip();
     ctx.globalAlpha = a;
-    ctx.strokeStyle = 'rgba(255, 120, 230, 0.8)';
-    ctx.lineWidth = Math.max(1, 0.05 * r.s);
-    const h = r.nyb - r.nyt;
-    ctx.beginPath();
-    ctx.moveTo(r.nxl, r.nyt + h * 0.38); ctx.lineTo(r.nxr, r.nyt + h * 0.38);
-    ctx.moveTo(r.nxl, r.nyt + h * 0.62); ctx.lineTo(r.nxr, r.nyt + h * 0.62);
-    ctx.stroke();
+    if (o.jump) {
+      // up-arrows: you need the ramp to clear this one
+      ctx.strokeStyle = RAMP_C;
+      ctx.lineWidth = Math.max(1, 0.08 * r.s);
+      const step = Math.max(14, 1.3 * r.s), lift = ((G.t * 1.5) % 1) * fh * 0.25;
+      ctx.beginPath();
+      for (let x = r.nxl + step / 2; x < r.nxr; x += step) {
+        ctx.moveTo(x - fh * 0.22, r.nyt + fh * 0.72 - lift);
+        ctx.lineTo(x, r.nyt + fh * 0.32 - lift);
+        ctx.lineTo(x + fh * 0.22, r.nyt + fh * 0.72 - lift);
+      }
+      ctx.stroke();
+    } else if (fh > 4) {
+      // neon chevrons sliding toward the gap
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = 'rgba(255, 95, 224, 0.9)';
+      ctx.lineWidth = Math.max(1, 0.1 * r.s);
+      const step = Math.max(10, 0.9 * r.s), m = fh * 0.3;
+      const off = dir ? ((G.t * 2.2) % 1) * step * dir : 0;
+      const d2 = dir || 1;
+      ctx.beginPath();
+      for (let x = r.nxl - step + off; x < r.nxr + step; x += step) {
+        if (dir) {
+          ctx.moveTo(x - m * 0.6 * d2, r.nyt + fh * 0.2);
+          ctx.lineTo(x + m * 0.6 * d2, r.nyt + fh * 0.5);
+          ctx.lineTo(x - m * 0.6 * d2, r.nyt + fh * 0.8);
+        } else {
+          ctx.moveTo(x, r.nyb); ctx.lineTo(x + fh * 0.7, r.nyt);
+        }
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.globalAlpha = a;
+    // glowing top rail with running lights
+    ctx.fillStyle = '#ffd0fb';
+    ctx.fillRect(r.nxl, r.nyt, fw, Math.max(1, 0.06 * r.s));
+    ctx.fillStyle = '#ff5fe0';
+    ctx.fillRect(r.nxl, r.nyb - Math.max(1, 0.05 * r.s), fw, Math.max(1, 0.05 * r.s));
+    if (r.s > 14) {
+      ctx.globalCompositeOperation = 'lighter';
+      const n = Math.max(2, Math.round(o.w / 1.2));
+      for (let i = 0; i <= n; i++) {
+        const on = ((i + Math.floor(G.t * 6)) % 3) === 0 ? 1 : 0.35;
+        glow(SPR.pink, r.nxl + fw * (i / n), r.nyt, 0.22 * r.s, 0.22 * r.s, a * on);
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    }
     ctx.globalAlpha = 1;
   } else if (o.type === 'mine') {
+    // a spiked, spinning space mine with a pulsing core (2 shots to pop)
     if (z < 1) return;
     const s = FOCAL / z;
     const y = 0.6 + Math.sin(o.t * 3) * 0.1;
-    shadow(o.x, z, 0.3, a * 0.5);
-    const px = sx(o.x, z), py = sy(y, z);
-    const spin = Math.cos(o.t * 4);
-    const rw = 0.32 * s * (0.35 + 0.65 * Math.abs(spin)), rh = 0.4 * s;
+    shadow(o.x, z, 0.32, a * 0.5);
+    const px = sx(o.x, z), py = sy(y, z), R = 0.3 * s;
+    const hot = o.flashT > 0;
+    const beat = 0.5 + 0.5 * Math.sin(o.t * (o.hp < 2 ? 16 : 7));
     ctx.globalAlpha = a;
+    // warning halo
     ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(255, 140, 40, 0.25)';
-    ctx.beginPath();
-    ctx.arc(px, py, rh * 1.3, 0, Math.PI * 2);
-    ctx.fill();
+    glow(SPR.orange, px, py, R * 2.6, R * 2.6, a * (0.35 + 0.25 * beat));
     ctx.globalCompositeOperation = 'source-over';
+    // spikes (8 around, turning)
+    const spin = o.t * 1.6;
+    ctx.fillStyle = hot ? '#ffffff' : '#ff9a2e';
     ctx.beginPath();
-    ctx.moveTo(px, py - rh); ctx.lineTo(px + rw, py); ctx.lineTo(px, py + rh); ctx.lineTo(px - rw, py);
-    ctx.closePath();
-    ctx.fillStyle = o.flashT > 0 ? '#ffffff' : '#3a1606';
+    for (let k = 0; k < 8; k++) {
+      const t = spin + k * Math.PI / 4;
+      const c = Math.cos(t), sn = Math.sin(t), w = 0.28;
+      const tilt = 0.75 + 0.25 * Math.cos(t * 2 + o.t);   // spikes going round the back look shorter
+      ctx.moveTo(px + Math.cos(t - w) * R * 0.85, py + Math.sin(t - w) * R * 0.85);
+      ctx.lineTo(px + c * R * 1.65 * tilt, py + sn * R * 1.65 * tilt);
+      ctx.lineTo(px + Math.cos(t + w) * R * 0.85, py + Math.sin(t + w) * R * 0.85);
+    }
     ctx.fill();
+    // armored shell
+    const shell = ctx.createRadialGradient(px - R * 0.35, py - R * 0.4, R * 0.1, px, py, R);
+    shell.addColorStop(0, hot ? '#ffffff' : '#7a3a14');
+    shell.addColorStop(1, hot ? '#ffd0a0' : '#200a04');
+    ctx.fillStyle = shell;
+    ctx.beginPath(); ctx.arc(px, py, R, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = COLORS.orange;
     ctx.lineWidth = clamp(0.05 * s, 1, 3);
     ctx.stroke();
-    ctx.fillStyle = (Math.sin(o.t * 10) > 0) ? '#ffe08a' : COLORS.orange;
-    ctx.beginPath();
-    ctx.arc(px, py, Math.max(1, rh * 0.18), 0, Math.PI * 2);
-    ctx.fill();
+    // seam band around the middle, turning with the spikes
+    ctx.beginPath(); ctx.ellipse(px, py, R, R * 0.28, Math.sin(spin) * 0.3, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255, 170, 70, 0.7)'; ctx.stroke();
+    // glowing core that beats faster once it's been hit
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = beat > 0.5 ? '#ffe08a' : COLORS.orange;
+    ctx.beginPath(); ctx.arc(px, py, Math.max(1, R * (0.22 + 0.12 * beat)), 0, Math.PI * 2); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
     o.flashT = Math.max(0, (o.flashT || 0) - 1 / 60);
     ctx.globalAlpha = 1;
   }
@@ -1504,7 +2901,8 @@ function drawObj(o) {
 function drawEnemy(e) {
   const z = e._z;
   if (z < 1) return;
-  const a = fogA(z);
+  const a = fogA(z) * passFade(z + 0.6);
+  if (a < 0.01) return;
   const s = FOCAL / z;
   const hitFlash = e.flashT > 0;
   if (e.type === 'drone') {
@@ -1542,8 +2940,32 @@ function drawEnemy(e) {
     ctx.fillStyle = 'rgba(255, 157, 46, 0.8)';
     ctx.beginPath(); ctx.arc(-0.42, 0.06, 0.05, 0, Math.PI * 2); ctx.arc(0.42, 0.06, 0.05, 0, Math.PI * 2); ctx.fill();
     ctx.globalCompositeOperation = 'source-over';
+    // spinning rotors on the wingtips
+    for (const side of [-1, 1]) {
+      const rx = side * 0.7;
+      ctx.fillStyle = 'rgba(255, 90, 120, 0.16)';
+      ctx.beginPath(); ctx.ellipse(rx, -0.1, 0.3, 0.07, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 200, 210, 0.75)'; ctx.lineWidth = 0.025;
+      const bl = Math.cos(e.t * 40 + side) * 0.3;
+      ctx.beginPath(); ctx.moveTo(rx - bl, -0.1 - 0.03); ctx.lineTo(rx + bl, -0.1 + 0.03); ctx.stroke();
+      ctx.fillStyle = '#ff2b4e';
+      ctx.fillRect(rx - 0.03, -0.1, 0.06, 0.12);
+    }
     ctx.restore();
   } else if (e.type === 'ram') {
+    // headlight beams thrown on the road in front of it (toward you)
+    if (z > 2.2) {
+      const z2 = Math.max(1.05, z - 3.2);
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = a * 0.22;
+      ctx.fillStyle = '#ff6a7e';
+      ctx.beginPath();
+      ctx.moveTo(sx(e.x - 0.18, z), sy(0, z)); ctx.lineTo(sx(e.x + 0.18, z), sy(0, z));
+      ctx.lineTo(sx(e.x + 0.75, z2), sy(0, z2)); ctx.lineTo(sx(e.x - 0.75, z2), sy(0, z2));
+      ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
     shadow(e.x, z, 0.42, a * 0.45);
     const px = sx(e.x, z), py = sy(e.y + Math.sin(e.t * 7) * 0.03, z);
     ctx.save();
@@ -1561,8 +2983,15 @@ function drawEnemy(e) {
     ctx.fill();
     ctx.strokeStyle = COLORS.red; ctx.lineWidth = 0.035; ctx.stroke();
     ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(255, 220, 220, 0.9)';
-    ctx.beginPath(); ctx.ellipse(0, 0.04, 0.09, 0.04, 0, 0, Math.PI * 2); ctx.fill();
+    // ram plate spikes
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#ff2b4e';
+    ctx.beginPath();
+    for (const sx2 of [-0.24, -0.08, 0.08, 0.24]) { ctx.moveTo(sx2 - 0.05, 0.14); ctx.lineTo(sx2, 0.26); ctx.lineTo(sx2 + 0.05, 0.14); }
+    ctx.fill();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = 'rgba(255, 230, 230, 0.95)';
+    ctx.beginPath(); ctx.ellipse(-0.13, 0.05, 0.06, 0.035, 0, 0, Math.PI * 2); ctx.ellipse(0.13, 0.05, 0.06, 0.035, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = 'rgba(255, 60, 90, 0.35)';
     ctx.beginPath(); ctx.ellipse(0, 0.04, 0.3, 0.12, 0, 0, Math.PI * 2); ctx.fill();
     ctx.globalCompositeOperation = 'source-over';
@@ -1576,6 +3005,18 @@ function drawEnemy(e) {
     ctx.fillStyle = '#3d0a18';
     ctx.strokeStyle = COLORS.red;
     ctx.lineWidth = clamp(0.04 * s, 1, 3);
+    // barrel swings to follow you
+    const aim = clamp((player.x - e.x) * 0.25, -0.9, 0.9);
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#2a0710';
+    ctx.lineWidth = Math.max(2, 0.16 * s);
+    ctx.beginPath(); ctx.moveTo(cxp, r.nyt - domeR * 0.4);
+    ctx.lineTo(cxp + Math.sin(aim) * domeR * 1.3, r.nyt - domeR * 0.4 + Math.cos(aim) * domeR * 0.9); ctx.stroke();
+    ctx.strokeStyle = COLORS.red;
+    ctx.lineWidth = Math.max(1, 0.05 * s);
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+    ctx.fillStyle = '#3d0a18';
     ctx.beginPath();
     ctx.arc(cxp, r.nyt, domeR, Math.PI, 0);
     ctx.closePath();
@@ -1612,10 +3053,41 @@ function drawGate(g) {
     ctx.moveTo(xl, y); ctx.lineTo(xr, y);
   }
   ctx.stroke();
-  const postC = { face: P.color, side: P.color, top: '#ffffff', edge: '#ffffff' };
+  ctx.globalCompositeOperation = 'lighter';
+  glow(SPR.white, (xl + xr) / 2, yb, (xr - xl) * 0.7, (xr - xl) * 0.12, a * 0.35);
+  ctx.globalCompositeOperation = 'source-over';
+  const postC = g.postC || (g.postC = { face: P.color, side: P.color, top: '#ffffff', edge: '#ffffff' });
   drawBox(g.x - g.w / 2, 0, z, 0.2, g.h, 0.2, postC, a);
   drawBox(g.x + g.w / 2, 0, z, 0.2, g.h, 0.2, postC, a);
   drawBox(g.x, g.h, z, g.w + 0.2, 0.22, 0.2, postC, a);
+  // lights chasing round the frame
+  ctx.globalCompositeOperation = 'lighter';
+  const fh = yb - yt, fw2 = xr - xl, per = fh * 2 + fw2;
+  const dot = Math.max(1.5, 0.09 * s);
+  ctx.fillStyle = '#ffffff';
+  ctx.globalAlpha = a * 0.9;
+  for (let i = 0; i < 8; i++) {
+    let u = (((i / 8) + G.t * 0.35) % 1) * per, px, py;
+    if (u < fh) { px = xl; py = yb - u; } else if (u < fh + fw2) { px = xl + (u - fh); py = yt; } else { px = xr; py = yt + (u - fh - fw2); }
+    ctx.fillRect(px - dot, py - dot, dot * 2, dot * 2);
+  }
+  // floating badge with a picture of the power-up (easy to read before you can read the word)
+  if (s > 7) {
+    const bob = Math.sin(G.t * 2.4 + g.x) * 0.12;
+    const bcx = (xl + xr) / 2, bcy = sy(g.h + 0.95 + bob, z), br = 0.62 * s;
+    ctx.globalAlpha = a * 0.35;
+    ctx.fillStyle = P.color;
+    ctx.beginPath(); ctx.arc(bcx, bcy, br * 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = a;
+    hex(bcx, bcy, br, true, '#0b0420');
+    ctx.lineWidth = Math.max(1.5, 0.07 * s);
+    ctx.strokeStyle = P.color;
+    ctx.stroke();
+    powerIcon(g.type, bcx, bcy, br * 0.58, P.color, Math.max(1.2, 0.08 * s));
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = a;
   // label
   let fs = 0.48 * s;
   if (fs > 6) {
@@ -1628,7 +3100,16 @@ function drawGate(g) {
     }
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    // dark plate behind the label so it's readable against any background
+    const ly2 = sy(g.h * 0.55, z);
+    const pw = Math.min(xr - xl - 4, ctx.measureText(P.label).width + fs * 0.8);
+    ctx.globalAlpha = a * 0.75;
+    ctx.fillStyle = '#0b0420';
+    ctx.fillRect((xl + xr) / 2 - pw / 2, ly2 - fs * 0.75, pw, fs * 1.5);
     ctx.globalAlpha = a;
+    ctx.strokeStyle = P.color;
+    ctx.lineWidth = Math.max(1, fs * 0.06);
+    ctx.strokeRect((xl + xr) / 2 - pw / 2, ly2 - fs * 0.75, pw, fs * 1.5);
     ctx.fillStyle = '#0b0420';
     ctx.fillText(P.label, (xl + xr) / 2 + fs * 0.06, sy(g.h * 0.55, z) + fs * 0.06);
     ctx.fillStyle = '#ffffff';
@@ -1637,12 +3118,49 @@ function drawGate(g) {
   ctx.globalAlpha = 1;
 }
 
+// little pictures for each power-up, drawn in a box of radius r
+function powerIcon(type, x, y, r, color, lw) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.beginPath();
+  if (type === 'shield') {
+    ctx.moveTo(0, -r); ctx.lineTo(r * 0.85, -r * 0.6); ctx.lineTo(r * 0.7, r * 0.3); ctx.lineTo(0, r);
+    ctx.lineTo(-r * 0.7, r * 0.3); ctx.lineTo(-r * 0.85, -r * 0.6); ctx.closePath(); ctx.stroke();
+  } else if (type === 'weapon') {
+    for (const ox of [-0.55, 0, 0.55]) {
+      ctx.moveTo(ox * r, r * 0.8); ctx.lineTo(ox * r, -r * 0.3);
+      ctx.moveTo(ox * r - r * 0.22, -r * 0.3); ctx.lineTo(ox * r, -r * 0.8); ctx.lineTo(ox * r + r * 0.22, -r * 0.3);
+    }
+    ctx.stroke();
+  } else if (type === 'rapid') {
+    ctx.moveTo(r * 0.25, -r); ctx.lineTo(-r * 0.55, r * 0.1); ctx.lineTo(0, r * 0.1); ctx.lineTo(-r * 0.25, r);
+    ctx.lineTo(r * 0.55, -r * 0.1); ctx.lineTo(0, -r * 0.1); ctx.closePath(); ctx.fill();
+  } else if (type === 'repair') {
+    const t = r * 0.32;
+    ctx.rect(-t, -r * 0.85, t * 2, r * 1.7); ctx.rect(-r * 0.85, -t, r * 1.7, t * 2); ctx.fill();
+  } else if (type === 'nova') {
+    for (let k = 0; k < 8; k++) {
+      const t = k * Math.PI / 4, l = k % 2 ? 0.55 : 1;
+      ctx.moveTo(Math.cos(t) * r * 0.25, Math.sin(t) * r * 0.25); ctx.lineTo(Math.cos(t) * r * l, Math.sin(t) * r * l);
+    }
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.22, 0, Math.PI * 2); ctx.fill();
+  } else if (type === 'mult') {
+    ctx.font = '900 ' + (r * 1.25).toFixed(1) + 'px ' + FONT;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('2X', 0, r * 0.08);
+  }
+  ctx.restore();
+}
+
 function drawShot(b) {
   const z = b._z;
   if (z < 1) return;
   const z2 = z + 2.4;
-  const x1 = sx(b.x, z), y1 = sy(0.5, z);
-  const x2 = sx(b.x + b.vx * 0.02, z2), y2 = sy(0.5, z2);
+  const x1 = sx(b.x, z), y1 = sy(b.y, z);
+  const x2 = sx(b.x + b.vx * 0.02 - b.turn * 2.4, z2), y2 = sy(b.y, z2);
   const lw = clamp(0.1 * FOCAL / z, 1, 8);
   ctx.globalCompositeOperation = 'lighter';
   ctx.strokeStyle = 'rgba(41, 243, 255, 0.55)';
@@ -1687,17 +3205,20 @@ function drawPart(p) {
 }
 
 function drawStreaks() {
-  const camD = G.d - PLAYER_Z;
-  const base = clamp((G.speed - 24) / 60, 0, 0.55);
+  const camD = VIEW_D;
+  const base = clamp((G.speed - 24) / 60, 0, 0.6);
   if (base <= 0) return;
+  const n = Math.min(streaks.length, QUAL.streaks);
+  const railC = rgba(PAL.rail, 1);
   ctx.globalCompositeOperation = 'lighter';
-  ctx.strokeStyle = '#d8c8ff';
-  ctx.lineWidth = 1;
-  for (const s of streaks) {
+  for (let i = 0; i < n; i++) {
+    const s = streaks[i];
     const z = s.d - camD;
     if (z < 1) continue;
-    const z2 = z + G.speed * 0.06;
-    ctx.globalAlpha = base * fogA(z);
+    const z2 = z + G.speed * (s.rail ? 0.09 : 0.06);
+    ctx.globalAlpha = base * fogA(z) * (s.rail ? 1.3 : 1);
+    ctx.strokeStyle = s.rail ? railC : '#d8c8ff';
+    ctx.lineWidth = s.rail ? clamp(0.04 * FOCAL / z, 1, 3) : 1;
     ctx.beginPath();
     ctx.moveTo(sx(s.x, z), sy(s.y, z));
     ctx.lineTo(sx(s.x, z2), sy(s.y, z2));
@@ -1707,132 +3228,385 @@ function drawStreaks() {
   ctx.globalCompositeOperation = 'source-over';
 }
 
+// Light trails from the three engines, following where the speeder has been.
+const TRZ = new Float32Array(TRAIL_N + 1), TRX = new Float32Array(TRAIL_N + 1), TRY = new Float32Array(TRAIL_N + 1);
+function drawTrails() {
+  if (!QUAL.trails || !player.alive) return;
+  // collect the trail points once (newest first), stopping just in front of the camera
+  let n = 0;
+  TRZ[n] = VIEW_Z; TRX[n] = player.x; TRY[n] = player.y; n++;
+  let lastZ = VIEW_Z;
+  for (let i = 0; i < TRAIL_N; i++) {
+    const k = (trailHead - i + TRAIL_N) % TRAIL_N;
+    let z = trailD[k] - VIEW_D;
+    if (z >= lastZ - 0.01) continue;
+    if (z < 1.05) z = 1.05;
+    TRZ[n] = z; TRX[n] = trailX[k]; TRY[n] = trailY[k]; n++;
+    lastZ = z;
+    if (z <= 1.05) break;
+  }
+  if (n < 2) return;
+  const sp = clamp((G.speed - 28) / 60, 0, 1);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillStyle = trailGrad;
+  for (let e = -1; e <= 1; e++) {
+    const ex = e * SHIP_POD_X * SHIP_SCALE, hw = e === 0 ? 0.04 : 0.045;
+    ctx.globalAlpha = (0.22 + 0.4 * sp + 0.3 * G.kick) * (e === 0 ? 1 : 0.8);
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const w = hw * (1 - (i / n) * 0.4);
+      const x = sx(TRX[i] + ex - w, TRZ[i]), y = sy(0.44 + TRY[i], TRZ[i]);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    for (let i = n - 1; i >= 0; i--) {
+      const w = hw * (1 - (i / n) * 0.4);
+      ctx.lineTo(sx(TRX[i] + ex + w, TRZ[i]), sy(0.44 + TRY[i], TRZ[i]));
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+
 function drawPlayer() {
   if (!player.alive) return;
-  const z = PLAYER_Z;
+  const z = VIEW_Z;
   const s = FOCAL / z;
   const bob = Math.sin(G.t * 6) * 0.025;
-  const px = sx(player.x, z), py = sy(0.42 + bob, z), gy = sy(0, z);
+  const px = sx(player.x, z), py = sy(0.42 + bob + player.y, z), gyy = sy(0, z);
+  const air = clamp(1 - player.y / 3, 0.3, 1);   // shadow fades as you climb
   const blink = G.invuln > 0 && Math.floor(G.t * 18) % 2 === 0;
+  const sp = clamp((G.speed - 28) / 60, 0, 1);
 
-  // shadow + underglow
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-  ctx.beginPath(); ctx.ellipse(px, gy, 0.42 * s, 0.07 * s, 0, 0, Math.PI * 2); ctx.fill();
+  // shadow + underglow on the track
+  ctx.fillStyle = 'rgba(0, 0, 0, ' + (0.5 * air).toFixed(2) + ')';
+  ctx.beginPath(); ctx.ellipse(px, gyy, 0.6 * s * air, 0.09 * s * air, 0, 0, Math.PI * 2); ctx.fill();
   ctx.globalCompositeOperation = 'lighter';
-  const ug = ctx.createRadialGradient(px, gy, 0, px, gy, 0.7 * s);
-  ug.addColorStop(0, 'rgba(41, 243, 255, 0.45)');
-  ug.addColorStop(1, 'rgba(41, 243, 255, 0)');
-  ctx.fillStyle = ug;
-  ctx.beginPath(); ctx.ellipse(px, gy, 0.7 * s, 0.16 * s, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.globalCompositeOperation = 'source-over';
+  glow(SPR.cyan, px, gyy, 0.95 * s * air, 0.18 * s * air, 0.5 * air);
+  ctx.globalAlpha = 1;
 
-  ctx.save();
-  ctx.translate(px, py);
-  ctx.rotate(player.bank);
-  ctx.scale(s, s);
-  if (blink) ctx.globalAlpha = 0.35;
+  drawTrails();
 
-  // engine flames (they point back toward the camera, so downward on screen)
+  // the 3D speeder: it rolls into a steer, noses into the turn, and pitches on jumps
+  MT.x = player.x; MT.y = 0.42 + bob + player.y; MT.z = z;
+  MT.roll = -player.bank; MT.yaw = player.bank * 0.35;
+  MT.pitch = SHIP_TILT - clamp(player.vy * 0.03, -0.18, 0.28);
+  MT.scale = SHIP_SCALE;
+  const baseA = blink ? 0.35 : 1;
+  // hover pads glowing on the road under each engine pod
   ctx.globalCompositeOperation = 'lighter';
-  const flick = 0.1 + Math.random() * 0.07 + (G.speed / 90) * 0.06;
-  for (const ex of [-0.3, 0, 0.3]) {
-    const fw = ex === 0 ? 0.07 : 0.055;
-    const fg = ctx.createLinearGradient(0, 0.06, 0, 0.06 + flick + 0.06);
-    fg.addColorStop(0, 'rgba(200, 255, 255, 0.95)');
-    fg.addColorStop(0.4, 'rgba(41, 243, 255, 0.7)');
-    fg.addColorStop(1, 'rgba(255, 43, 214, 0)');
-    ctx.fillStyle = fg;
-    ctx.beginPath();
-    ctx.moveTo(ex - fw, 0.06);
-    ctx.lineTo(ex + fw, 0.06);
-    ctx.lineTo(ex, 0.06 + flick + 0.06);
-    ctx.closePath();
-    ctx.fill();
-  }
-  ctx.globalCompositeOperation = 'source-over';
-
-  ctx.lineJoin = 'round';
-  // side engine pods
   for (const side of [-1, 1]) {
-    ctx.beginPath();
-    ctx.moveTo(side * 0.37, 0.08);
-    ctx.lineTo(side * 0.23, 0.08);
-    ctx.lineTo(side * 0.22, -0.15);
-    ctx.lineTo(side * 0.33, -0.2);
-    ctx.closePath();
-    ctx.fillStyle = '#2a1450';
-    ctx.fill();
-    ctx.strokeStyle = COLORS.pink;
-    ctx.lineWidth = 0.018;
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255, 43, 214, 0.7)';
-    ctx.beginPath();
-    ctx.moveTo(side * 0.23, -0.04);
-    ctx.lineTo(side * 0.15, -0.06);
-    ctx.stroke();
+    const p = shipPoint(MT, side * SHIP_POD_X, 0, -0.1);
+    const fl = 0.8 + 0.2 * Math.sin(G.t * 31 + side);
+    glow(SPR.cyan, sx(p[0], p[2]), sy(0, p[2]), 0.42 * s * air, 0.09 * s * air, 0.6 * air * fl);
   }
-  // main hull
-  const hg = ctx.createLinearGradient(0, -0.42, 0, 0.08);
-  hg.addColorStop(0, '#3a3f8a');
-  hg.addColorStop(1, '#0d1030');
-  ctx.beginPath();
-  ctx.moveTo(0, -0.44);
-  ctx.lineTo(0.17, -0.1);
-  ctx.lineTo(0.2, 0.06);
-  ctx.lineTo(0, 0.1);
-  ctx.lineTo(-0.2, 0.06);
-  ctx.lineTo(-0.17, -0.1);
-  ctx.closePath();
-  ctx.fillStyle = hg;
-  ctx.fill();
-  ctx.strokeStyle = COLORS.cyan;
-  ctx.lineWidth = 0.02;
-  ctx.stroke();
-  // center light strip
-  ctx.strokeStyle = COLORS.pink;
-  ctx.lineWidth = 0.016;
-  ctx.beginPath();
-  ctx.moveTo(0, -0.4);
-  ctx.lineTo(0, -0.24);
-  ctx.stroke();
-  // canopy
-  const cg = ctx.createLinearGradient(0, -0.24, 0, 0);
-  cg.addColorStop(0, '#ff7bf0');
-  cg.addColorStop(1, '#5a1a9a');
-  ctx.fillStyle = cg;
-  ctx.beginPath();
-  ctx.ellipse(0, -0.11, 0.075, 0.11, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-  ctx.beginPath();
-  ctx.ellipse(-0.025, -0.15, 0.018, 0.04, 0, 0, Math.PI * 2);
-  ctx.fill();
-  // exhaust rings
+  ctx.globalCompositeOperation = 'source-over';
+  drawMesh(SHIP, MT, baseA, 0.013);
+  // engines: glowing nozzles with flames streaming back toward you
   ctx.globalCompositeOperation = 'lighter';
-  ctx.fillStyle = '#bffcff';
-  for (const ex of [-0.3, 0.3]) {
-    ctx.beginPath(); ctx.arc(ex, 0.07, 0.045, 0, Math.PI * 2); ctx.fill();
+  for (let i = 0; i < SHIP_ENGINES.length; i++) {
+    const E = SHIP_ENGINES[i];
+    let p = shipPoint(MT, E[0], E[1], E[2]);
+    const ex = sx(p[0], p[2]), ey = sy(p[1], p[2]), r = E[3] * SHIP_SCALE * FOCAL / p[2];
+    const len = 0.25 + sp * 0.4 + G.kick * 0.35 + Math.sin(G.t * 47 + i * 2.1) * 0.04 + Math.random() * 0.06;
+    p = shipPoint(MT, E[0], E[1], E[2] - len);
+    const fx = sx(p[0], p[2]), fy = sy(p[1], p[2]);
+    ctx.globalAlpha = baseA * 0.55;
+    ctx.fillStyle = i === 2 ? '#ff4fdc' : '#29f3ff';
+    flame(ex, ey, fx, fy, r * 1.15);
+    ctx.globalAlpha = baseA * 0.95;
+    ctx.fillStyle = '#e8ffff';
+    flame(ex, ey, ex + (fx - ex) * 0.55, ey + (fy - ey) * 0.55, r * 0.55);
+    glow(i === 2 ? SPR.pink : SPR.cyan, ex, ey, r * 1.9, r * 1.9, baseA * (0.6 + G.kick * 0.3));
+    ctx.globalAlpha = baseA;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(ex, ey, r * 0.5, 0, Math.PI * 2); ctx.fill();
   }
-  ctx.beginPath(); ctx.arc(0, 0.08, 0.055, 0, Math.PI * 2); ctx.fill();
+  // blinking lights on the tips of the fins
+  const tip = Math.sin(G.t * 5) > 0;
+  for (const side of [-1, 1]) {
+    const p = shipPoint(MT, side * (SHIP_POD_X + 0.11), 0.42, -0.62);
+    glow((side < 0) === tip ? SPR.pink : SPR.cyan, sx(p[0], p[2]), sy(p[1], p[2]), 0.1 * s, 0.1 * s, baseA);
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
   // shield bubble
   if (G.shield > 0) {
     const pulse = 0.6 + 0.4 * Math.sin(G.t * 5);
-    ctx.globalAlpha = 0.18 + 0.1 * pulse;
+    const by = sy(0.5 + bob + player.y, z);
+    ctx.globalAlpha = 0.16 + 0.1 * pulse;
     ctx.fillStyle = COLORS.cyan;
-    ctx.beginPath(); ctx.ellipse(0, -0.12, 0.56, 0.4, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.globalAlpha = 0.7;
+    ctx.beginPath(); ctx.ellipse(px, by, 0.68 * s, 0.42 * s, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.75;
     ctx.strokeStyle = COLORS.cyan;
-    ctx.lineWidth = G.shield > 1 ? 0.04 : 0.022;
+    ctx.lineWidth = Math.max(1.5, (G.shield > 1 ? 0.035 : 0.018) * s);
     ctx.stroke();
+    if (G.shield > 1) {
+      ctx.globalAlpha = 0.4;
+      ctx.beginPath(); ctx.ellipse(px, by, 0.76 * s, 0.48 * s, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
   }
-  ctx.restore();
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.globalAlpha = 1;
+
+  // power-up ring bursting off the speeder
+  if (G.pulse > 0) {
+    const r = (0.45 + (1 - G.pulse) * 1.5) * s;
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = G.pulse * 0.9;
+    ctx.strokeStyle = G.pulseColor;
+    ctx.lineWidth = Math.max(1.5, 0.07 * s * G.pulse);
+    ctx.beginPath(); ctx.ellipse(px, py, r, r * 0.45, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
 }
+// a tapered flame from (ax, ay) to the tip (bx, by)
+function flame(ax, ay, bx, by, w) {
+  let nx = by - ay, ny = ax - bx;
+  const l = Math.hypot(nx, ny) || 1;
+  nx *= w / l; ny *= w / l;
+  ctx.beginPath();
+  ctx.moveTo(ax + nx, ay + ny); ctx.lineTo(bx, by); ctx.lineTo(ax - nx, ay - ny);
+  ctx.closePath(); ctx.fill();
+}
+
+/* ---------- Tiny 3D model renderer ----------
+   The speeder and the pylons are small 3D models (a few dozen flat-shaded faces),
+   projected through the same camera as everything else. That's what lets the speeder
+   really roll and turn when you steer, and lets pylons show their sides in a bend.
+   Model space: x = right, y = up, z = forward (away from the camera). */
+const LIGHT = (() => { const l = [0.45, 0.8, -0.4], m = Math.hypot(l[0], l[1], l[2]); return [l[0] / m, l[1] / m, l[2] / m]; })();
+
+// faces: [vertex indices, color [r,g,b], edge color or null, flags]
+//   flags: e = emissive (not shaded), d = double-sided, b = drawn on top of its neighbours
+function makeMesh(verts, faces, center) {
+  const nv = verts.length / 3;
+  const m = {
+    v: Float32Array.from(verts), nv,
+    px: new Float32Array(nv), py: new Float32Array(nv), wz: new Float32Array(nv),
+    rx: new Float32Array(nv), ry: new Float32Array(nv), rz: new Float32Array(nv),
+    f: [], order: [],
+  };
+  const V = m.v;
+  for (const [idx, col, edge, flags] of faces) {
+    let cx = 0, cy = 0, cz = 0;
+    for (const i of idx) { cx += V[i * 3]; cy += V[i * 3 + 1]; cz += V[i * 3 + 2]; }
+    cx /= idx.length; cy /= idx.length; cz /= idx.length;
+    // normal from the first three corners, flipped to point away from the part's center
+    const a = idx[0] * 3, b = idx[1] * 3, c = idx[2] * 3;
+    const ux = V[b] - V[a], uy = V[b + 1] - V[a + 1], uz = V[b + 2] - V[a + 2];
+    const vx = V[c] - V[a], vy = V[c + 1] - V[a + 1], vz = V[c + 2] - V[a + 2];
+    let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    const o = (flags && flags.o) || center;
+    if (nx * (cx - o[0]) + ny * (cy - o[1]) + nz * (cz - o[2]) < 0) { nx = -nx; ny = -ny; nz = -nz; }
+    const nl = Math.hypot(nx, ny, nz) || 1;
+    m.f.push({
+      idx, col, edge, n: [nx / nl, ny / nl, nz / nl], c: [cx, cy, cz],
+      emit: !!(flags && flags.e), ds: !!(flags && flags.d), bias: (flags && flags.b) || 0,
+      depth: 0, shade: 1, rn: [0, 0, 0],
+    });
+  }
+  return m;
+}
+
+// Build a 6-sided prism/taper between two rings; returns new vertex start index.
+function ringVerts(out, cx, cy, cz, r, n, axis, rot) {
+  const start = out.length / 3;
+  for (let k = 0; k < n; k++) {
+    const t = (k / n) * Math.PI * 2 + (rot || 0);
+    if (axis === 'y') out.push(cx + Math.cos(t) * r, cy, cz + Math.sin(t) * r);
+    else out.push(cx + Math.cos(t) * r, cy + Math.sin(t) * r, cz);   // ring around the z axis
+  }
+  return start;
+}
+function ringSides(faces, a, b, n, col, edge, flags) {
+  for (let k = 0; k < n; k++) {
+    const k2 = (k + 1) % n;
+    faces.push([[a + k, a + k2, b + k2, b + k], col, edge, flags]);
+  }
+}
+
+const MT = { x: 0, y: 0, z: 0, roll: 0, yaw: 0, pitch: 0, scale: 1 };
+// Transform, project, cull, sort and paint a model. Returns false if it was behind the camera.
+function drawMesh(m, T, alpha, edgeW) {
+  const V = m.v;
+  const cr = Math.cos(T.roll), sr = Math.sin(T.roll);
+  const cp = Math.cos(T.pitch), sp = Math.sin(T.pitch);
+  const cyw = Math.cos(T.yaw), syw = Math.sin(T.yaw);
+  const S = T.scale;
+  for (let i = 0; i < m.nv; i++) {
+    let x = V[i * 3] * S, y = V[i * 3 + 1] * S, z = V[i * 3 + 2] * S;
+    // roll (around z), pitch (around x), yaw (around y)
+    let x1 = x * cr - y * sr, y1 = x * sr + y * cr;
+    let y2 = y1 * cp - z * sp, z2 = y1 * sp + z * cp;
+    let x3 = x1 * cyw + z2 * syw, z3 = -x1 * syw + z2 * cyw;
+    const X = T.x + x3, Y = T.y + y2, Z = T.z + z3;
+    if (Z < 0.6) return false;
+    m.rx[i] = X; m.ry[i] = Y; m.rz[i] = Z;
+    m.px[i] = sx(X, Z); m.py[i] = sy(Y, Z);
+  }
+  // where the camera is, seen from the model (the road's bend shifts it sideways)
+  const camX = cam.x - lx(T.z), camY = CAM_H + CAM_LIFT - ly(T.z);
+  m.order.length = 0;
+  for (const f of m.f) {
+    // rotate the normal the same way
+    const nx0 = f.n[0], ny0 = f.n[1], nz0 = f.n[2];
+    const nx1 = nx0 * cr - ny0 * sr, ny1 = nx0 * sr + ny0 * cr;
+    const ny2 = ny1 * cp - nz0 * sp, nz2 = ny1 * sp + nz0 * cp;
+    const nx3 = nx1 * cyw + nz2 * syw, nz3 = -nx1 * syw + nz2 * cyw;
+    // face center in the world
+    let cx = 0, cy = 0, cz = 0;
+    for (const i of f.idx) { cx += m.rx[i]; cy += m.ry[i]; cz += m.rz[i]; }
+    const k = 1 / f.idx.length;
+    cx *= k; cy *= k; cz *= k;
+    const vx = camX - cx, vy = camY - cy, vz = -cz;
+    let facing = nx3 * vx + ny2 * vy + nz3 * vz;
+    let nx = nx3, ny = ny2, nz = nz3;
+    if (facing <= 0) {
+      if (!f.ds) continue;
+      nx = -nx; ny = -ny; nz = -nz;
+    }
+    f.shade = 0.32 + 0.68 * Math.max(0, nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]);
+    f.depth = vx * vx + vy * vy + vz * vz - f.bias;
+    m.order.push(f);
+  }
+  m.order.sort((a, b) => b.depth - a.depth);
+  const s = FOCAL / T.z;
+  ctx.lineJoin = 'round';
+  for (const f of m.order) {
+    const idx = f.idx;
+    ctx.beginPath();
+    ctx.moveTo(m.px[idx[0]], m.py[idx[0]]);
+    for (let j = 1; j < idx.length; j++) ctx.lineTo(m.px[idx[j]], m.py[idx[j]]);
+    ctx.closePath();
+    const c = f.col, sh = f.emit ? 1 : f.shade;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgb(' + ((c[0] * sh) | 0) + ',' + ((c[1] * sh) | 0) + ',' + ((c[2] * sh) | 0) + ')';
+    ctx.fill();
+    if (f.edge) {
+      ctx.strokeStyle = f.edge;
+      ctx.lineWidth = clamp(edgeW * s, 0.6, 3);
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+  return true;
+}
+
+/* ---------- The speeder model ----------
+   A low arrowhead hull with a glass canopy, two engine pods on short wings and
+   twin tail fins, so it reads clearly from behind even at speed. */
+const SHIP_SCALE = 0.8;
+const SHIP_TILT = -0.3;            // nose tipped up a little so the low camera can see its deck
+const SHIP_POD_X = 0.43;            // engine pods, left and right of the hull
+const SHIP = (() => {
+  const v = [
+    0, -0.02, 1.05,      // 0 nose
+    -0.1, 0.08, 0.55,    // 1 front top L
+    0.1, 0.08, 0.55,     // 2 front top R
+    -0.16, 0.16, 0.05,   // 3 mid top L
+    0.16, 0.16, 0.05,    // 4 mid top R
+    -0.15, 0.15, -0.45,  // 5 rear top L
+    0.15, 0.15, -0.45,   // 6 rear top R
+    -0.24, -0.04, 0.05,  // 7 mid low L
+    0.24, -0.04, 0.05,   // 8 mid low R
+    -0.2, -0.06, -0.48,  // 9 rear low L
+    0.2, -0.06, -0.48,   // 10 rear low R
+    -0.12, -0.06, 0.55,  // 11 front low L
+    0.12, -0.06, 0.55,   // 12 front low R
+    // canopy
+    0, 0.125, 0.44,      // 13 front
+    -0.1, 0.165, 0.12,   // 14 left
+    0.1, 0.165, 0.12,    // 15 right
+    0, 0.29, -0.02,      // 16 top
+    0, 0.16, -0.24,      // 17 back
+    // racing stripe on the deck (sits just above the hull)
+    -0.03, 0.095, 0.52, 0.03, 0.095, 0.52,   // 18, 19
+    -0.03, 0.168, 0.05, 0.03, 0.168, 0.05,   // 20, 21
+    -0.03, 0.158, -0.44, 0.03, 0.158, -0.44, // 22, 23
+  ];
+  const HULL_T = [70, 78, 190], HULL_S = [42, 40, 128], HULL_B = [16, 14, 46], REAR = [22, 18, 60];
+  const CYAN = '#29f3ff', PINK = '#ff4fdc';
+  const fc = [0, 0.04, 0.05];
+  const f = [
+    [[0, 2, 1], HULL_T, CYAN],
+    [[1, 2, 4, 3], HULL_T, CYAN],
+    [[3, 4, 6, 5], HULL_T, CYAN],
+    [[0, 1, 11], HULL_S, CYAN], [[0, 12, 2], HULL_S, CYAN],
+    [[1, 3, 7, 11], HULL_S, CYAN], [[2, 12, 8, 4], HULL_S, CYAN],
+    [[3, 5, 9, 7], HULL_S, CYAN], [[4, 8, 10, 6], HULL_S, CYAN],
+    [[0, 11, 12], HULL_B, null], [[11, 7, 8, 12], HULL_B, null], [[7, 9, 10, 8], HULL_B, null],
+    [[5, 6, 10, 9], REAR, CYAN],
+  ];
+  const glass = [235, 80, 220], co = { o: [0, 0.12, 0.1], b: 8 };
+  f.push([[13, 15, 16], glass, '#ffd6fb', co], [[13, 16, 14], glass, '#ffd6fb', co],
+    [[14, 16, 17], [150, 50, 190], '#ffd6fb', co], [[16, 15, 17], [150, 50, 190], '#ffd6fb', co]);
+  const stripeF = { e: true, b: 4, o: [0, -1, 0] };
+  f.push([[18, 19, 21, 20], [255, 79, 220], null, stripeF], [[20, 21, 23, 22], [255, 79, 220], null, stripeF]);
+
+  // engine pods: 6-sided, tapering to a point at the front
+  const POD = [48, 44, 140], POD_E = CYAN;
+  for (const side of [-1, 1]) {
+    const cx = side * SHIP_POD_X, cy = 0.02;
+    const rear = ringVerts(v, cx, cy, -0.52, 0.105, 6, 'z', Math.PI / 6);
+    const front = ringVerts(v, cx, cy, 0.22, 0.09, 6, 'z', Math.PI / 6);
+    const tip = v.length / 3; v.push(cx, cy, 0.52);
+    const po = { o: [cx, cy, -0.1] };
+    ringSides(f, rear, front, 6, POD, POD_E, po);
+    for (let k = 0; k < 6; k++) f.push([[front + k, front + (k + 1) % 6, tip], POD, POD_E, po]);
+    f.push([[rear, rear + 1, rear + 2, rear + 3, rear + 4, rear + 5], [14, 10, 34], CYAN, po]);
+    // short wing joining pod and hull
+    const w = v.length / 3;
+    v.push(side * 0.2, 0.03, 0.22, side * 0.19, 0.03, -0.36, side * (SHIP_POD_X - 0.06), 0.05, -0.42, side * (SHIP_POD_X - 0.06), 0.05, 0.05);
+    f.push([[w, w + 1, w + 2, w + 3], [92, 34, 150], PINK, { d: true }]);
+    // swept tail fin on top of the pod
+    const t = v.length / 3;
+    const fx = cx + side * 0.01;
+    v.push(fx, cy + 0.09, -0.08, fx, cy + 0.09, -0.5, fx + side * 0.1, cy + 0.4, -0.62, fx + side * 0.09, cy + 0.37, -0.4);
+    f.push([[t, t + 1, t + 2, t + 3], [150, 36, 160], PINK, { d: true, b: 1 }]);
+  }
+  return makeMesh(v, f, fc);
+})();
+// engine nozzles in model space (x, y, z, radius): pods + the small center one
+const SHIP_ENGINES = [[-SHIP_POD_X, 0.02, -0.53, 0.085], [SHIP_POD_X, 0.02, -0.53, 0.085], [0, 0.045, -0.49, 0.07]];
+
+// a model-space point (with the speeder's current tilt) to world space, written into OUT3
+const OUT3 = [0, 0, 0];
+function shipPoint(T, x, y, z) {
+  x *= T.scale; y *= T.scale; z *= T.scale;
+  const cr = Math.cos(T.roll), sr = Math.sin(T.roll), cp = Math.cos(T.pitch), spp = Math.sin(T.pitch);
+  const cyw = Math.cos(T.yaw), syw = Math.sin(T.yaw);
+  const x1 = x * cr - y * sr, y1 = x * sr + y * cr;
+  const y2 = y1 * cp - z * spp, z2 = y1 * spp + z * cp;
+  OUT3[0] = T.x + x1 * cyw + z2 * syw; OUT3[1] = T.y + y2; OUT3[2] = T.z - x1 * syw + z2 * cyw;
+  return OUT3;
+}
+
+/* ---------- Pylon model ----------
+   A tapered six-sided tower on a wide base, with a collar and a spike on top.
+   Glowing rings slide up it and a beacon blinks at the tip (drawn in drawObj). */
+const PYLON_MESH = (() => {
+  const v = [], f = [];
+  const BASE = [40, 22, 70], SHAFT = [74, 28, 128], CAP = [120, 40, 170];
+  const b0 = ringVerts(v, 0, 0, 0, 0.62, 6, 'y'), b1 = ringVerts(v, 0, 0.3, 0, 0.6, 6, 'y');
+  const s0 = ringVerts(v, 0, 0.3, 0, 0.4, 6, 'y'), s1 = ringVerts(v, 0, 4.2, 0, 0.29, 6, 'y');
+  const c0 = ringVerts(v, 0, 4.2, 0, 0.42, 6, 'y'), c1 = ringVerts(v, 0, 4.42, 0, 0.42, 6, 'y');
+  const tip = v.length / 3; v.push(0, 4.95, 0);
+  const ctr = [0, 2.3, 0];
+  ringSides(f, b0, b1, 6, BASE, '#ffd23c');
+  f.push([[b1, b1 + 1, b1 + 2, b1 + 3, b1 + 4, b1 + 5], [70, 40, 30], '#ffd23c', { o: [0, 0, 0] }]);
+  ringSides(f, s0, s1, 6, SHAFT, '#ff5fe0');
+  ringSides(f, c0, c1, 6, CAP, '#ffd0fb');
+  f.push([[c0, c0 + 1, c0 + 2, c0 + 3, c0 + 4, c0 + 5], CAP, '#ffd0fb', { o: [0, 5, 0] }]);
+  for (let k = 0; k < 6; k++) f.push([[c1 + k, c1 + (k + 1) % 6, tip], [200, 70, 220], '#ffd0fb', { o: [0, 4.3, 0] }]);
+  return makeMesh(v, f, ctr);
+})();
 
 const drawList = [];
 function drawWorld() {
-  const camD = G.d - PLAYER_Z;
+  const camD = VIEW_D;
+  PLAYER_ITEM._z = VIEW_Z;
   drawList.length = 0;
   for (const o of objs) {
     o._z = o.d - camD;
@@ -1851,7 +3625,8 @@ function drawWorld() {
   for (const s of eshots) { s._z = s.d - camD; if (s._z > 1 && s._z < FAR) drawList.push(s); }
   for (const p of parts) { p._z = p.d - camD; if (p._z > 0.8 && p._z < FAR) drawList.push(p); }
   if (player.alive) drawList.push(PLAYER_ITEM);
-  drawList.sort((a, b) => b._z - a._z);
+  // ramps sort by their far (top) edge, so you're drawn on top of a ramp you're riding
+  drawList.sort((a, b) => (b.type === 'ramp' ? b._z + b.dep : b._z) - (a.type === 'ramp' ? a._z + a.dep : a._z));
   for (const it of drawList) {
     switch (it.kind) {
       case 'obj': drawObj(it); break;
@@ -1967,6 +3742,34 @@ function drawHUD() {
   ctx.fillStyle = '#cbb7ff';
   ctx.fillText('KM/H', W - 16, top + 62);
 
+  // zone name when you cross into a new area
+  if (G.zoneT > 0) {
+    const a = clamp(G.zoneT / 0.6, 0, 1) * clamp((3 - G.zoneT) / 0.4, 0, 1);
+    ctx.globalAlpha = a;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '500 10px ' + FONT;
+    ctx.fillStyle = '#cbb7ff';
+    // always above the horizon, so it never covers the road
+    const zy = Math.max(top + 14, Math.min(top + 147, HZ - 34));
+    ctx.fillText('ZONE ' + (G.zoneIdx + 1), CX, zy - 19);
+    ctx.font = '800 17px ' + FONT;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillText(G.zoneName, CX + 1, zy + 1);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(G.zoneName, CX, zy);
+    ctx.globalAlpha = 1;
+  }
+
+  // jump barrier ahead: point at the ramp
+  let jumpWall = null;
+  if (G.state === 'play') {
+    for (const o of objs) {
+      const rel = o.d - G.d;
+      if (o.jump && !o.hit && rel > 0 && rel < 190) { jumpWall = o; break; }
+    }
+  }
+
   // gate preview banner, so you can choose before the gates are close enough to read
   let next = null;
   for (const g of (G.state === 'play' ? gates : [])) {
@@ -1996,6 +3799,23 @@ function drawHUD() {
     };
     chip('◀ ' + POWERS[gl.type].label, POWERS[gl.type].color, CX - 6, 'right');
     chip(POWERS[gr.type].label + ' ▶', POWERS[gr.type].color, CX + 6, 'left');
+  } else if (jumpWall && player.y <= 0.05) {
+    const by = top + 100;
+    const label = '▲ HIT THE RAMP';
+    ctx.font = '800 13px ' + FONT;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center';
+    const w = ctx.measureText(label).width + 22;
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = 'rgba(11, 4, 32, 0.75)';
+    ctx.fillRect(CX - w / 2, by - 13, w, 26);
+    ctx.globalAlpha = 0.75 + 0.25 * Math.sin(G.t * 8);
+    ctx.strokeStyle = RAMP_C;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(CX - w / 2, by - 13, w, 26);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = RAMP_C;
+    ctx.fillText(label, CX, by + 1);
   }
 
   // toast
@@ -2047,12 +3867,19 @@ function drawHUD() {
 
 function render() {
   ctx.save();
-  if (G.shake > 0) {
-    const m = G.shake * 9;
+  // lean the camera into turns, pivoting around the speeder so it stays easy to track
+  if (Math.abs(ROLL) > 0.0005) {
+    ctx.translate(CX, SHIP_Y);
+    ctx.rotate(ROLL);
+    ctx.translate(-CX, -SHIP_Y);
+  }
+  if (G.shake > 0 && SET.shake) {
+    const m = G.shake * 7;
     ctx.translate(rand(-m, m), rand(-m, m));
   }
   drawSky();
   drawGround();
+  drawScenery();
   drawStreaks();
   drawWorld();
   ctx.restore();
@@ -2146,6 +3973,8 @@ const sfx = {
   hurt() { noiseBurst(0.35, 0.45, 900); tone(220, 60, 0.3, 'sawtooth', 0.15); },
   shield() { tone(900, 300, 0.25, 'triangle', 0.15); tone(1300, 500, 0.2, 'sine', 0.08); },
   zap() { tone(700, 200, 0.14, 'sawtooth', 0.025); },
+  jump() { tone(300, 900, 0.22, 'triangle', 0.14); tone(450, 1300, 0.18, 'sine', 0.06, 0.04); },
+  land() { noiseBurst(0.18, 0.25, 700); tone(160, 70, 0.15, 'sine', 0.15); },
   power() {
     [523, 659, 784, 1046].forEach((f, i) => tone(f, f * 1.01, 0.12, 'triangle', 0.12, i * 0.06));
   },
@@ -2254,6 +4083,8 @@ function fillSettings() {
   $('setEngine').checked = SET.engine;
   $('setHaptics').checked = SET.haptics;
   $('setSens').value = SET.sens;
+  $('setShake').checked = SET.shake;
+  fillGfx();
   $('sensLabel').textContent = SET.sens + '%';
   $('setName').value = SET.name;
 }
@@ -2293,6 +4124,18 @@ $('setHaptics').addEventListener('change', (e) => {
   saveSettings();
   vibrate(40);
 });
+const GFX_LABEL = { auto: 'Auto', high: 'High', low: 'Low' };
+function fillGfx() {
+  $('setGfx').textContent = GFX_LABEL[SET.gfx] || 'Auto';
+  $('gfxNote').textContent = SET.gfx === 'auto' ? '(now ' + QUAL.name + ')' : '';
+}
+$('setGfx').addEventListener('click', () => {
+  SET.gfx = SET.gfx === 'auto' ? 'high' : SET.gfx === 'high' ? 'low' : 'auto';
+  saveSettings();
+  setQuality(SET.gfx === 'low' ? 0 : 2);
+  fillGfx();
+});
+$('setShake').addEventListener('change', (e) => { SET.shake = e.target.checked; saveSettings(); });
 $('setSens').addEventListener('input', (e) => {
   SET.sens = parseInt(e.target.value, 10) || 100;
   $('sensLabel').textContent = SET.sens + '%';
@@ -2703,11 +4546,34 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   });
 }
 
+// ---------- Adaptive quality ----------
+// On "Auto", if the game can't hold a smooth frame rate it steps down a level
+// (fewer props, lower resolution). It never steps back up mid-session, to avoid flicker.
+let perfAcc = 0, perfN = 0, perfCool = 2, perfBad = 0;
+function setQuality(l) {
+  qLevel = clamp(l, 0, 2);
+  QUAL = QUALS[qLevel];
+  resize();
+}
+function watchPerf(raw) {
+  if (SET.gfx !== 'auto' || qLevel === 0 || G.state !== 'play' || paused || raw > 0.25) { perfAcc = 0; perfN = 0; return; }
+  if (perfCool > 0) { perfCool -= raw; return; }
+  perfAcc += raw; perfN++;
+  if (perfN >= 150) {
+    const avg = perfAcc / perfN;
+    perfAcc = 0; perfN = 0;
+    // two slow stretches in a row (about 5 seconds under ~42 fps) before stepping down
+    perfBad = avg > 1 / 42 ? perfBad + 1 : 0;
+    if (perfBad >= 2) { perfBad = 0; setQuality(qLevel - 1); perfCool = 3; }
+  }
+}
+
 // ---------- Main loop ----------
 let last = performance.now();
 function frame(now) {
   let dt = (now - last) / 1000;
   last = now;
+  watchPerf(dt);
   if (dt > 0.05) dt = 0.05;
   tickCountdown(dt);
   if (!paused) update(dt);
@@ -2727,7 +4593,7 @@ setTimeout(retryPending, 3000);
 requestAnimationFrame(frame);
 
 // handy for testing in the browser console
-window.SPEEDER = { G, player, objs, enemies, gates, shots, eshots, startGame, openMenu, SET };
+window.SPEEDER = { shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
 </script>
 </body>
 </html>

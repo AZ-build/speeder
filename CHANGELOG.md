@@ -4,6 +4,139 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.4.0] — 2026-11-01
+
+### Session 4 — New look for the speeder and the track, camera moved up
+
+Feedback from players (kids): their thumb ends up covering the speeder, the starting pylons are
+bland, and roadside buildings sometimes show up on top of the road like a glitch.
+
+**What we did:**
+- **Camera moved up and closer.** The speeder now sits about 60% of the way down the screen
+  (was about 77%) and is a bit bigger, with a lower "in the seat" camera (`CAM_H` 4.0 → 2.6).
+  The bottom ~40% of the screen is free road for your thumb. The horizon moved up slightly to make
+  room. Tuning knob: `SHIP_AT` at the top of the script.
+- **New speeder: a real 3D model.** An arrowhead hull with a glass canopy, a pink racing stripe,
+  two engine pods on short wings and twin tail fins. It's a set of flat-shaded 3D faces, so it
+  actually rolls when you steer, noses into the turn and tips up on jumps. Flames now come out of
+  each engine in proper perspective, the hover pads glow on the road, and the fin tips blink.
+  Shield bubble redrawn (double ring when you have 2 shields). Knobs: `SHIP_SCALE`, `SHIP_TILT`.
+- **New pylons.** Six-sided towers that taper up from a wide base with a yellow trim, with a
+  collar and a spike on top, a blinking beacon, glowing rings that slide up them, and a pulsing
+  warning ring on the road around the base. Each one slowly turns. Far away they draw as a simple
+  spike to save work.
+- **Barriers point the way.** Wall faces now have neon chevrons that slide toward the gap, so
+  you can tell at a glance which way to dodge. Full-width jump barriers have rising lime arrows.
+  Glowing top rail with running lights.
+- **Mines** are now spiked, spinning orbs with a beating core (it beats faster once you've hit it once).
+- **Power-up gates** get lights chasing round the frame and a floating badge with a picture of the
+  power (shield, triple arrows, lightning, plus, starburst, 2X), so non-readers can choose too.
+- **Enemies:** drones have spinning wingtip rotors; ram bikes have spikes, twin headlights and
+  light beams on the road in front of them; turret barrels swing to follow you.
+- **Fixed: scenery painted over the road.** On hills and sky roads the track rises above the ground,
+  and far-off buildings could be drawn on top of the nearer road. Scenery is now drawn with the
+  road in front of it cut out, so the road always stays on top.
+- Hazards you've already passed fade out quickly, so they don't clutter the space under the speeder
+  now that more of the road behind you is on screen.
+- Title screen: "Touch to ride" and the buttons moved to the bottom so they don't sit on the speeder.
+- Version v0.4.0; service worker cache bumped.
+- Tested at 390×844, 360×640 and landscape: no errors through all five zones on High and Low
+  graphics; drawing cost about the same as v0.3.1.
+
+**Decisions made:**
+- Small homemade 3D models for the speeder and pylons instead of a 3D library (keeps the
+  "no libraries" rule and stays light).
+- Trade-off accepted: with the speeder higher, the road ahead takes up a bit less of the screen,
+  so hazards are slightly more squeezed toward the horizon. Watch for this in playtests.
+
+**Next session focus:**
+- Watch the kids play: does the thumb still cover the speeder? Is the speeder too big?
+- Check whether hazards still feel readable at top speed with the new camera.
+
+---
+
+## [v0.3.1] — 2026-10-30
+
+### Session 3b — Straight bullets and jump ramps
+
+**What we did:**
+- **Bullets fly straight.** They used to follow the road around bends. Now they leave the nose
+  in a straight line; in a bend the road turns away underneath them, so they drift toward the
+  outside and sail off over the rail. Shooting in bends now means aiming a little into the turn.
+- **Jump ramps.** Lime-green ramps with moving chevrons appear on the track (from about 150 m).
+  Drive onto one and you launch for about a second; you can still steer in the air, and anything
+  low that you fly over can't hit you.
+  - Early on, ramps lead into a mine cluster: jump it for an **AIR** bonus (+150 per thing you
+    clear) or just steer around.
+  - From about 1.2 km, some ramps lead to a **barrier across the whole track** (marked with
+    lime up-arrows). The only way past is to take the ramp. A "▲ HIT THE RAMP" banner warns you.
+  - The barrier is placed so you still clear it even if you're slowed down from a hit.
+  - Pylons are too tall to jump.
+- The camera rises a little with you, the speeder's shadow shrinks as you climb, the light trails
+  follow you up, and there's a launch sound and a landing thud with sparks.
+- Title screen tip: "Hit a ramp to jump". Version v0.3.1; service worker cache bumped.
+- Tested: autopilot runs with jumps (no errors, barrier cleared every time it took the ramp),
+  bullet paths checked in a bend.
+
+**Decisions made:**
+- Jumps come from ramps, not a button, to keep the game one-thumb.
+- Barriers only appear after 1.2 km so new players learn ramps on optional jumps first.
+
+---
+
+## [v0.3] — 2026-10-30
+
+### Session 3 — Curving track, roadside world, five zones, visual polish
+
+**What we did:**
+- **Curves and hills.** The track now sweeps left and right, runs S-curves, and lifts off the
+  ground onto sky-high stretches held up by pillars. Bends start gentle and get sharper the
+  farther you go; big sweeping bends show up after about 2 km.
+  - How it works: gameplay still happens on a "straight" track (same collisions, same spawning).
+    Only the drawing bends. Every frame the game builds a small table of how far the road has
+    turned and climbed at each distance ahead, and everything (rails, obstacles, gates, bullets,
+    the speeder) is drawn through that same table, so nothing can drift out of line.
+  - The road never hides behind a hill crest, so hazards ahead are always visible.
+  - Turns gently push you toward the outside (like a car). It builds smoothly with the bend.
+  - Yellow chevron signs on the outside rail warn you of each bend before it arrives.
+  - The camera leans slightly into turns and looks a little into the bend; the sky, sun and
+    mountains turn with the road.
+- **Five zones** that blend into each other every 1.4 km: Neon Desert → Neon City →
+  Sky Islands → Crystal Wastes → Cosmic Highway (then it loops). Each one is the same world
+  system with different colors, sky objects (sun, moon, ringed planet, nebula, city skyline,
+  floating islands, cloud sea) and roadside props. A "ZONE 2 · NEON CITY" label announces each one.
+- **Roadside scenery** from a recycled pool of 80 props (nothing new is created during play):
+  jagged polygon mountains, mesas, skyscrapers with lit windows, antennas with sky beams,
+  floating monoliths, crystal clusters, floating islands with waterfalls, tumbling wireframe
+  shapes, energy beams, and giant neon arches the track passes through. Props always sit
+  outside the rails and are drawn underneath gameplay objects, so they never cover a hazard.
+- **Feeling of speed:** the view widens slightly as you speed up, light trails stream from
+  the three engines and curve when you steer, extra speed lines skim along the rails, the
+  view surges and a colored ring bursts off the speeder when you take a power-up.
+- **Track and object polish:** darker, more solid road with lane lines and center dashes;
+  rails are a glowing band with a bright top edge and lit posts; pylons and walls have bright
+  caps and glow pooled under them; gate labels sit on a dark plate so they read at a glance.
+- **Speeder polish:** cleaner hull with highlights, animated two-layer flames that grow with
+  speed, blinking wingtip lights, and it narrows as it banks so the roll reads better.
+- **Settings:** new **Graphics** (Auto / High / Low) and **Screen shake** on/off. On Auto the
+  game steps its quality down by itself if a phone can't hold a smooth frame rate.
+- Version v0.3.0; service worker cache bumped so installed copies update.
+- Tested at phone size (390×844) and in landscape across all five zones with an autopilot:
+  no errors, collisions unchanged. Drawing cost went from about 0.8 ms to 1.2 ms per frame on
+  the test machine (a phone has about 16 ms per frame).
+
+**Decisions made:**
+- Kept the homemade pseudo-3D canvas renderer (no 3D engine). Curves were added inside it.
+- Hills only lift the track above the ground (bridges / sky roads), never sink below it.
+- Scenery is always secondary: dimmer, drawn under hazards, and kept off the track.
+- The course leans toward turning back after big turns, so the sun is usually somewhere ahead.
+
+**Next session focus:**
+- Adrian plays it on a phone: how do the bends feel? Is the outward push too weak or too strong?
+- Check frame rate on an older phone (Settings → Graphics shows which level Auto picked).
+
+---
+
 ## [v0.2] — 2026-10-30
 
 ### Session 2 — Menu, settings, pause, world leaderboard
