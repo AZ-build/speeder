@@ -4,6 +4,24 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.6.2] — 2026-11-04
+
+### Session 6c — Smoothing back, small lean in the middle
+
+Adrian: the locked steering in v0.6.1 didn't feel right. He wanted the old smoothing back, with
+the edge bank kept, plus a small lean when moving across the middle so it feels natural.
+
+**What we did:**
+- **Smoothing restored.** The speeder glides quickly to your thumb again (as in v0.6.0), and the
+  camera follows at its old pace. Knobs: `STEER_EASE`, `CAM_FOLLOW`.
+- **Small lean in the middle.** Moving across the track leans the speeder into the move, up to
+  about 20° on a quick flick (the v0.5.1 lean went to 65°), then it settles level.
+  Knobs: `LEAN_MAX`, `LEAN_GAIN`.
+- **Edge bank and skinny footprint kept** from v0.6.1. The two leans add together.
+- Version v0.6.2; service worker cache bumped.
+
+---
+
 ## [v0.6.1] — 2026-11-04
 
 ### Session 6b — Locked steering and an edge bank

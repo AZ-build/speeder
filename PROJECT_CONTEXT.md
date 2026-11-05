@@ -18,7 +18,7 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.6.1 |
+| **Current Version** | v0.6.2 |
 | **Phase** | Prototype / Exploration (friends playing; waiting on feedback) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-04 |
@@ -128,7 +128,7 @@ Speeder/
 `FAR` draw distance · `TRACK_HALF` track half-width · `PATTERNS` which hazards appear and
 from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))`) ·
 steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun levels ·
-`MULT_TIME` 2X duration · `EDGE_START` / `EDGE_BANK` / `EDGE_HALF_W` / `EDGE_YAW` the edge bank and how skinny it gets · `CAM_FOLLOW` how tightly the camera follows sideways · `SWARM_N` missiles per MISSILES pickup ·
+`MULT_TIME` 2X duration · `EDGE_START` / `EDGE_BANK` / `EDGE_HALF_W` / `EDGE_YAW` the edge bank and how skinny it gets · `CAM_FOLLOW` how tightly the camera follows sideways · `STEER_EASE` how quickly the speeder glides to your thumb · `LEAN_MAX` / `LEAN_GAIN` the small lean while moving · `SWARM_N` missiles per MISSILES pickup ·
 `MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch ·
 `choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
 
@@ -164,7 +164,7 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 | Sharing | Score picture + challenge link | Turns a good run into an invite for a friend. |
 | Game over restart | "Ride again" button, not tap-anywhere | Stops accidental restarts while typing a name. |
 | Camera | Height 2.6, speeder ~60% down the screen (v0.4) | Kids' thumbs covered the speeder at 77%. Higher + closer keeps it visible and feels more like driving. Trade-off: road ahead is a little more squeezed. |
-| Steering lock (v0.6.1) | Speeder sits exactly where the thumb puts it, no easing | Adrian: any glide after stopping costs precision at high speed. |
+| Steering feel (v0.6.2) | Quick glide to the thumb (as before), small lean while moving | v0.6.1 locked the speeder to the thumb; Adrian found it felt wrong and asked for the smoothing back. |
 | Edge bank (v0.6.1) | Rolls up on its side near the rails (top facing the middle) and its hit area halves | Adrian's idea: side gaps are hard to reach fast with a thumb, and it looks great. Replaced the v0.5.1 lean into quick turns. Risk: riding the rail could become the safe spot. |
 | Speeder and pylons | Small homemade 3D models (flat-shaded faces) | Lets the speeder really roll and turn, without adding a 3D library. |
 | Scenery vs road | Scenery drawn with the nearer road cut out | Stops buildings appearing on top of raised roads. |
@@ -214,7 +214,7 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
-- Start from friends' feedback (now including the new sound and music): Share & challenge, the moving obstacles, missiles, gun levels 5-8, the new edge bank and locked steering (v0.6.1).
+- Start from friends' feedback (now including the new sound and music): Share & challenge, the moving obstacles, missiles, gun levels 5-8, the new edge bank and small middle lean (v0.6.2).
 - Scoring balance: today kills are roughly 2/3 of a score and distance about 1/5. Adrian said the
   score "should be mostly about distance", but chose to **leave the leaderboard as is for now**.
   Option on the table: a growing per-km distance bonus and smaller kill points, with a board reset.
