@@ -627,7 +627,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.6.3';
+const VERSION = '0.6.4';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -734,7 +734,7 @@ function storeSet(key, val) {
 // ---------- Analytics (GoatCounter, v0.6.3) ----------
 // Free, no cookies, no personal data. Dashboard: https://<GC_CODE>.goatcounter.com
 // Leave GC_CODE empty to switch analytics off. Nothing is counted on localhost.
-const GC_CODE = '';
+const GC_CODE = 'speeder';
 // Where is the game running? An installed app, a normal browser, or the built-in
 // browser of an app like TikTok or Instagram (those can't install the game).
 const IN_APP = (function () {

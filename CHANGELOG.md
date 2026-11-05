@@ -4,6 +4,15 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.6.4] — 2026-11-05
+
+### Session 7b — Analytics switched on
+
+- `GC_CODE = 'speeder'`. Dashboard: https://speeder.goatcounter.com (Adrian's GoatCounter account).
+- Version v0.6.4; service worker cache bumped.
+
+---
+
 ## [v0.6.3] — 2026-11-05
 
 ### Session 7 — Getting ready for more players (TikTok sharing)
