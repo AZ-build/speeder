@@ -18,7 +18,7 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.5.0 |
+| **Current Version** | v0.5.1 |
 | **Phase** | Prototype / Exploration (playable, friends playing; sharing, top-runs board) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-04 |
@@ -65,7 +65,7 @@ shot, or pick which gate to take), all with a single control.
   Maxed powers (guns at 8, shield at 2) are no longer offered.
   - SHIELD (absorbs 1 hit, stacks to 2) · GUNS+ (permanent for the run, 8 levels: 1-4 more
     bullets, 5 piercing, 6 wing missiles, 7 heavy rounds, 8 max) · RAPID (12s) · REPAIR (+1 hull) ·
-    MISSILES (8 homing missiles hunt enemies, then mines) · 2X SCORE (15s; stacks to 4X and 8X)
+    MISSILES (8 homing missiles hunt enemies, then mines) · 2X SCORE (15s; taking it again resets the timer, no stacking)
 - **Score:** distance + kills, times the multiplier. Best score is saved on the device.
 - **Helper text (v0.5):** gate choices, ramp warning, toasts and zone names sit below the
   speeder, never over the road ahead.
@@ -123,7 +123,7 @@ Speeder/
 `FAR` draw distance · `TRACK_HALF` track half-width · `PATTERNS` which hazards appear and
 from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))`) ·
 steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun levels ·
-`MULT_MAX` / `MULT_TIME` score multiplier · `SWARM_N` missiles per MISSILES pickup ·
+`MULT_TIME` 2X duration · `BANK_MAX` / `BANK_GAIN` how far the speeder leans in turns · `SWARM_N` missiles per MISSILES pickup ·
 `choosePowers()` how often each gate appears · `BOARD_N` leaderboard size.
 
 ### Testing hooks
@@ -152,6 +152,7 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 | NOVA → MISSILES | Homing missile swarm | NOVA was hard to understand; missiles you can watch are clearer and more fun. Adrian's idea. |
 | Guns past level 4 | New abilities, not more bullets | More bullets would clutter the screen and cost frame rate. |
 | Helper text | Below the speeder | That part of the screen shows road you've already passed. |
+| 2X stacking | Removed in v0.5.1 | Adrian: it would let scores run away; score should be mostly about distance. |
 | Sharing | Score picture + challenge link | Turns a good run into an invite for a friend. |
 | Game over restart | "Ride again" button, not tap-anywhere | Stops accidental restarts while typing a name. |
 | Camera | Height 2.6, speeder ~60% down the screen (v0.4) | Kids' thumbs covered the speeder at 77%. Higher + closer keeps it visible and feels more like driving. Trade-off: road ahead is a little more squeezed. |
@@ -194,7 +195,8 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Next session focus (after v0.5.0):**
+**Next session focus (after v0.5.1):**
+- Decide whether to rebalance scoring toward distance (today kills are roughly 2/3 of a score).
 - Adrian: paste the updated Firebase rule (README, "Updating the rule for v0.5").
 - Watch friends use Share & challenge, and check whether 8X and the moving obstacles feel fair.
 - Ideas raised: near-miss bonus, daily challenge course, weekly board, rude-name filter, music.

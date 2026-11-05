@@ -1,8 +1,8 @@
     // ---- Speeder leaderboard (updated for Speeder v0.5) ----
     // Every run is its own entry, so one player can hold several spots.
     // Entry IDs start with the player's random device ID. Anyone can read.
-    // v0.5 change: the "is this score believable?" check is looser, because the
-    // score multiplier now stacks up to 8X and missiles add extra kills.
+    // v0.5 change: the "is this score believable?" check is looser, because missiles
+    // and stronger guns add more kills.
     match /speeder_scores/{entryId} {
       allow read: if true;
       allow create: if validSpeeder();

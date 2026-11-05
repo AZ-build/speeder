@@ -48,7 +48,7 @@ It can't stop a determined cheater (no browser game can), but it blocks the easy
 
 ### Updating the rule for v0.5 (2 minutes)
 
-v0.5 lets the score multiplier stack to 8X, so the old "does this score look real?" check is
+v0.5 adds missiles and more kills, so the old "does this score look real?" check can be
 too strict for great runs. To update it:
 
 1. Open **Firestore Database → Rules** in the **orbit-23921** project, as above.
@@ -99,8 +99,8 @@ only works from the hosted web address, not from a file on your computer.
 
 **Power-ups:** SHIELD (blocks a hit) · GUNS+ (8 levels: more guns up to level 4, then piercing
 bullets, wing missiles, heavy rounds and max power) · RAPID (fires faster for 12s) · REPAIR (+1 hull) ·
-MISSILES (8 homing missiles hunt down enemies and mines ahead) · 2X SCORE (15s; take another
-while it's running to stack it to 4X, then 8X)
+MISSILES (8 homing missiles hunt down enemies and mines ahead) · 2X SCORE (15s; taking another
+while it's running resets the timer)
 
 **Moving obstacles:** sliding pylons (a glowing groove shows how far they travel), swaying lines
 of mines, and red laser fences whose gap slides from side to side. Bullets pass through lasers.

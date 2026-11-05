@@ -4,6 +4,23 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.5.1] — 2026-11-04
+
+### Session 5b — No more stacking 2X, the speeder leans into turns
+
+**What we did:**
+- **2X no longer stacks.** Taking 2X while it's running just resets its 15s timer ("timer
+  reset"). Adrian: stacking would let scores run away; the score should be mostly about distance.
+  The 2X gate shows up a bit less while 2X is already running.
+- **Banking.** The speeder now rolls up to about 65° on a quick flick (it goes skinny), leans a
+  little on a gentle steer, and settles back level a moment later. Its shadow narrows and the
+  engine light trails stay attached as it rolls. Knobs: `BANK_MAX`, `BANK_GAIN`.
+- Version v0.5.1; service worker cache bumped.
+
+**Open question:** most of a score today comes from kills, not distance (see Session notes).
+
+---
+
 ## [v0.5.0] — 2026-11-04
 
 ### Session 5 — Sharing, a real top-runs board, missiles, moving obstacles
