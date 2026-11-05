@@ -4,6 +4,34 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.6.1] — 2026-11-04
+
+### Session 6b — Locked steering and an edge bank
+
+Adrian: the lean from v0.5.1 wasn't what he meant. The speeder seemed to drift a little after
+he stopped his thumb, which will cost precision at high speed. What he wanted: near the side
+rails the speeder banks up on its side, top facing the middle (like it's carving back in), and
+gets skinnier so the gaps by the edges are easier to hit.
+
+**What we did:**
+- **Locked steering.** The speeder now sits exactly where your thumb puts it, with no glide
+  afterwards (before, it eased toward your thumb over about a fifth of a second). Turns still
+  push you outward as before.
+- **Tighter camera.** The camera follows sideways about twice as tightly, so the speeder no longer
+  slides on screen after you stop. Knob: `CAM_FOLLOW`.
+- **Edge bank replaces the turn lean.** In the middle the speeder rides level. From about halfway
+  out it starts to roll, reaching about 70° at the rail, top facing the middle and nose turned
+  slightly back in. It depends only on where you are, so it never lags.
+- **Skinnier when banked.** The hit area shrinks to half its normal width at the rail (walls,
+  mines, enemies and enemy shots). Knobs: `EDGE_START`, `EDGE_BANK`, `EDGE_HALF_W`, `EDGE_YAW`.
+- How to play page: the Steer entry explains the edge bank.
+- Version v0.6.1; service worker cache bumped.
+
+**Watch for:** a smaller hit area at the rails might make riding the edge the safest place to
+be. If friends start hugging the rails, raise `EDGE_HALF_W` or spawn more edge hazards.
+
+---
+
 ## [v0.6.0] — 2026-11-04
 
 ### Session 6 — Real sounds and music

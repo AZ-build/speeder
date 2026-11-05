@@ -18,7 +18,7 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.6.0 |
+| **Current Version** | v0.6.1 |
 | **Phase** | Prototype / Exploration (friends playing; waiting on feedback) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-04 |
@@ -52,6 +52,8 @@ shot, or pick which gate to take), all with a single control.
   straight line (v0.3.1), so in a bend they drift toward the outside rail.
 - **Jumps (v0.3.1):** drive onto a lime ramp to launch for about a second. Fly over mines for an
   AIR bonus; later, full-width barriers can only be cleared from the ramp. Pylons are too tall to jump.
+- **Edge bank (v0.6.1):** near a side rail the speeder rolls up onto its side, top facing the
+  middle, and its hit area shrinks to half, so tight gaps by the edge are easier to slip through.
 - **Hull:** 3 hits and you're wrecked. A hit makes you invulnerable for a moment and slows you down briefly.
 - **Speed:** starts at about 160 km/h and climbs toward about 450 km/h the farther you go.
 - **Obstacles:** pylons (tall, can't be destroyed), walls with a gap, slalom half-walls,
@@ -126,7 +128,7 @@ Speeder/
 `FAR` draw distance · `TRACK_HALF` track half-width · `PATTERNS` which hazards appear and
 from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))`) ·
 steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun levels ·
-`MULT_TIME` 2X duration · `BANK_MAX` / `BANK_GAIN` how far the speeder leans in turns · `SWARM_N` missiles per MISSILES pickup ·
+`MULT_TIME` 2X duration · `EDGE_START` / `EDGE_BANK` / `EDGE_HALF_W` / `EDGE_YAW` the edge bank and how skinny it gets · `CAM_FOLLOW` how tightly the camera follows sideways · `SWARM_N` missiles per MISSILES pickup ·
 `MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch ·
 `choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
 
@@ -162,6 +164,8 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 | Sharing | Score picture + challenge link | Turns a good run into an invite for a friend. |
 | Game over restart | "Ride again" button, not tap-anywhere | Stops accidental restarts while typing a name. |
 | Camera | Height 2.6, speeder ~60% down the screen (v0.4) | Kids' thumbs covered the speeder at 77%. Higher + closer keeps it visible and feels more like driving. Trade-off: road ahead is a little more squeezed. |
+| Steering lock (v0.6.1) | Speeder sits exactly where the thumb puts it, no easing | Adrian: any glide after stopping costs precision at high speed. |
+| Edge bank (v0.6.1) | Rolls up on its side near the rails (top facing the middle) and its hit area halves | Adrian's idea: side gaps are hard to reach fast with a thumb, and it looks great. Replaced the v0.5.1 lean into quick turns. Risk: riding the rail could become the safe spot. |
 | Speeder and pylons | Small homemade 3D models (flat-shaded faces) | Lets the speeder really roll and turn, without adding a 3D library. |
 | Scenery vs road | Scenery drawn with the nearer road cut out | Stops buildings appearing on top of raised roads. |
 | Curves | Bend the drawing, not the gameplay | Everything is drawn through one per-frame bend table, so rails, hazards, gates and bullets can't misalign, and collisions didn't change. |
@@ -210,7 +214,7 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
-- Start from friends' feedback (now including the new sound and music): Share & challenge, the moving obstacles, missiles, gun levels 5-8, banking.
+- Start from friends' feedback (now including the new sound and music): Share & challenge, the moving obstacles, missiles, gun levels 5-8, the new edge bank and locked steering (v0.6.1).
 - Scoring balance: today kills are roughly 2/3 of a score and distance about 1/5. Adrian said the
   score "should be mostly about distance", but chose to **leave the leaderboard as is for now**.
   Option on the table: a growing per-km distance bonus and smaller kill points, with a board reset.
