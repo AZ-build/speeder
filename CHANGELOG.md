@@ -4,6 +4,21 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.5.3] — 2026-11-04
+
+### Session 5d — No back-to-back barriers
+
+Feedback from players: a laser fence right after a wall felt impossible.
+
+- Barriers (walls, slalom, laser fences, jump barriers) can no longer come one right after the
+  other; something else always comes in between. Knob: `BARRIERS` in the script.
+- After any barrier there's now at least 48 world units (about half a second at top speed) before
+  the next thing. Knob: `BARRIER_GAP`.
+- Checked over 9,000 random spawns at three difficulty levels: zero back-to-back barriers.
+- Version v0.5.3; service worker cache bumped.
+
+---
+
 ## [v0.5.2] — 2026-11-04
 
 ### Session 5c — How to play page

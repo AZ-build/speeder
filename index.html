@@ -594,7 +594,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.5.2';
+const VERSION = '0.5.3';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -651,6 +651,9 @@ const GUN_PERKS = {
 const MULT_MAX = 2;      // 2X doesn't stack (v0.5.1); taking another while it runs just resets the clock
 const MULT_TIME = 15;    // seconds
 
+// Patterns that block most of the track and force you through one gap.
+const BARRIERS = new Set(['wall', 'slalom', 'sweeper', 'jump']);
+const BARRIER_GAP = 48;   // minimum space after a barrier (world units, about half a second at top speed)
 const PATTERNS = [
   { name: 'pylons',  min: 0,   w: 2.6 },
   { name: 'mines',   min: 0,   w: 2.2 },
@@ -2081,7 +2084,7 @@ function resetRun() {
     flash: 0, shake: 0, toastT: 0, runT: 0, kick: 0, pulse: 0, zoneT: 0, zoneIdx: 0,
   });
   player.x = 0; player.tx = 0; player.vx = 0; player.bank = 0; player.alive = true;
-  player.y = 0; player.vy = 0; player.ramp = null; G.air = 0;
+  player.y = 0; player.vy = 0; player.ramp = null; G.air = 0; G.lastPat = '';
   cam.x = 0;
   objs.length = 0; enemies.length = 0; shots.length = 0; eshots.length = 0;
   parts.length = 0; gates.length = 0; popups.length = 0; missiles.length = 0;
@@ -2151,9 +2154,13 @@ function spawnDrone(at, lvl) {
 
 function spawnPattern(at) {
   const lvl = G.d / 1000;
-  let name = weighted(PATTERNS.filter((p) => lvl >= p.min)).name;
+  // Never put two barriers back to back (wall, slalom, laser fence, jump barrier):
+  // lining up one gap and then instantly another on the far side felt impossible.
+  const afterBarrier = BARRIERS.has(G.lastPat);
+  let name = weighted(PATTERNS.filter((p) => lvl >= p.min && !(afterBarrier && BARRIERS.has(p.name)))).name;
   const droneCap = Math.min(3, 1 + Math.floor(lvl / 1.5));
   if ((name === 'drones' || name === 'mixed') && activeDrones() >= droneCap) name = 'mines';
+  G.lastPat = name;
   const half = TRACK_HALF;
 
   if (name === 'pylons') {
@@ -2321,7 +2328,10 @@ function runSpawner() {
     }
     const len = spawnPattern(at);
     const lvl = G.d / 1000;
-    G.nextSpawn = at + len + Math.max(14, 42 - lvl * 5) + rand(0, 16);
+    let gap = Math.max(14, 42 - lvl * 5) + rand(0, 16);
+    // a little breathing room after a barrier, so the next thing never lands right on its gap
+    if (BARRIERS.has(G.lastPat)) gap = Math.max(gap, BARRIER_GAP);
+    G.nextSpawn = at + len + gap;
   }
 }
 

@@ -18,7 +18,7 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.5.2 |
+| **Current Version** | v0.5.3 |
 | **Phase** | Prototype / Exploration (friends playing; waiting on feedback) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-04 |
@@ -126,7 +126,7 @@ Speeder/
 from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))`) ·
 steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun levels ·
 `MULT_TIME` 2X duration · `BANK_MAX` / `BANK_GAIN` how far the speeder leans in turns · `SWARM_N` missiles per MISSILES pickup ·
-`choosePowers()` how often each gate appears · `BOARD_N` leaderboard size.
+`choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
 
 ### Testing hooks
 
@@ -154,6 +154,7 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 | NOVA → MISSILES | Homing missile swarm | NOVA was hard to understand; missiles you can watch are clearer and more fun. Adrian's idea. |
 | Guns past level 4 | New abilities, not more bullets | More bullets would clutter the screen and cost frame rate. |
 | Helper text | Below the speeder | That part of the screen shows road you've already passed. |
+| Barrier spacing | No two barriers in a row, 48-unit gap after one (v0.5.3) | Players found a laser fence right after a wall impossible. |
 | Score balance | Leave as is for now (2026-11-04) | Adrian wants feedback first; a rebalance would mean resetting the board. |
 | 2X stacking | Removed in v0.5.1 | Adrian: it would let scores run away; score should be mostly about distance. |
 | Sharing | Score picture + challenge link | Turns a good run into an invite for a friend. |
@@ -198,7 +199,7 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.5.2, 2026-11-04):**
+**Where things stand (after v0.5.3, 2026-11-04):**
 - Firebase rules updated to the v0.5 version (looser score check). All setup steps are done.
 - Adrian is waiting for feedback from friends before making more changes.
 
