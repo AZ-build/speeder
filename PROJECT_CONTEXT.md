@@ -18,7 +18,7 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.5.1 |
+| **Current Version** | v0.5.2 |
 | **Phase** | Prototype / Exploration (playable, friends playing; sharing, top-runs board) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-04 |
@@ -84,6 +84,8 @@ shot, or pick which gate to take), all with a single control.
 - **Celebrations and sharing (v0.5):** game over shows NEW WORLD RECORD / #N IN THE WORLD /
   NEW PERSONAL BEST with confetti. "Share & challenge" sends a score picture plus a link with
   `?c=<score>&n=<name>`; opening it sets a challenge shown on the title screen.
+- **How to play page (v0.5.2):** from the title screen and pause menu; lists every power-up,
+  obstacle and enemy with its limits. Update it whenever a power-up or hazard changes.
 - **Ladder (v0.5):** under the score during a run, the next leaderboard score to beat.
 
 ---

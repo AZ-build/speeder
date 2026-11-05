@@ -353,6 +353,24 @@
     max-width: 320px;
   }
   #countdown { z-index: 6; }
+  .btn.ghost { min-height: 40px; font-size: 11px; color: var(--cyan); border-color: rgba(41, 243, 255, 0.45); }
+  #help { justify-content: flex-start; padding-top: calc(env(safe-area-inset-top, 0px) + 20px); }
+  .help { width: min(380px, 100%); text-align: left; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: var(--text); }
+  .help h3 {
+    font-family: 'Orbitron', system-ui, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.25em;
+    color: var(--yellow);
+    margin: 22px 0 6px;
+    text-transform: uppercase;
+  }
+  .help h3:first-child { margin-top: 4px; }
+  .hnote { font-size: 13px; line-height: 1.5; color: #cdbdf2; margin: 0 0 6px; }
+  .hrow { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.07); font-size: 14px; line-height: 1.45; }
+  .hico { position: static; display: block; width: 44px; height: 44px; flex: none; }
+  .hname { font-family: 'Orbitron', system-ui, sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 0.08em; color: #fff; margin-bottom: 2px; }
+  .hlim { margin-top: 4px; font-size: 12px; color: var(--yellow); }
+  .htxt b { color: #ffd23c; }
   #confetti { z-index: 7; pointer-events: none; }
   .wrecked.small { font-size: clamp(22px, 7vw, 34px); opacity: 0.75; }
   .celebrate { display: flex; flex-direction: column; gap: 4px; align-items: center; animation: celebrateIn 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
@@ -433,6 +451,7 @@
     <button class="btn" id="titleBoardBtn">Leaderboard</button>
     <button class="btn" id="titleSettingsBtn">Settings</button>
   </div>
+  <button class="btn ghost ui" id="titleHelpBtn">How to play</button>
   <button id="installBtn" class="hidden ui">INSTALL APP</button>
   <div class="install hidden" id="installHint"></div>
   <div class="version" id="versionTag"></div>
@@ -471,6 +490,7 @@
   <div class="panel-title">PAUSED</div>
   <div class="stack">
     <button class="btn primary" id="resumeBtn">Resume</button>
+    <button class="btn" id="menuHelpBtn">How to play</button>
     <button class="btn" id="menuBoardBtn">Leaderboard</button>
     <button class="btn" id="menuSettingsBtn">Settings</button>
     <button class="btn warn" id="quitBtn">Quit run</button>
@@ -501,6 +521,41 @@
   <ol class="board-list" id="boardList"></ol>
   <div class="status" id="boardStatus" aria-live="polite"></div>
   <div class="stack"><button class="btn primary" id="boardBack">Back</button></div>
+</div>
+
+<div id="help" class="overlay panel hidden">
+  <div class="panel-title">HOW TO PLAY</div>
+  <div class="help">
+    <h3>Riding</h3>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 22 h28 M12 17 l-5 5 5 5 M32 17 l5 5 -5 5" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="22" r="6" fill="none" stroke="#29f3ff" stroke-width="2"/></svg><div class="htxt"><div class="hname">Steer</div><div>Put your thumb down anywhere and slide left or right. On a computer, use the arrow keys or A and D.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 6 V38 M12 12 V38 M32 12 V38" stroke="#29f3ff" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round"/></svg><div class="htxt"><div class="hname">Shoot</div><div>Your guns fire on their own, straight ahead. To aim, steer so you&rsquo;re lined up. In a bend, bullets drift toward the outside.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><g stroke="#ff2bd6" stroke-width="2"><path d="M11 15 l5 -3 5 3 v6 l-5 3 -5 -3 z" fill="#ff2bd6"/><path d="M23 15 l5 -3 5 3 v6 l-5 3 -5 -3 z" fill="#ff2bd6"/><path d="M17 26 l5 -3 5 3 v6 l-5 3 -5 -3 z" fill="none"/></g></svg><div class="htxt"><div class="hname">Hull</div><div>The pink hexes, top left. Every hit costs one and slows you down for a moment. Lose all three and you&rsquo;re wrecked.</div><div class="hlim">Max 3 hull</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M6 36 L38 36 L32 16 L12 16 Z" fill="#2c4a0c" stroke="#b6ff2e" stroke-width="2" stroke-linejoin="round"/><path d="M15 30 l7 -6 7 6" stroke="#b6ff2e" stroke-width="2.5" fill="none"/></svg><div class="htxt"><div class="hname">Ramps</div><div>Drive onto a green ramp to jump for about a second. You can still steer in the air, and you fly over mines, walls and lasers. Pylons are too tall to jump.</div></div></div>
+    <h3>Power-ups</h3>
+    <p class="hnote">Gates come in pairs. Drive through the one you want. The two labels under your speeder tell you what&rsquo;s coming, and the side you&rsquo;re lined up with lights up. Sometimes mines guard one gate.</p>
+<div class="hrow"><canvas class="hico" data-power="shield" aria-hidden="true"></canvas><div class="htxt"><div class="hname">SHIELD</div><div>Blocks the next hit. A double ring means you have two.</div><div class="hlim">Max 2. Not offered once you have 2.</div></div></div>
+<div class="hrow"><canvas class="hico" data-power="weapon" aria-hidden="true"></canvas><div class="htxt"><div class="hname">GUNS+</div><div>Lasts the whole run.<br><b>1–4</b> more guns (1, 2, 4, then 5)<br><b>5</b> piercing: bullets go through enemies and mines<br><b>6</b> wing missiles: a homing missile every 1.6 seconds<br><b>7</b> heavy rounds: double damage<br><b>8</b> max power: wing missiles twice as often, faster bullets</div><div class="hlim">Max level 8. Not offered once maxed.</div></div></div>
+<div class="hrow"><canvas class="hico" data-power="rapid" aria-hidden="true"></canvas><div class="htxt"><div class="hname">RAPID</div><div>Your guns fire twice as fast.</div><div class="hlim">Lasts 12 seconds</div></div></div>
+<div class="hrow"><canvas class="hico" data-power="repair" aria-hidden="true"></canvas><div class="htxt"><div class="hname">REPAIR</div><div>Fixes one hull hex. If your hull is already full, you get +500 points instead.</div><div class="hlim">Hull max 3</div></div></div>
+<div class="hrow"><canvas class="hico" data-power="missile" aria-hidden="true"></canvas><div class="htxt"><div class="hname">MISSILES</div><div>Fires 8 homing missiles. They go after enemies first, then mines, anywhere ahead of you, and the launch wipes out incoming enemy fire.</div><div class="hlim">Each missile does 3 damage</div></div></div>
+<div class="hrow"><canvas class="hico" data-power="mult" aria-hidden="true"></canvas><div class="htxt"><div class="hname">2X SCORE</div><div>Every point is doubled. Taking another 2X while it&rsquo;s running restarts the timer.</div><div class="hlim">Lasts 15 seconds. Doesn&rsquo;t stack past 2X.</div></div></div>
+    <h3>Obstacles</h3>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M17 38 L19 10 L22 4 L25 10 L27 38 Z" fill="#2c0d52" stroke="#ff5fe0" stroke-width="2" stroke-linejoin="round"/><rect x="15" y="35" width="14" height="4" fill="#ffd23c"/><circle cx="22" cy="5" r="2.5" fill="#ff5fe0"/></svg><div class="htxt"><div class="hname">Pylons</div><div>Tall towers. You can&rsquo;t shoot them or jump them. Steer around.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M18 32 L20 10 L22 5 L24 10 L26 32 Z" fill="#2c0d52" stroke="#ff5fe0" stroke-width="2" stroke-linejoin="round"/><path d="M5 38 H39 M5 35 V41 M39 35 V41" stroke="#ff5fe0" stroke-width="2"/><path d="M10 20 l-4 3 4 3 M34 20 l4 3 -4 3" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg><div class="htxt"><div class="hname">Sliding pylons</div><div>Pylons that glide from side to side. The glowing line on the road shows how far they travel.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="3" y="18" width="20" height="14" fill="#33104a" stroke="#ff5fe0" stroke-width="2"/><path d="M8 21 l5 4 -5 4 M15 21 l5 4 -5 4" stroke="#ff5fe0" stroke-width="2" fill="none"/><path d="M30 32 V18 M41 32 V18" stroke="#ff5fe0" stroke-width="2" stroke-dasharray="2 3"/></svg><div class="htxt"><div class="hname">Walls</div><div>A barrier with one gap. The arrows on it point to the gap. Bullets can&rsquo;t get through. Some come in a zig-zag of half-walls.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="3" y="20" width="38" height="13" fill="#33104a" stroke="#b6ff2e" stroke-width="2"/><path d="M10 30 l4 -6 4 6 M26 30 l4 -6 4 6" stroke="#b6ff2e" stroke-width="2" fill="none"/></svg><div class="htxt"><div class="hname">Jump barriers</div><div>Cover the whole track and have green up-arrows. The only way past is to take the ramp before it (&ldquo;HIT THE RAMP&rdquo;).</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="3" y="14" width="4" height="22" fill="#3d0a18" stroke="#ff8a9c" stroke-width="1.5"/><rect x="21" y="12" width="4" height="24" fill="#3d0a18" stroke="#ff8a9c" stroke-width="1.5"/><path d="M7 20 H21 M7 28 H21" stroke="#ff2b4e" stroke-width="3"/><path d="M7 20 H21 M7 28 H21" stroke="#ffd6dd" stroke-width="1"/><circle cx="23" cy="9" r="3" fill="#ffd23c"/><path d="M30 24 h10 M36 20 l4 4 -4 4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg><div class="htxt"><div class="hname">Laser fences</div><div>Red beams across the track with a gap that slides side to side. Follow the blinking yellow post. Bullets pass straight through lasers.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><g stroke="#ff9a2e" stroke-width="3" stroke-linecap="round"><path d="M22 6 V12 M22 32 V38 M6 22 H12 M32 22 H38 M11 11 L15 15 M29 29 L33 33 M33 11 L29 15 M15 29 L11 33"/></g><circle cx="22" cy="22" r="9" fill="#3a1408" stroke="#ff9d2e" stroke-width="2"/><circle cx="22" cy="22" r="3" fill="#ffe08a"/></svg><div class="htxt"><div class="hname">Mines</div><div>Orange spiked balls. Two shots to pop (one with heavy rounds). Jump over them for an AIR bonus.</div><div class="hlim">+50 each, AIR +150 per thing you fly over</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M4 34 C12 10, 20 10, 22 22 S32 34, 40 10" stroke="#ff9d2e" stroke-width="1.5" fill="none" stroke-dasharray="2 3"/><circle cx="8" cy="26" r="4" fill="#3a1408" stroke="#ff9d2e" stroke-width="2"/><circle cx="22" cy="22" r="4" fill="#3a1408" stroke="#ff9d2e" stroke-width="2"/><circle cx="36" cy="18" r="4" fill="#3a1408" stroke="#ff9d2e" stroke-width="2"/></svg><div class="htxt"><div class="hname">Mine snakes</div><div>A line of mines swaying like a snake. Weave through the gaps or shoot a hole.</div></div></div>
+    <h3>Enemies</h3>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><ellipse cx="22" cy="22" rx="15" ry="6" fill="#3d0a18" stroke="#ff2b4e" stroke-width="2"/><circle cx="22" cy="20" r="4" fill="#ff2b4e"/><path d="M4 14 H14 M30 14 H40" stroke="#ff8a9c" stroke-width="2"/><circle cx="22" cy="35" r="3" fill="#ff784a"/></svg><div class="htxt"><div class="hname">Drones</div><div>Hover ahead and shoot at you. Some swoop in from behind.</div><div class="hlim">3 hits to destroy, +250</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="10" y="26" width="24" height="12" fill="#3d0a18" stroke="#ff2b4e" stroke-width="2"/><circle cx="22" cy="24" r="7" fill="#511023" stroke="#ff2b4e" stroke-width="2"/><path d="M22 18 L30 8" stroke="#ff2b4e" stroke-width="4" stroke-linecap="round"/></svg><div class="htxt"><div class="hname">Turrets</div><div>Sit on the road and fire as you get close. Driving into one costs a hit.</div><div class="hlim">3 hits, +200</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M12 36 L16 14 L22 8 L28 14 L32 36 Z" fill="#3d0a18" stroke="#ff2b4e" stroke-width="2" stroke-linejoin="round"/><path d="M14 18 L8 14 M30 18 L36 14" stroke="#ff8a9c" stroke-width="2"/><circle cx="18" cy="30" r="2.5" fill="#fff4c0"/><circle cx="26" cy="30" r="2.5" fill="#fff4c0"/></svg><div class="htxt"><div class="hname">Ram bikes</div><div>Charge straight at you and steer toward you.</div><div class="hlim">2 hits, +150</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="11" fill="rgba(255,70,40,0.3)"/><circle cx="22" cy="22" r="6" fill="#ff784a"/><circle cx="22" cy="22" r="2.5" fill="#fff2c0"/></svg><div class="htxt"><div class="hname">Enemy fire</div><div>Glowing orange balls. Dodge them, or block one with a shield.</div></div></div>
+    <h3>Score</h3>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 l5 11 12 1 -9 8 3 12 -11 -7 -11 7 3 -12 -9 -8 12 -1 z" fill="none" stroke="#ffd23c" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Points</div><div>You score for distance (faster = more), plus points for everything you destroy and AIR bonuses. The world leaderboard keeps the top 25 runs, and one player can hold several spots. Share a run to challenge a friend.</div></div></div>
+  </div>
+  <div class="stack"><button class="btn primary" id="helpBack">Back</button></div>
 </div>
 
 <div id="countdown" class="overlay hidden"><div class="count" id="countNum">3</div></div>
@@ -539,7 +594,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.5.1';
+const VERSION = '0.5.2';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -3438,46 +3493,47 @@ function drawGate(g) {
 }
 
 // little pictures for each power-up, drawn in a box of radius r
-function powerIcon(type, x, y, r, color, lw) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.strokeStyle = color; ctx.fillStyle = color;
-  ctx.lineWidth = lw; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  ctx.beginPath();
+function powerIcon(type, x, y, r, color, lw, c) {
+  c = c || ctx;
+  c.save();
+  c.translate(x, y);
+  c.strokeStyle = color; c.fillStyle = color;
+  c.lineWidth = lw; c.lineJoin = 'round'; c.lineCap = 'round';
+  c.beginPath();
   if (type === 'shield') {
-    ctx.moveTo(0, -r); ctx.lineTo(r * 0.85, -r * 0.6); ctx.lineTo(r * 0.7, r * 0.3); ctx.lineTo(0, r);
-    ctx.lineTo(-r * 0.7, r * 0.3); ctx.lineTo(-r * 0.85, -r * 0.6); ctx.closePath(); ctx.stroke();
+    c.moveTo(0, -r); c.lineTo(r * 0.85, -r * 0.6); c.lineTo(r * 0.7, r * 0.3); c.lineTo(0, r);
+    c.lineTo(-r * 0.7, r * 0.3); c.lineTo(-r * 0.85, -r * 0.6); c.closePath(); c.stroke();
   } else if (type === 'weapon') {
     for (const ox of [-0.55, 0, 0.55]) {
-      ctx.moveTo(ox * r, r * 0.8); ctx.lineTo(ox * r, -r * 0.3);
-      ctx.moveTo(ox * r - r * 0.22, -r * 0.3); ctx.lineTo(ox * r, -r * 0.8); ctx.lineTo(ox * r + r * 0.22, -r * 0.3);
+      c.moveTo(ox * r, r * 0.8); c.lineTo(ox * r, -r * 0.3);
+      c.moveTo(ox * r - r * 0.22, -r * 0.3); c.lineTo(ox * r, -r * 0.8); c.lineTo(ox * r + r * 0.22, -r * 0.3);
     }
-    ctx.stroke();
+    c.stroke();
   } else if (type === 'rapid') {
-    ctx.moveTo(r * 0.25, -r); ctx.lineTo(-r * 0.55, r * 0.1); ctx.lineTo(0, r * 0.1); ctx.lineTo(-r * 0.25, r);
-    ctx.lineTo(r * 0.55, -r * 0.1); ctx.lineTo(0, -r * 0.1); ctx.closePath(); ctx.fill();
+    c.moveTo(r * 0.25, -r); c.lineTo(-r * 0.55, r * 0.1); c.lineTo(0, r * 0.1); c.lineTo(-r * 0.25, r);
+    c.lineTo(r * 0.55, -r * 0.1); c.lineTo(0, -r * 0.1); c.closePath(); c.fill();
   } else if (type === 'repair') {
     const t = r * 0.32;
-    ctx.rect(-t, -r * 0.85, t * 2, r * 1.7); ctx.rect(-r * 0.85, -t, r * 1.7, t * 2); ctx.fill();
+    c.rect(-t, -r * 0.85, t * 2, r * 1.7); c.rect(-r * 0.85, -t, r * 1.7, t * 2); c.fill();
   } else if (type === 'missile') {
     // three little rockets climbing in a fan
     for (const [ox, rot] of [[-0.55, -0.35], [0, 0], [0.55, 0.35]]) {
-      ctx.save();
-      ctx.translate(ox * r, r * 0.15);
-      ctx.rotate(rot);
-      ctx.beginPath();
-      ctx.moveTo(0, -r * 0.8); ctx.lineTo(r * 0.15, -r * 0.5); ctx.lineTo(r * 0.15, r * 0.3);
-      ctx.lineTo(r * 0.28, r * 0.55); ctx.lineTo(-r * 0.28, r * 0.55); ctx.lineTo(-r * 0.15, r * 0.3);
-      ctx.lineTo(-r * 0.15, -r * 0.5); ctx.closePath(); ctx.fill();
-      ctx.restore();
+      c.save();
+      c.translate(ox * r, r * 0.15);
+      c.rotate(rot);
+      c.beginPath();
+      c.moveTo(0, -r * 0.8); c.lineTo(r * 0.15, -r * 0.5); c.lineTo(r * 0.15, r * 0.3);
+      c.lineTo(r * 0.28, r * 0.55); c.lineTo(-r * 0.28, r * 0.55); c.lineTo(-r * 0.15, r * 0.3);
+      c.lineTo(-r * 0.15, -r * 0.5); c.closePath(); c.fill();
+      c.restore();
     }
   } else if (type === 'mult') {
     const lbl = powerLabel('mult').split(' ')[0];
-    ctx.font = '900 ' + (r * (lbl.length > 2 ? 1.1 : 1.25)).toFixed(1) + 'px ' + FONT;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(lbl, 0, r * 0.08);
+    c.font = '900 ' + (r * (lbl.length > 2 ? 1.1 : 1.25)).toFixed(1) + 'px ' + FONT;
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(lbl, 0, r * 0.08);
   }
-  ctx.restore();
+  c.restore();
 }
 
 function drawShot(b) {
@@ -4395,7 +4451,7 @@ function applySound() {
 // "ui" is the panel currently on screen, or null while racing / on the title screen.
 let ui = null;
 const panelStack = [];
-const PANELS = ['menu', 'settings', 'board', 'over', 'title'];
+const PANELS = ['menu', 'settings', 'board', 'help', 'over', 'title'];
 const show = (id) => $(id).classList.remove('hidden');
 const hide = (id) => $(id).classList.add('hidden');
 const isShown = (id) => !$(id).classList.contains('hidden');
@@ -4410,6 +4466,7 @@ function openPanel(id) {
   ui = id;
   if (id === 'settings') fillSettings();
   if (id === 'board') loadBoard(boardTab);
+  if (id === 'help') { fillHelpIcons(); $('help').scrollTop = 0; }
 }
 
 function closePanel() {
@@ -5176,6 +5233,32 @@ $('againBtn').addEventListener('click', () => { audioInit(); startGame(); });
 $('overBoardBtn').addEventListener('click', () => openPanel('board'));
 $('overSettingsBtn').addEventListener('click', () => openPanel('settings'));
 $('titleBoardBtn').addEventListener('click', () => openPanel('board'));
+$('titleHelpBtn').addEventListener('click', () => openPanel('help'));
+$('menuHelpBtn').addEventListener('click', () => openPanel('help'));
+$('helpBack').addEventListener('click', closePanel);
+
+// Power-up pictures on the How to play page, drawn with the same code as the gate badges.
+let helpIconsDone = false;
+function fillHelpIcons() {
+  if (helpIconsDone) return;
+  helpIconsDone = true;
+  for (const el of document.querySelectorAll('canvas[data-power]')) {
+    const type = el.dataset.power, P = POWERS[type];
+    const dpr = Math.min(window.devicePixelRatio || 1, 3), size = 44;
+    el.width = size * dpr; el.height = size * dpr;
+    const c = el.getContext('2d');
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const t = Math.PI / 6 + i * Math.PI / 3;
+      c.lineTo(22 + Math.cos(t) * 19, 22 + Math.sin(t) * 19);
+    }
+    c.closePath();
+    c.fillStyle = '#0b0420'; c.fill();
+    c.strokeStyle = P.color; c.lineWidth = 2; c.stroke();
+    powerIcon(type, 22, 22, 11, P.color, 2.2, c);
+  }
+}
 $('titleSettingsBtn').addEventListener('click', () => { audioInit(); openPanel('settings'); });
 $('menuBoardBtn').addEventListener('click', () => openPanel('board'));
 $('menuSettingsBtn').addEventListener('click', () => openPanel('settings'));
@@ -5241,7 +5324,7 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
   if (e.key === 'Escape' || e.key === 'p') {
     if (ui === 'menu') resumeGame();
-    else if (ui === 'settings' || ui === 'board') closePanel();
+    else if (ui === 'settings' || ui === 'board' || ui === 'help') closePanel();
     else if (G.state === 'play' && resumeT <= 0) openMenu();
   }
   if ((e.key === ' ' || e.key === 'Enter') && !ui) {

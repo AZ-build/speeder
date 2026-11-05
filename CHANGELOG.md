@@ -4,6 +4,18 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.5.2] — 2026-11-04
+
+### Session 5c — How to play page
+
+- **How to play** page, opened from the title screen (button under Leaderboard/Settings) and
+  from the pause menu. Sections: Riding, Power-ups, Obstacles, Enemies, Score. Each entry has a
+  picture (power-ups use the same badges as the gates), what it does, and its limits in yellow
+  (shield max 2, guns max 8, 2X doesn't stack, hits needed and points for each enemy, and so on).
+- Version v0.5.2; service worker cache bumped.
+
+---
+
 ## [v0.5.1] — 2026-11-04
 
 ### Session 5b — No more stacking 2X, the speeder leans into turns
