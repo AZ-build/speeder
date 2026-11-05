@@ -130,6 +130,25 @@
     max-width: 300px;
     line-height: 1.5;
   }
+  .install.warn {
+    color: #ffe2f8;
+    background: rgba(255, 43, 214, 0.12);
+    border: 1px solid rgba(255, 43, 214, 0.55);
+    border-radius: 12px;
+    padding: 10px 14px;
+  }
+  .linkbtn {
+    pointer-events: auto;
+    font: inherit;
+    font-weight: 700;
+    color: var(--cyan);
+    background: none;
+    border: none;
+    padding: 4px 2px;
+    text-decoration: underline;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
   #installBtn {
     pointer-events: auto;
     font-family: inherit;
@@ -453,7 +472,7 @@
   </div>
   <button class="btn ghost ui" id="titleHelpBtn">How to play</button>
   <button id="installBtn" class="hidden ui">INSTALL APP</button>
-  <div class="install hidden" id="installHint"></div>
+  <div class="install hidden ui" id="installHint"><span id="installText"></span> <button class="linkbtn" id="installHow">How?</button> <button class="linkbtn hidden" id="copyLinkBtn">Copy link</button></div>
   <div class="version" id="versionTag"></div>
 </div>
 
@@ -555,6 +574,11 @@
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="11" fill="rgba(255,70,40,0.3)"/><circle cx="22" cy="22" r="6" fill="#ff784a"/><circle cx="22" cy="22" r="2.5" fill="#fff2c0"/></svg><div class="htxt"><div class="hname">Enemy fire</div><div>Glowing orange balls. Dodge them, or block one with a shield.</div></div></div>
     <h3>Score</h3>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 l5 11 12 1 -9 8 3 12 -11 -7 -11 7 3 -12 -9 -8 12 -1 z" fill="none" stroke="#ffd23c" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Points</div><div>You score for distance (faster = more), plus points for everything you destroy and AIR bonuses. The world leaderboard keeps the top 25 runs, and one player can hold several spots. Share a run to challenge a friend.</div></div></div>
+    <h3 id="helpInstall">Put it on your Home Screen</h3>
+    <p class="hnote">Speeder installs like an app: full screen, its own icon, and it works with no signal. It&rsquo;s free and there&rsquo;s no app store.</p>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="13" y="4" width="18" height="36" rx="4" fill="none" stroke="#29f3ff" stroke-width="2"/><path d="M22 26 V14 M17 18 l5 -5 5 5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">iPhone and iPad</div><div>1. Open the game in <b>Safari</b> (Chrome works too).<br>2. Tap the <b>Share</b> button (the square with an arrow). On newer iPhones it&rsquo;s inside the <b>&bull;&bull;&bull;</b> menu next to the address.<br>3. Scroll down and tap <b>Add to Home Screen</b>. If you don&rsquo;t see it, tap <b>View More</b>.<br>4. Tap <b>Add</b>. Play from the new icon.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="13" y="4" width="18" height="36" rx="4" fill="none" stroke="#b6ff2e" stroke-width="2"/><circle cx="22" cy="14" r="1.6" fill="#fff"/><circle cx="22" cy="20" r="1.6" fill="#fff"/><circle cx="22" cy="26" r="1.6" fill="#fff"/></svg><div class="htxt"><div class="hname">Android</div><div>1. Open the game in <b>Chrome</b>.<br>2. Tap <b>INSTALL APP</b> on the title screen if you see it.<br>3. Otherwise tap the <b>&#8942;</b> menu (top right) and choose <b>Install app</b> or <b>Add to Home screen</b>.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="6" y="8" width="32" height="28" rx="5" fill="none" stroke="#ff5fe0" stroke-width="2"/><path d="M16 22 h12 M24 18 l4 4 -4 4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Opened from TikTok, Instagram and the like?</div><div>Those apps show links in their own built-in browser, which can&rsquo;t install anything. Tap their <b>&bull;&bull;&bull;</b> or share menu and choose <b>Open in browser</b> (or <b>Open in Safari</b>), then follow the steps above. No such option? Copy the link and paste it into Safari or Chrome.</div></div></div>
   </div>
   <div class="stack"><button class="btn primary" id="helpBack">Back</button></div>
 </div>
@@ -603,7 +627,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.6.2';
+const VERSION = '0.6.3';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -706,6 +730,62 @@ function storeGet(key) {
 function storeSet(key, val) {
   try { localStorage.setItem(key, val); } catch (e) { /* storage blocked: fine */ }
 }
+
+// ---------- Analytics (GoatCounter, v0.6.3) ----------
+// Free, no cookies, no personal data. Dashboard: https://<GC_CODE>.goatcounter.com
+// Leave GC_CODE empty to switch analytics off. Nothing is counted on localhost.
+const GC_CODE = '';
+// Where is the game running? An installed app, a normal browser, or the built-in
+// browser of an app like TikTok or Instagram (those can't install the game).
+const IN_APP = (function () {
+  const ua = navigator.userAgent || '';
+  const apps = [
+    ['TikTok', /musical_ly|Bytedance|TikTok/i], ['Instagram', /Instagram/i],
+    ['Facebook', /FBAN|FBAV|FB_IAB|FBIOS/i], ['Snapchat', /Snapchat/i],
+    ['X', /Twitter/i], ['LinkedIn', /LinkedInApp/i], ['Discord', /Discord/i],
+    ['Pinterest', /Pinterest/i], ['Line', /\bLine\//i], ['Reddit', /Reddit/i],
+  ];
+  for (const [name, re] of apps) if (re.test(ua)) return name;
+  return '';
+})();
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent || '') || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /Android/i.test(navigator.userAgent || '');
+function isInstalled() {
+  try {
+    return navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches;
+  } catch (e) { return false; }
+}
+const OPEN_MODE = isInstalled() ? 'app' : IN_APP ? IN_APP.toLowerCase() : 'browser';
+const GCQ = [];
+function track(path, title) {
+  if (!GC_CODE) return;
+  const ev = { path: String(path), title: title || String(path), event: true };
+  const gc = window.goatcounter;
+  if (gc && typeof gc.count === 'function') { try { gc.count(ev); } catch (e) { /* ignore */ } }
+  else if (GCQ.length < 50) GCQ.push(ev);
+}
+(function startAnalytics() {
+  if (!GC_CODE || !location.protocol.startsWith('http')) return;
+  window.goatcounter = { no_onload: true };
+  const s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://gc.zgo.at/count.js';
+  s.dataset.goatcounter = 'https://' + GC_CODE + '.goatcounter.com/count';
+  s.onload = () => {
+    const gc = window.goatcounter;
+    if (!gc || typeof gc.count !== 'function') return;
+    // one page view per opening (without the ?c= challenge bits in the address)
+    try { gc.count({ path: location.pathname, title: 'Speeder' }); } catch (e) { /* ignore */ }
+    while (GCQ.length) { try { gc.count(GCQ.shift()); } catch (e) { /* ignore */ } }
+  };
+  document.head.appendChild(s);
+  track('open/' + OPEN_MODE, 'Opened: ' + OPEN_MODE + (IS_IOS ? ' (iPhone)' : IS_ANDROID ? ' (Android)' : ' (other)'));
+  if (!storeGet('speeder.seen')) {
+    storeSet('speeder.seen', '1');
+    // players from before analytics already have a best score or settings saved
+    if (!storeGet('speeder.best') && !storeGet('speeder.settings')) track('new-device', 'New player (first time on this device)');
+  }
+})();
 function vibrate(p) {
   if (!SET.haptics) return;
   try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* not supported */ }
@@ -4804,7 +4884,7 @@ async function writeRun(run) {
   if (run.score > onlineBest()) storeSet('speeder.onlineBest', String(run.score));
   // keep the remembered top list in step, so the next run's ladder is right
   const top = cachedTop().filter((r) => r.id !== run.id);
-  top.push({ id: run.id, name: SET.name, score: run.score });
+  top.push({ id: run.id, name: SET.name, score: run.score, dist: run.dist });
   top.sort((x, y) => y.score - x.score);
   storeSet('speeder.worldTop', JSON.stringify(top.slice(0, BOARD_N)));
   setPending(pendingRuns().filter((r) => r.id !== run.id));
@@ -4812,15 +4892,34 @@ async function writeRun(run) {
 
 // The current world top list. Also remembered on the device, so the "next to beat"
 // ladder works during a run even with no signal.
-async function fetchTop() {
+// v0.6.3: every download costs BOARD_N database reads, and the free Firebase plan
+// allows about 50,000 a day (shared with ORBit). So a recent copy is reused when it
+// is younger than maxAge (in ms). See the TOP_AGE_* knobs.
+const TOP_AGE_START = 3 * 60 * 1000;    // opening the game
+const TOP_AGE_BOARD = 60 * 1000;        // opening the leaderboard screen
+const TOP_AGE_RUN = 10 * 60 * 1000;     // after a run that clearly can't make the board
+function topAge() { return Date.now() - (parseInt(storeGet('speeder.worldTopAt') || '0', 10) || 0); }
+async function fetchTop(maxAge) {
+  if (maxAge && topAge() < maxAge) {
+    const c = cachedTop();
+    if (c.length) return c;
+  }
   const F = await firebase();
   const { collection, query, orderBy, limit, getDocs } = F.fs;
   const snap = await withTimeout(getDocs(query(collection(F.db, SCORES), orderBy('score', 'desc'), limit(BOARD_N))), 9000);
   const rows = snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
-  storeSet('speeder.worldTop', JSON.stringify(rows.map((r) => ({ id: r.id, name: cleanName(r.name), score: Number(r.score) || 0 }))));
+  storeSet('speeder.worldTop', JSON.stringify(rows.map((r) => ({ id: r.id, name: cleanName(r.name), score: Number(r.score) || 0, dist: Number(r.dist) || 0 }))));
+  storeSet('speeder.worldTopAt', String(Date.now()));
+  track('board-download');
   return rows;
 }
 function cachedTop() { const t = readJSON('speeder.worldTop', []); return Array.isArray(t) ? t : []; }
+// Could this score land in the top list? If the remembered list is full and the score
+// is below its last entry, there's no need to download the list again.
+function mightRank(score) {
+  const t = cachedTop();
+  return t.length < BOARD_N || score >= (Number(t[t.length - 1].score) || 0);
+}
 
 async function worldRank(score) {
   try {
@@ -4907,7 +5006,7 @@ async function loadBoard(tab) {
   status.textContent = 'Loading the world leaderboard…';
   try {
     await retryPending();
-    const rows = await fetchTop();
+    const rows = await fetchTop(TOP_AGE_BOARD);
     if (req !== boardReq) return;
     renderRows(rows, true, lastRun && lastRun.id);
     const mineN = rows.filter((r) => isMine(r.id)).length;
@@ -4934,6 +5033,7 @@ let CHALLENGE = readJSON('speeder.challenge', null);
     const q = new URLSearchParams(location.search);
     const c = parseInt(q.get('c') || '', 10);
     if (c > 0 && c < 100000000) {
+      track('challenge-link', 'Opened a challenge link');
       const n = cleanName(q.get('n')) || 'A FRIEND';
       if (!(SET.name && n === SET.name)) {
         CHALLENGE = { score: c, name: n };
@@ -5045,6 +5145,12 @@ function showOver() {
   const score = Math.floor(G.score);
   const prevBest = G.best;
   const run = { id: newRunId(), score, dist: Math.round(G.d * UNIT_M), kills: G.kills, rank: 0, isBest: score > prevBest && score > 0 };
+  {
+    // analytics: one event per run, grouped by how far it got
+    const km = run.dist / 1000;
+    const b = km < 0.5 ? '0-0.5' : km < 1 ? '0.5-1' : km < 2 ? '1-2' : km < 4 ? '2-4' : km < 7 ? '4-7' : km < 12 ? '7-12' : '12+';
+    track('run/' + b + 'km', 'Run ended at ' + b + ' km');
+  }
   if (CHALLENGE && score > CHALLENGE.score) {
     run.beatChallenge = CHALLENGE.name;
     CHALLENGE = null;
@@ -5089,11 +5195,12 @@ async function checkRun(run, statusEl) {
   if (run.score <= 0) return;
   say('Checking the world leaderboard…');
   let rows = null;
-  try { await retryPending(); rows = await fetchTop(); } catch (e) { rows = null; }
+  try { await retryPending(); rows = await fetchTop(mightRank(run.score) ? 0 : TOP_AGE_RUN); } catch (e) { rows = null; }
   if (lastRun !== run) return;
   if (rows) {
     const above = rows.filter((r) => r.id !== run.id && (Number(r.score) || 0) >= run.score).length;
     run.rank = above < BOARD_N ? above + 1 : 0;
+    if (run.rank) track('board/top25', 'Run made the world top 25');
   }
   celebrate(run);
   makeShareCard(run);
@@ -5240,6 +5347,7 @@ async function shareRun() {
   const url = challengeUrl(run);
   const status = $('shareStatus');
   status.textContent = '';
+  track('share', 'Tapped Share & challenge');
   try {
     if (shareFile && navigator.canShare && navigator.canShare({ files: [shareFile] })) {
       await navigator.share({ files: [shareFile], text: text + ' ' + url });
@@ -5465,20 +5573,53 @@ $('installBtn').addEventListener('click', async (e) => {
   e.stopPropagation();
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
-  try { await deferredPrompt.userChoice; } catch (err) { /* ignore */ }
+  try {
+    const choice = await deferredPrompt.userChoice;
+    track('install/' + (choice && choice.outcome === 'accepted' ? 'accepted' : 'dismissed'), 'Install button: ' + (choice && choice.outcome));
+  } catch (err) { /* ignore */ }
   deferredPrompt = null;
   $('installBtn').classList.add('hidden');
 });
-(function iosHint() {
-  const ua = navigator.userAgent || '';
-  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-  if (isIOS && !standalone) {
-    const h = $('installHint');
-    h.textContent = 'To install: tap the Share button, then “Add to Home Screen”.';
-    h.classList.remove('hidden');
+window.addEventListener('appinstalled', () => track('install/done', 'Installed to the home screen'));
+
+// v0.6.3: one line of install help on the title screen, matched to the phone and browser.
+// Built-in browsers (TikTok, Instagram…) can't install, so those get a "open in your
+// browser" note and a Copy link button instead.
+(function installHint() {
+  if (isInstalled()) return;
+  const h = $('installHint');
+  const t = $('installText');
+  if (IN_APP) {
+    t.textContent = 'You’re in ' + IN_APP + '’s built-in browser, which can’t install games. For the full app, tap ••• and choose “Open in ' + (IS_IOS ? 'Safari' : 'browser') + '”.';
+    h.classList.add('warn');
+    $('copyLinkBtn').classList.remove('hidden');
+  } else if (IS_IOS) {
+    t.textContent = 'Install it: tap Share (inside the ••• menu on newer iPhones), then “Add to Home Screen”.';
+  } else if (IS_ANDROID) {
+    t.textContent = 'Install it: tap ⋮ in Chrome, then “Install app” or “Add to Home screen”.';
+  } else {
+    return;   // desktop: the INSTALL APP button shows up by itself where installing works
   }
+  h.classList.remove('hidden');
 })();
+$('installHow').addEventListener('click', (e) => {
+  e.stopPropagation();
+  track('install/help', 'Opened install help');
+  openPanel('help');
+  const sec = $('helpInstall');
+  if (sec && sec.scrollIntoView) sec.scrollIntoView({ block: 'start' });
+});
+$('copyLinkBtn').addEventListener('click', async (e) => {
+  e.stopPropagation();
+  const link = location.origin + location.pathname;
+  try {
+    await navigator.clipboard.writeText(link);
+    $('copyLinkBtn').textContent = 'Copied! Paste it into ' + (IS_IOS ? 'Safari' : 'Chrome');
+  } catch (err) {
+    $('copyLinkBtn').textContent = link;
+  }
+  track('install/copy-link', 'Copied link from a built-in browser');
+});
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => {
@@ -5530,7 +5671,7 @@ if (document.fonts && document.fonts.load) {
   document.fonts.load('800 20px Orbitron').catch(() => {});
 }
 setTimeout(() => {
-  retryPending().then(() => fetchTop()).then(() => { if (G.state === 'play') buildLadder(); }).catch(() => {});
+  retryPending().then(() => fetchTop(TOP_AGE_START)).then(() => { if (G.state === 'play') buildLadder(); }).catch(() => {});
 }, 1500);
 requestAnimationFrame(frame);
 

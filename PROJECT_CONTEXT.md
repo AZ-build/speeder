@@ -18,10 +18,10 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.6.2 |
+| **Current Version** | v0.6.3 |
 | **Phase** | Prototype / Exploration (friends playing; waiting on feedback) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-04 |
+| **Last Updated** | 2026-11-05 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://az-build.github.io/speeder/ |
 
 ---
@@ -130,11 +130,12 @@ from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))
 steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun levels ·
 `MULT_TIME` 2X duration · `EDGE_START` / `EDGE_BANK` / `EDGE_HALF_W` / `EDGE_YAW` the edge bank and how skinny it gets · `CAM_FOLLOW` how tightly the camera follows sideways · `STEER_EASE` how quickly the speeder glides to your thumb · `LEAN_MAX` / `LEAN_GAIN` the small lean while moving · `SWARM_N` missiles per MISSILES pickup ·
 `MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch ·
+`GC_CODE` analytics on/off (GoatCounter site code) · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
 `choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
 
 ### Testing hooks
 
-Local storage keys: `speeder.settings`, `speeder.best`, `speeder.local`, `speeder.pid` (player ID), `speeder.onlineBest`, `speeder.myRuns` (your board entries), `speeder.pendingRuns` (waiting to upload), `speeder.worldTop` (cached top 25 for the ladder), `speeder.challenge`.
+Local storage keys: `speeder.settings`, `speeder.best`, `speeder.local`, `speeder.pid` (player ID), `speeder.onlineBest`, `speeder.myRuns` (your board entries), `speeder.pendingRuns` (waiting to upload), `speeder.worldTop` (cached top 25 for the ladder), `speeder.worldTopAt` (when it was downloaded), `speeder.challenge`, `speeder.seen` (analytics: not a new player).
 
 `window.SPEEDER` in the browser console exposes game state (e.g. `SPEEDER.G.d = 3000`
 jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics, `SPEEDER.G.invuln = 999` makes you invincible,
@@ -174,6 +175,9 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 | Zones | One shared system, 5 color/prop mixes that blend | Variety without five separate environments to maintain. |
 | Graphics quality | Auto steps down if the frame rate drops | Keeps older phones smooth without asking players to tune anything. |
 | Sound (v0.6) | Free CC0 sound files instead of generated tones | Adrian found the generated sounds cheap. CC0 means no licence worries or credit needed. |
+| Analytics (v0.6.3) | GoatCounter, events only, no cookies | Free, privacy-friendly, phone-friendly dashboard, no cookie banner. Offline runs aren't counted. |
+| Leaderboard reads (v0.6.3) | Reuse a recent download; only re-download after a run that could make the top 25 | Free Firebase plan is ~50k reads/day, shared with ORBit. |
+| Built-in browsers (v0.6.3) | Detect TikTok/Instagram etc. and say "Open in browser" | They can't install the game, and the game is being shared on TikTok. |
 | Music speed-up | Play the loop faster (pitch rises too) as speed climbs, capped at +14% | Simple, no extra files, and the rising pitch adds urgency. Trade-off: a pitch-preserving version would need several pre-made copies of the track. |
 
 ---

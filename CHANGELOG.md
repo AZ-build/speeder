@@ -4,6 +4,36 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.6.3] — 2026-11-05
+
+### Session 7 — Getting ready for more players (TikTok sharing)
+
+The game is spreading (Diego is sharing it on TikTok). Adrian asked about analytics, scaling,
+a domain, and install instructions.
+
+**What we did:**
+- **Leaderboard uses far fewer database reads.** The free Firebase plan allows about 50,000
+  reads a day, shared with ORBit, and each top-25 download costs 25. The game now reuses a
+  recent copy: 3 min when opening the game, 1 min on the leaderboard screen, and after a run
+  it only downloads again if the score could make the top 25. Knobs: `TOP_AGE_START`,
+  `TOP_AGE_BOARD`, `TOP_AGE_RUN`. New storage key `speeder.worldTopAt`.
+- **Analytics (GoatCounter), ready but off until `GC_CODE` is set.** No cookies, no personal
+  data. Events: `open/<app|browser|tiktok|instagram…>`, `new-device`, `run/<km bucket>`,
+  `board/top25`, `share`, `challenge-link`, `install/*`, `board-download` (each one = 25 reads,
+  so this tracks database use). New storage key `speeder.seen`.
+- **Install help.** Title screen shows a one-line tip matched to iPhone or Android, with a
+  "How?" link to a new "Put it on your Home Screen" section on the How to play page (updated
+  for the newer iPhone Safari, where Share sits inside the ••• menu).
+- **Built-in browsers detected** (TikTok, Instagram, Facebook, Snapchat, X, and others). They
+  can't install apps, so the title screen says so, explains "Open in Safari/browser", and
+  offers a Copy link button.
+- Version v0.6.3; service worker cache bumped.
+
+**Still to do:** switch on analytics once Adrian has a GoatCounter code; choose a domain and
+add score carry-over *before* switching (players' saved data is tied to the web address).
+
+---
+
 ## [v0.6.2] — 2026-11-04
 
 ### Session 6c — Smoothing back, small lean in the middle
