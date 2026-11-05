@@ -528,7 +528,7 @@
   <div class="panel-title">HOW TO PLAY</div>
   <div class="help">
     <h3>Riding</h3>
-<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 22 h28 M12 17 l-5 5 5 5 M32 17 l5 5 -5 5" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="22" r="6" fill="none" stroke="#29f3ff" stroke-width="2"/></svg><div class="htxt"><div class="hname">Steer</div><div>Put your thumb down anywhere and slide left or right. On a computer, use the arrow keys or A and D.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 22 h28 M12 17 l-5 5 5 5 M32 17 l5 5 -5 5" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="22" r="6" fill="none" stroke="#29f3ff" stroke-width="2"/></svg><div class="htxt"><div class="hname">Steer</div><div>Put your thumb down anywhere and slide left or right. The speeder goes exactly where you slide it. Near the side rails it banks up on its side and gets skinnier, so tight gaps by the edge are easier to slip through. On a computer, use the arrow keys or A and D.</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 6 V38 M12 12 V38 M32 12 V38" stroke="#29f3ff" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round"/></svg><div class="htxt"><div class="hname">Shoot</div><div>Your guns fire on their own, straight ahead. To aim, steer so you&rsquo;re lined up. In a bend, bullets drift toward the outside.</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><g stroke="#ff2bd6" stroke-width="2"><path d="M11 15 l5 -3 5 3 v6 l-5 3 -5 -3 z" fill="#ff2bd6"/><path d="M23 15 l5 -3 5 3 v6 l-5 3 -5 -3 z" fill="#ff2bd6"/><path d="M17 26 l5 -3 5 3 v6 l-5 3 -5 -3 z" fill="none"/></g></svg><div class="htxt"><div class="hname">Hull</div><div>The pink hexes, top left. Every hit costs one and slows you down for a moment. Lose all three and you&rsquo;re wrecked.</div><div class="hlim">Max 3 hull</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M6 36 L38 36 L32 16 L12 16 Z" fill="#2c4a0c" stroke="#b6ff2e" stroke-width="2" stroke-linejoin="round"/><path d="M15 30 l7 -6 7 6" stroke="#b6ff2e" stroke-width="2.5" fill="none"/></svg><div class="htxt"><div class="hname">Ramps</div><div>Drive onto a green ramp to jump for about a second. You can still steer in the air, and you fly over mines, walls and lasers. Pylons are too tall to jump.</div></div></div>
@@ -583,8 +583,13 @@ const FAR = 240;            // draw distance
 const SPAWN_AHEAD = 250;    // new things appear this far ahead
 const TRACK_HALF = 5.5;     // half-width of the track
 const PLAYER_HALF_W = 0.3;  // collision half-width (a little forgiving)
-const BANK_MAX = 1.15;      // most the speeder rolls in a quick turn (radians, about 65°)
-const BANK_GAIN = 0.07;     // how quickly the lean builds with sideways speed
+// Edge bank: near the side rails the speeder rolls up onto its side, top facing the middle
+// of the track (like it's carving back in), and gets skinnier so side gaps are easier to hit.
+const EDGE_START = 2.8;     // how far from the middle the bank begins (rail is at about 5.05)
+const EDGE_BANK = 1.2;      // roll at the rail (radians, about 70°)
+const EDGE_HALF_W = 0.15;   // collision half-width when fully on its side (half the normal)
+const EDGE_YAW = 0.25;      // how much the nose points back toward the middle while banked
+const CAM_FOLLOW = 14;      // how tightly the camera follows the speeder sideways (higher = tighter)
 const MAX_HULL = 3;
 // Jumps: ramps on the track launch you into the air.
 const RAMP_H = 0.8;          // height of the ramp's top edge
@@ -595,7 +600,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.6.0';
+const VERSION = '0.6.1';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -2028,7 +2033,7 @@ const G = {
   toast: '', toastColor: '#fff', toastT: 0, dragged: false, runT: 0,
   kick: 0, pulse: 0, pulseColor: '#fff', zoneT: 0, zoneName: '', zoneIdx: 0, air: 0,
 };
-const player = { x: 0, tx: 0, vx: 0, bank: 0, alive: true, y: 0, vy: 0, ramp: null };
+const player = { x: 0, tx: 0, vx: 0, bank: 0, edge: 0, alive: true, y: 0, vy: 0, ramp: null };
 const objs = [];      // obstacles: pylons, walls, mines
 const enemies = [];   // drones, rams, turrets
 const shots = [];     // your bullets
@@ -2084,7 +2089,7 @@ function resetRun() {
     invuln: 0, slow: 0, fireT: 0.3, nextSpawn: 110, nextGate: 420, overT: 0,
     flash: 0, shake: 0, toastT: 0, runT: 0, kick: 0, pulse: 0, zoneT: 0, zoneIdx: 0,
   });
-  player.x = 0; player.tx = 0; player.vx = 0; player.bank = 0; player.alive = true;
+  player.x = 0; player.tx = 0; player.vx = 0; player.bank = 0; player.edge = 0; player.alive = true;
   player.y = 0; player.vy = 0; player.ramp = null; G.air = 0; G.lastPat = '';
   cam.x = 0;
   objs.length = 0; enemies.length = 0; shots.length = 0; eshots.length = 0;
@@ -2673,15 +2678,19 @@ function update(dt) {
   const lim = TRACK_HALF - 0.45;
   player.tx = clamp(player.tx, -lim, lim);
   const prevX = player.x;
-  if (player.alive) player.x += (player.tx - player.x) * (1 - Math.exp(-dt * 14));
+  // Locked to your thumb: the speeder sits exactly where you steer it, with no glide after.
+  if (player.alive) player.x = player.tx;
   player.x = clamp(player.x, -lim, lim);
   player.vx = (player.x - prevX) / Math.max(dt, 1e-4);
-  // Lean into the turn: a gentle steer tilts a little, a quick flick rolls the speeder
-  // almost onto its side (it looks skinny), then it settles back level.
-  const bankTarget = BANK_MAX * Math.tanh(player.vx * BANK_GAIN);
-  const leaningIn = Math.abs(bankTarget) > Math.abs(player.bank);
-  player.bank += (bankTarget - player.bank) * (1 - Math.exp(-dt * (leaningIn ? 14 : 4.5)));
-  cam.x += (player.x * 0.85 - cam.x) * (1 - Math.exp(-dt * 6));
+  // Edge bank: in the middle the speeder rides level. Out toward a rail it rolls up onto its
+  // side, top facing the middle, and gets skinnier (see playerHalfW). It follows position only,
+  // so it's instant and always the same at the same spot.
+  {
+    const u = clamp((Math.abs(player.x) - EDGE_START) / (lim - EDGE_START), 0, 1);
+    player.edge = u * u * (3 - 2 * u);
+    player.bank = -Math.sign(player.x) * EDGE_BANK * player.edge;
+  }
+  cam.x += (player.x * 0.85 - cam.x) * (1 - Math.exp(-dt * CAM_FOLLOW));
 
   // In the air: gravity pulls you back down; you can still steer.
   if (player.y > 0 || player.vy > 0) {
@@ -2785,7 +2794,7 @@ function update(dt) {
       }
     }
     // you hit obstacles (unless you're flying over them)
-    if (playing && !o.dead && !o.hit && rel < 0.5 && rel + o.dep > -0.5 && Math.abs(player.x - o.x) < o.w / 2 + PLAYER_HALF_W) {
+    if (playing && !o.dead && !o.hit && rel < 0.5 && rel + o.dep > -0.5 && Math.abs(player.x - o.x) < o.w / 2 + playerHalfW()) {
       o.hit = true;
       const top = o.type === 'mine' ? 1.0 : o.y + o.h;
       if (player.y > top - 0.1) { G.air++; STATS.air++; continue; }
@@ -2873,7 +2882,7 @@ function update(dt) {
       }
     }
     // rams and turrets can hit you
-    if (playing && !e.dead && e.type !== 'drone' && player.y < 0.9 && rel < 0.6 && rel > -0.8 && Math.abs(player.x - e.x) < e.w / 2 + PLAYER_HALF_W) {
+    if (playing && !e.dead && e.type !== 'drone' && player.y < 0.9 && rel < 0.6 && rel > -0.8 && Math.abs(player.x - e.x) < e.w / 2 + playerHalfW()) {
       if (hurt()) {
         e.dead = true;
         explode(e.x, 0.5, e.d, COLORS.red, true, 0);
@@ -2889,7 +2898,7 @@ function update(dt) {
     s.x += s.vx * dt;
     s.y = Math.max(0.3, s.y + s.vy * dt);
     const rel = s.d - G.d;
-    if (playing && prevRel > -0.4 && rel < 0.4 && Math.abs(s.x - player.x) < 0.42 && player.y < s.y + 0.3) {
+    if (playing && prevRel > -0.4 && rel < 0.4 && Math.abs(s.x - player.x) < 0.12 + playerHalfW() && player.y < s.y + 0.3) {
       s.dead = true;
       hurt();
       continue;
@@ -3712,9 +3721,9 @@ function drawPlayer() {
 
   drawTrails();
 
-  // the 3D speeder: it rolls into a steer, noses into the turn, and pitches on jumps
+  // the 3D speeder: up on its side near a rail (nose turned back in), pitches on jumps
   MT.x = player.x; MT.y = 0.42 + bob + player.y; MT.z = z;
-  MT.roll = -player.bank; MT.yaw = player.bank * 0.35;
+  MT.roll = -player.bank; MT.yaw = player.bank * EDGE_YAW;
   MT.pitch = SHIP_TILT - clamp(player.vy * 0.03, -0.18, 0.28);
   MT.scale = SHIP_SCALE;
   const baseA = blink ? 0.35 : 1;
@@ -5354,6 +5363,9 @@ $('pauseBtn').addEventListener('click', (e) => {
 });
 
 // ---------- Input ----------
+// Collision half-width: normal in the middle, half as wide when banked up at a rail.
+function playerHalfW() { return PLAYER_HALF_W + (EDGE_HALF_W - PLAYER_HALF_W) * (player.edge || 0); }
+
 function steerSensitivity() {
   // world units per pixel of finger movement, scaled by the "Steering speed" setting
   return (11 / Math.min(W, 520)) * (SET.sens / 100);
