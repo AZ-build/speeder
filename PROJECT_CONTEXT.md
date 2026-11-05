@@ -19,7 +19,7 @@ fire on their own.
 | Field | Value |
 |-------|-------|
 | **Current Version** | v0.5.2 |
-| **Phase** | Prototype / Exploration (playable, friends playing; sharing, top-runs board) |
+| **Phase** | Prototype / Exploration (friends playing; waiting on feedback) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-04 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://az-build.github.io/speeder/ |
@@ -154,6 +154,7 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 | NOVA → MISSILES | Homing missile swarm | NOVA was hard to understand; missiles you can watch are clearer and more fun. Adrian's idea. |
 | Guns past level 4 | New abilities, not more bullets | More bullets would clutter the screen and cost frame rate. |
 | Helper text | Below the speeder | That part of the screen shows road you've already passed. |
+| Score balance | Leave as is for now (2026-11-04) | Adrian wants feedback first; a rebalance would mean resetting the board. |
 | 2X stacking | Removed in v0.5.1 | Adrian: it would let scores run away; score should be mostly about distance. |
 | Sharing | Score picture + challenge link | Turns a good run into an invite for a friend. |
 | Game over restart | "Ride again" button, not tap-anywhere | Stops accidental restarts while typing a name. |
@@ -197,8 +198,13 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Next session focus (after v0.5.1):**
-- Decide whether to rebalance scoring toward distance (today kills are roughly 2/3 of a score).
-- Adrian: paste the updated Firebase rule (README, "Updating the rule for v0.5").
-- Watch friends use Share & challenge, and check whether 8X and the moving obstacles feel fair.
-- Ideas raised: near-miss bonus, daily challenge course, weekly board, rude-name filter, music.
+**Where things stand (after v0.5.2, 2026-11-04):**
+- Firebase rules updated to the v0.5 version (looser score check). All setup steps are done.
+- Adrian is waiting for feedback from friends before making more changes.
+
+**Next session focus:**
+- Start from friends' feedback: Share & challenge, the moving obstacles, missiles, gun levels 5-8, banking.
+- Scoring balance: today kills are roughly 2/3 of a score and distance about 1/5. Adrian said the
+  score "should be mostly about distance", but chose to **leave the leaderboard as is for now**.
+  Option on the table: a growing per-km distance bonus and smaller kill points, with a board reset.
+- Ideas raised, not started: near-miss bonus, daily challenge course, weekly board, rude-name filter, music.

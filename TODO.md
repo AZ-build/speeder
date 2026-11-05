@@ -10,9 +10,11 @@ actually working on right now?
 
 ## 🔨 This Session
 
-- [x] v0.5.0: sharing, top-runs board, celebrations, missiles, gun levels 5-8, stacking 2X, moving obstacles, helper text below the speeder
-- [ ] **Adrian:** paste the updated Speeder block into the Firebase rules (README, "Updating the rule for v0.5")
-- [ ] **Adrian:** try Share & challenge with a friend; check the link opens with the challenge
+- [x] v0.5.0: sharing, top-runs board, celebrations, missiles, gun levels 5-8, moving obstacles, helper text below the speeder
+- [x] v0.5.1: 2X no longer stacks; speeder banks hard on quick turns
+- [x] v0.5.2: How to play page
+- [x] Adrian updated the Firebase rules to the v0.5 version
+- [ ] **Adrian:** collect friends' feedback (Share & challenge, moving obstacles, missiles, banking)
 
 ---
 
@@ -28,7 +30,7 @@ actually working on right now?
 
 | Task | Blocked by | Who/What |
 |------|------------|----------|
-| Very high multiplier scores saving | Updated Firebase rule | Adrian, in the Firebase console |
+| Score rebalance toward distance | Decision: leave as is until feedback | Adrian |
 | Difficulty tuning | Real playtest on a phone | Adrian |
 
 ---
