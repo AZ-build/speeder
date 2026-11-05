@@ -4,6 +4,62 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.5.0] — 2026-11-04
+
+### Session 5 — Sharing, a real top-runs board, missiles, moving obstacles
+
+Feedback from Adrian and friends (who are loving it): make a big deal of great scores and let
+people share them, let one player hold several board spots, NOVA is confusing, too many walls,
+guns should go further, 2X should stack, maxed powers shouldn't show up, and helper text
+sometimes covers the track.
+
+**What we did:**
+- **Leaderboard is now top runs, not top players.** Every good run is its own entry, so one
+  person can hold several spots. A run is uploaded if it makes the top 25 or is your best.
+  Entry IDs start with your device ID, so all your spots are highlighted. Old entries stay.
+  No database change was needed for this (the existing rule already allowed new entries).
+- **Big celebrations.** The game-over screen shows NEW WORLD RECORD / #N IN THE WORLD /
+  NEW PERSONAL BEST with confetti, a fanfare and a buzz. Gold for the top 3.
+- **Share & challenge button.** Makes a 1080×1350 score picture (synthwave sun, your score, your
+  world rank) and shares it with a link. The link carries your score, so a friend who opens it
+  sees "ADRIAN challenged you: beat 45,210" on the title screen and gets told when they beat it.
+  Falls back to copying the text if the phone can't share.
+- **Live leaderboard ladder.** Under your score during a run: the next score to beat
+  ("▲ #6 TIM 17,378"). Passing someone flashes "PASSED TIM" with a chime. Passing your best,
+  the world #1, or a friend's challenge gets a big toast.
+- **NOVA replaced by MISSILES.** 8 homing missiles fan out and hunt down enemies (first) and
+  mines ahead, with smoke trails. The launch still knocks out incoming enemy fire.
+- **Guns go to level 8.** Levels 1–4 as before; 5 piercing bullets, 6 wing missiles (a homing
+  missile every 1.6s), 7 heavy rounds (double damage, pink bolts), 8 max power (wing missiles
+  twice as often, faster bullets). HUD shows 4 yellow + 4 orange bars.
+- **2X stacks.** Taking 2X while it's running doubles it: 4X, then 8X (max). The clock resets to
+  15s each time. The gate says what you'd get (4X SCORE), and the HUD badge grows.
+- **Maxed powers stop showing up.** GUNS+ at level 8 and SHIELD at 2 are no longer offered.
+- **Fewer walls, new moving obstacles.** Walls and slalom show up about half as often. New:
+  sliding pylons (with a glowing groove showing their path), swaying "snake" lines of mines,
+  and red laser fences whose gap slides side to side (bullets pass through lasers).
+- **Helper text moved off the road.** Gate choices, "HIT THE RAMP", power-up toasts and the zone
+  name now sit below the speeder (road you've already passed). The gate chip on the side you're
+  lined up with stays bright and the other dims.
+- Database rules updated in `firestore-rules-speeder.txt` (looser score check for 8X runs).
+  Scores the database turns down no longer block the upload queue.
+- Version v0.5.0; service worker cache bumped.
+- Tested in a headless phone browser (390×844, 360×640, landscape) with a fake leaderboard
+  seeded with the real scores: celebrations, ranks, uploads, offline queue, share picture, all
+  new obstacles and power-ups. No errors.
+
+**Decisions made:**
+- Keep the same database list (`speeder_scores`) with one entry per run, instead of a new list,
+  so nothing breaks before Adrian updates the rules.
+- Upload only runs that make the top 25 or beat your own best, to keep the database small.
+- Laser fences have a slightly wider gap than walls, since the gap moves.
+
+**Next session focus:**
+- Watch friends use Share & challenge. Does the link get them playing?
+- Is 8X too strong? Do the moving obstacles feel fair at top speed?
+
+---
+
 ## [v0.4.0] — 2026-11-01
 
 ### Session 4 — New look for the speeder and the track, camera moved up

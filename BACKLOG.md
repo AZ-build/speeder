@@ -23,7 +23,9 @@ on right now. Add anything here so it doesn't get lost.
 - [ ] **Synthwave music track** (generated in code, or a licensed loop).
 - [ ] **Daily challenge seed**: everyone gets the same course that day.
 - [ ] **More settings**: left-handed HUD, colorblind-friendly enemy colors. (Screen shake toggle done in v0.3.)
-- [ ] **Leaderboard extras**: weekly board, show your rank even outside the top 25, rude-name filter.
+- [ ] **Leaderboard extras**: weekly board, rude-name filter. (Rank outside the top 25 shows on the game-over screen since v0.2.)
+- [ ] **Run recap on the share card**: best moment, max multiplier, missiles kills.
+- [ ] **Score ladder tuning**: should passing every player chime, or only top 10?
 - [ ] **Stronger anti-cheat**: Firebase App Check, or a small server that replays and checks runs.
 - [ ] More enemy types: a mine-layer that drops mines behind itself, a laser fence that sweeps across the track.
 
@@ -47,7 +49,7 @@ on right now. Add anything here so it doesn't get lost.
 > Bigger swings — possible future directions if the project grows.
 
 - [ ] Ghost racing: race against your own best run.
-- [ ] Two-player split-screen or async "beat my score" share links.
+- [ ] Two-player split-screen. (Async "beat my score" links done in v0.5.)
 - [ ] Wrap as a native app store build (Capacitor) if it takes off.
 
 ---

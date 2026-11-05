@@ -18,11 +18,11 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.4.0 |
-| **Phase** | Prototype / Exploration (playable, curving track, 5 zones, world leaderboard) |
+| **Current Version** | v0.5.0 |
+| **Phase** | Prototype / Exploration (playable, friends playing; sharing, top-runs board) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-01 |
-| **GitHub Repo** | `AZ-build/speeder` (Adrian creating the empty repo; target URL https://az-build.github.io/speeder/) |
+| **Last Updated** | 2026-11-04 |
+| **GitHub Repo** | `AZ-build/speeder`, live at https://az-build.github.io/speeder/ |
 
 ---
 
@@ -58,11 +58,17 @@ shot, or pick which gate to take), all with a single control.
   and mines (orange, 2 shots to destroy).
 - **Enemies:** drones (hover ahead and shoot; some swoop in from behind), turrets (fixed on
   the ground, they shoot as you approach), and ram bikes (head straight at you and steer toward you).
-- **Power-up gates:** always come in **pairs**, and you pick one by driving through it. A
-  banner at the top shows both choices early (◀ left | right ▶). Sometimes mines guard one gate.
-  - SHIELD (absorbs 1 hit, stacks to 2) · GUNS+ (permanent for the run, up to level 4) ·
-    RAPID (12s) · REPAIR (+1 hull) · NOVA (clears enemies and mines) · 2X SCORE (15s)
-- **Score:** distance + kills, doubled during 2X. Best score is saved on the device.
+- **Moving obstacles (v0.5):** sliding pylons (glowing groove shows their path), swaying lines
+  of mines, laser fences whose gap slides (bullets pass through lasers).
+- **Power-up gates:** always come in **pairs**, and you pick one by driving through it. Two
+  labels under the speeder show both choices early (◀ left | right ▶). Sometimes mines guard one gate.
+  Maxed powers (guns at 8, shield at 2) are no longer offered.
+  - SHIELD (absorbs 1 hit, stacks to 2) · GUNS+ (permanent for the run, 8 levels: 1-4 more
+    bullets, 5 piercing, 6 wing missiles, 7 heavy rounds, 8 max) · RAPID (12s) · REPAIR (+1 hull) ·
+    MISSILES (8 homing missiles hunt enemies, then mines) · 2X SCORE (15s; stacks to 4X and 8X)
+- **Score:** distance + kills, times the multiplier. Best score is saved on the device.
+- **Helper text (v0.5):** gate choices, ramp warning, toasts and zone names sit below the
+  speeder, never over the road ahead.
 - **Menus (v0.2):** pause button → Resume / Leaderboard / Settings / Quit run, with a 3-2-1
   countdown on resume. Auto-pauses when you leave the app. Settings (per device): sound,
   volume, engine hum, vibration, steering speed, leaderboard name.
@@ -72,9 +78,13 @@ shot, or pick which gate to take), all with a single control.
 - **Zones (v0.3):** every 1.4 km the world blends into the next zone: Neon Desert, Neon City,
   Sky Islands, Crystal Wastes, Cosmic Highway (then repeats). Same system, different colors,
   sky objects and roadside props.
-- **World leaderboard (v0.2):** one entry per player (their best), top 25, plus a "This device"
-  tab (10 best local runs). You enter a name after your first run, and new personal bests
-  upload by themselves. If you're offline, scores wait and upload later.
+- **World leaderboard (v0.5):** top 25 *runs* (one player can hold several spots), plus a
+  "This device" tab (10 best local runs). A run uploads if it makes the top 25 or is your best.
+  If you're offline, scores wait and upload later.
+- **Celebrations and sharing (v0.5):** game over shows NEW WORLD RECORD / #N IN THE WORLD /
+  NEW PERSONAL BEST with confetti. "Share & challenge" sends a score picture plus a link with
+  `?c=<score>&n=<name>`; opening it sets a challenge shown on the title screen.
+- **Ladder (v0.5):** under the score during a run, the next leaderboard score to beat.
 
 ---
 
@@ -112,14 +122,17 @@ Speeder/
 `ZONE_LEN` zone length · `RAMP_*` / `JUMP_T` / `JUMP_G` ramp size and jump feel · `QUALS` what each graphics level turns on ·
 `FAR` draw distance · `TRACK_HALF` track half-width · `PATTERNS` which hazards appear and
 from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))`) ·
-steering sensitivity in `steerSensitivity()`.
+steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun levels ·
+`MULT_MAX` / `MULT_TIME` score multiplier · `SWARM_N` missiles per MISSILES pickup ·
+`choosePowers()` how often each gate appears · `BOARD_N` leaderboard size.
 
 ### Testing hooks
 
-Local storage keys: `speeder.settings`, `speeder.best`, `speeder.local`, `speeder.pid` (player ID), `speeder.onlineBest`, `speeder.pending`.
+Local storage keys: `speeder.settings`, `speeder.best`, `speeder.local`, `speeder.pid` (player ID), `speeder.onlineBest`, `speeder.myRuns` (your board entries), `speeder.pendingRuns` (waiting to upload), `speeder.worldTop` (cached top 25 for the ladder), `speeder.challenge`.
 
 `window.SPEEDER` in the browser console exposes game state (e.g. `SPEEDER.G.d = 3000`
-jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics, `SPEEDER.G.invuln = 999` makes you invincible).
+jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics, `SPEEDER.G.invuln = 999` makes you invincible,
+`SPEEDER.applyPower('missile')` gives a power-up, `SPEEDER.die()` ends the run).
 
 ---
 
@@ -135,7 +148,11 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 | Rendering | Canvas 2D pseudo-3D, no three.js | Light, fast on phones, nothing to install, suits the retro look. |
 | Gate preview banner | HUD chips at top | At speed, gate labels are only readable late, so the banner lets you choose early. |
 | Leaderboard | Global, in ORBit's Firebase project | Adrian chose global. Reusing ORBit's project avoids a new account and setup. |
-| Leaderboard entries | One per player, can only go up | Shows each person once and keeps the database small. |
+| Leaderboard entries | One per run (v0.5), only runs that make the top 25 or are your best | Adrian wants players to own several spots. Same database list, so no breaking change. |
+| NOVA → MISSILES | Homing missile swarm | NOVA was hard to understand; missiles you can watch are clearer and more fun. Adrian's idea. |
+| Guns past level 4 | New abilities, not more bullets | More bullets would clutter the screen and cost frame rate. |
+| Helper text | Below the speeder | That part of the screen shows road you've already passed. |
+| Sharing | Score picture + challenge link | Turns a good run into an invite for a friend. |
 | Game over restart | "Ride again" button, not tap-anywhere | Stops accidental restarts while typing a name. |
 | Camera | Height 2.6, speeder ~60% down the screen (v0.4) | Kids' thumbs covered the speeder at 77%. Higher + closer keeps it visible and feels more like driving. Trade-off: road ahead is a little more squeezed. |
 | Speeder and pylons | Small homemade 3D models (flat-shaded faces) | Lets the speeder really roll and turn, without adding a 3D library. |
@@ -177,7 +194,7 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Next session focus (after v0.4.0):**
-- Playtest with the kids: does the thumb still cover the speeder? Is it too big? Are hazards
-  still readable at top speed with the higher camera?
-- Possible next art pass: ramps, zone-specific hazards, speeder color skins.
+**Next session focus (after v0.5.0):**
+- Adrian: paste the updated Firebase rule (README, "Updating the rule for v0.5").
+- Watch friends use Share & challenge, and check whether 8X and the moving obstacles feel fair.
+- Ideas raised: near-miss bonus, daily challenge course, weekly board, rude-name filter, music.

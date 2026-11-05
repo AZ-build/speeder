@@ -1,7 +1,7 @@
 # Speeder
 
 A neon hover-speeder run for your phone. Drag to steer. Your guns fire on their own.
-Drive through a gate to take its power. v0.2
+Drive through a gate to take its power. v0.5
 
 ---
 
@@ -42,9 +42,22 @@ The world leaderboard lives in your **ORBit** Firebase project, in its own list 
 If the editor shows a red error after pasting, the block probably landed outside the
 `match /databases/...` braces. Undo with Ctrl+Z and try again, or paste a screenshot to Claude.
 
-What the rule does: anyone can read the board. Each player has one entry, which can only go
-up. Names are limited to 12 characters, and scores have to look like a real run. It can't stop
-a determined cheater (no browser game can), but it blocks the easy tricks.
+What the rule does: anyone can read the board. Every run is its own entry, so one player can
+hold several spots. Names are limited to 12 characters, and scores have to look like a real run.
+It can't stop a determined cheater (no browser game can), but it blocks the easy tricks.
+
+### Updating the rule for v0.5 (2 minutes)
+
+v0.5 lets the score multiplier stack to 8X, so the old "does this score look real?" check is
+too strict for great runs. To update it:
+
+1. Open **Firestore Database → Rules** in the **orbit-23921** project, as above.
+2. Find the Speeder block. It starts with `// ---- Speeder leaderboard` and ends with the `}`
+   just after `&& d.ts == request.time;` and its own `}`.
+3. Select that whole block and delete it. Don't touch anything above or below it.
+4. Paste the new block from `firestore-rules-speeder.txt` in the same spot, and click **Publish**.
+
+Until you do this, almost every score still saves. Only very high multiplier runs get turned down.
 
 ---
 
@@ -81,11 +94,19 @@ only works from the hosted web address, not from a file on your computer.
 | **Steer** | Put your thumb down anywhere and slide left or right |
 | **Shoot** | Automatic. Line up with an enemy to hit it |
 | **Hull** | Pink hexes, top left. 3 hits and you're wrecked |
-| **Gates** | Come in pairs. The banner at the top shows both choices early |
+| **Gates** | Come in pairs. The two labels under your speeder show both choices early |
 | **Pause** | The ❚❚ button, top right. Opens Leaderboard and Settings too |
 
-**Power-ups:** SHIELD (blocks a hit) · GUNS+ (more guns, up to 4 levels) · RAPID (fires faster for 12s) ·
-REPAIR (+1 hull) · NOVA (destroys every enemy and mine on screen) · 2X SCORE (15s)
+**Power-ups:** SHIELD (blocks a hit) · GUNS+ (8 levels: more guns up to level 4, then piercing
+bullets, wing missiles, heavy rounds and max power) · RAPID (fires faster for 12s) · REPAIR (+1 hull) ·
+MISSILES (8 homing missiles hunt down enemies and mines ahead) · 2X SCORE (15s; take another
+while it's running to stack it to 4X, then 8X)
+
+**Moving obstacles:** sliding pylons (a glowing groove shows how far they travel), swaying lines
+of mines, and red laser fences whose gap slides from side to side. Bullets pass through lasers.
+
+**Sharing:** after a run, tap **Share & challenge** to send a score picture and a link. Friends
+who open the link get your score as a target to beat.
 
 **Enemies:** red drones hover ahead and shoot (some swoop in from behind you) · turrets on the
 ground fire as you approach · ram bikes charge straight at you. Orange mines can be shot.
