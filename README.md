@@ -112,4 +112,4 @@ who open the link get your score as a target to beat.
 ground fire as you approach · ram bikes charge straight at you. Orange mines can be shot.
 Purple pylons and pink walls can't be shot, so dodge them.
 
-**Settings:** sound, volume, engine hum, vibration (Android), steering speed, leaderboard name.
+**Settings:** sound, volume, music, engine hum, vibration (Android), steering speed, leaderboard name.

@@ -502,6 +502,7 @@
   <div class="stack">
     <div class="setting"><label for="setSound">Sound</label><input type="checkbox" id="setSound" class="switch"></div>
     <div class="setting"><label for="setVolume">Volume</label><input type="range" id="setVolume" min="0" max="100" step="5"></div>
+    <div class="setting"><label for="setMusic">Music</label><input type="checkbox" id="setMusic" class="switch"></div>
     <div class="setting"><label for="setEngine">Engine hum</label><input type="checkbox" id="setEngine" class="switch"></div>
     <div class="setting"><label for="setHaptics">Vibration <small>Android only</small></label><input type="checkbox" id="setHaptics" class="switch"></div>
     <div class="setting"><label for="setSens">Steering speed <small id="sensLabel"></small></label><input type="range" id="setSens" min="50" max="160" step="10"></div>
@@ -594,7 +595,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.5.3';
+const VERSION = '0.6.0';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -703,7 +704,7 @@ function vibrate(p) {
 }
 
 // ---------- Settings (saved on this device) ----------
-const SETTINGS_DEFAULT = { sound: true, volume: 70, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true };
+const SETTINGS_DEFAULT = { sound: true, volume: 70, music: true, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true };
 function loadSettings() {
   let saved = {};
   try { saved = JSON.parse(storeGet('speeder.settings') || '{}') || {}; } catch (e) { saved = {}; }
@@ -4333,123 +4334,189 @@ function render() {
   drawHUD();
 }
 
-// ---------- Sound (all generated, no audio files) ----------
-const AU = { ctx: null, master: null, noise: null, engOsc: null, engGain: null, engFilter: null, lastShot: 0, lastTick: 0 };
+// ---------- Sound ----------
+// Sound effects come from Kenney's free sound packs and the music is "Synthwave House Loop"
+// by Fupi. Both are CC0 (public domain): free to use, no credit required. Details in audio/CREDITS.md.
+// Everything plays through Web Audio: sfx -> master, music -> filter -> music bus -> master.
+const SFX_FILES = ['shoot1', 'shoot2', 'shoot3', 'hit', 'pop', 'boom1', 'boom2', 'wreck', 'hurt', 'shield',
+  'zap', 'jump', 'land', 'power', 'swarm', 'launch', 'pass', 'fanfare', 'ui'];
+const MUSIC_BPM = 114;
+const MUSIC_LOOP = 24 * 4 * 60 / MUSIC_BPM;   // the track is exactly 24 bars long
+const MUSIC_VOL = 0.42;                       // music level under the sound effects
+const MUSIC_RATE_MAX = 1.14;                  // tempo at top speed: 114 -> ~130 BPM
+const AU = {
+  ctx: null, master: null, sfxBus: null, musicBus: null, musicFilter: null, musicSrc: null,
+  engSrc: null, engGain: null, engFilter: null, buf: {}, last: {}, voices: 0, lastTick: 0, deadAt: 0,
+};
 function masterLevel() { return SET.sound ? (SET.volume / 100) * 0.85 : 0; }
+
+// decodeAudioData in both its old (callback) and new (promise) forms, for older iPhones
+function decodeAudio(data) {
+  return new Promise((ok, fail) => {
+    const p = AU.ctx.decodeAudioData(data, ok, fail);
+    if (p && p.then) p.then(ok, fail);
+  });
+}
+function loadSound(name, file) {
+  return fetch('audio/' + file)
+    .then((r) => { if (!r.ok) throw new Error(file); return r.arrayBuffer(); })
+    .then(decodeAudio)
+    .then((b) => { AU.buf[name] = b; return b; })
+    .catch(() => null);
+}
 
 function audioInit() {
   if (AU.ctx) {
-    if (AU.ctx.state === 'suspended') AU.ctx.resume();
+    if (AU.ctx.state === 'suspended' && !document.hidden) AU.ctx.resume();
     return;
   }
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
-    AU.ctx = new AC();
-    AU.master = AU.ctx.createGain();
+    const c = AU.ctx = new AC();
+    AU.master = c.createGain();
     AU.master.gain.value = masterLevel();
-    AU.master.connect(AU.ctx.destination);
-    const len = AU.ctx.sampleRate;
-    AU.noise = AU.ctx.createBuffer(1, len, AU.ctx.sampleRate);
-    const data = AU.noise.getChannelData(0);
-    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
-    AU.engOsc = AU.ctx.createOscillator();
-    AU.engOsc.type = 'sawtooth';
-    AU.engOsc.frequency.value = 50;
-    AU.engFilter = AU.ctx.createBiquadFilter();
+    AU.master.connect(c.destination);
+    AU.sfxBus = c.createGain();
+    AU.sfxBus.connect(AU.master);
+    AU.musicFilter = c.createBiquadFilter();
+    AU.musicFilter.type = 'lowpass';
+    AU.musicFilter.frequency.value = 900;
+    AU.musicFilter.Q.value = 0.8;
+    AU.musicBus = c.createGain();
+    AU.musicBus.gain.value = 0;
+    AU.musicFilter.connect(AU.musicBus);
+    AU.musicBus.connect(AU.master);
+    AU.engFilter = c.createBiquadFilter();
     AU.engFilter.type = 'lowpass';
-    AU.engFilter.frequency.value = 300;
-    AU.engGain = AU.ctx.createGain();
+    AU.engFilter.frequency.value = 600;
+    AU.engGain = c.createGain();
     AU.engGain.gain.value = 0;
-    AU.engOsc.connect(AU.engFilter);
     AU.engFilter.connect(AU.engGain);
     AU.engGain.connect(AU.master);
-    AU.engOsc.start();
+    // music first (it's the biggest file), then the engine loop, then the effects
+    loadSound('music', 'music.mp3').then(startMusic);
+    loadSound('engine', 'engine.wav').then(startEngine);
+    SFX_FILES.forEach((n) => loadSound(n, n + '.mp3'));
   } catch (e) {
     AU.ctx = null;
   }
 }
 
-function tone(f1, f2, dur, type, vol, delay) {
-  if (!AU.ctx || !SET.sound) return;
-  const t0 = AU.ctx.currentTime + (delay || 0);
-  const o = AU.ctx.createOscillator();
-  const g = AU.ctx.createGain();
-  o.type = type;
-  o.frequency.setValueAtTime(f1, t0);
-  o.frequency.exponentialRampToValueAtTime(Math.max(20, f2), t0 + dur);
-  g.gain.setValueAtTime(vol, t0);
-  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  o.connect(g);
-  g.connect(AU.master);
-  o.start(t0);
-  o.stop(t0 + dur + 0.02);
+function startMusic(b) {
+  if (!b || AU.musicSrc) return;
+  const s = AU.ctx.createBufferSource();
+  s.buffer = b;
+  s.loop = true;
+  // MP3 files can carry a few milliseconds of silence at the start; skip it so the loop is seamless
+  const extra = b.duration - MUSIC_LOOP;
+  const lead = extra > 0.004 ? Math.min(extra, 1634 / b.sampleRate) : 0;
+  s.loopStart = lead;
+  s.loopEnd = Math.min(b.duration, lead + MUSIC_LOOP);
+  s.connect(AU.musicFilter);
+  s.start(0, lead);
+  AU.musicSrc = s;
 }
 
-function noiseBurst(dur, vol, freq) {
-  if (!AU.ctx || !SET.sound) return;
-  const t0 = AU.ctx.currentTime;
-  const src = AU.ctx.createBufferSource();
-  src.buffer = AU.noise;
-  const f = AU.ctx.createBiquadFilter();
-  f.type = 'lowpass';
-  f.frequency.setValueAtTime(freq, t0);
-  f.frequency.exponentialRampToValueAtTime(60, t0 + dur);
-  const g = AU.ctx.createGain();
-  g.gain.setValueAtTime(vol, t0);
-  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  src.connect(f);
-  f.connect(g);
-  g.connect(AU.master);
-  src.start(t0, Math.random() * 0.5);
-  src.stop(t0 + dur + 0.05);
+function startEngine(b) {
+  if (!b || AU.engSrc) return;
+  const s = AU.ctx.createBufferSource();
+  s.buffer = b;
+  s.loop = true;
+  s.connect(AU.engFilter);
+  s.start();
+  AU.engSrc = s;
 }
+
+// Play one sound. vol is relative to the other effects; rate changes pitch (1 = as recorded).
+// gap stops the same sound piling up when it fires many times a second.
+function play(name, vol, rate, gap) {
+  const c = AU.ctx;
+  if (!c || !SET.sound) return;
+  const b = AU.buf[name];
+  if (!b) return;
+  const now = c.currentTime;
+  if (gap && now - (AU.last[name] || 0) < gap) return;
+  if (AU.voices > 28) return;
+  AU.last[name] = now;
+  const s = c.createBufferSource();
+  s.buffer = b;
+  s.playbackRate.value = rate || 1;
+  const g = c.createGain();
+  g.gain.value = vol;
+  s.connect(g);
+  g.connect(AU.sfxBus);
+  AU.voices++;
+  s.onended = () => { AU.voices--; s.disconnect(); g.disconnect(); };
+  s.start(now);
+}
+const jitter = (amt) => 1 + (Math.random() * 2 - 1) * amt;
 
 const sfx = {
-  shoot() {
-    if (!AU.ctx) return;
-    const now = AU.ctx.currentTime;
-    if (now - AU.lastShot < 0.11) return;
-    AU.lastShot = now;
-    tone(1400, 600, 0.05, 'square', 0.02);
-  },
-  tick() { tone(500, 260, 0.04, 'square', 0.025); },
-  pop() { noiseBurst(0.25, 0.25, 2500); },
-  boom() { noiseBurst(0.5, 0.4, 1800); tone(140, 40, 0.4, 'sawtooth', 0.12); },
-  bigBoom() { noiseBurst(1.2, 0.6, 1400); tone(110, 30, 1.0, 'sawtooth', 0.2); },
-  hurt() { noiseBurst(0.35, 0.45, 900); tone(220, 60, 0.3, 'sawtooth', 0.15); },
-  shield() { tone(900, 300, 0.25, 'triangle', 0.15); tone(1300, 500, 0.2, 'sine', 0.08); },
-  zap() { tone(700, 200, 0.14, 'sawtooth', 0.025); },
-  jump() { tone(300, 900, 0.22, 'triangle', 0.14); tone(450, 1300, 0.18, 'sine', 0.06, 0.04); },
-  land() { noiseBurst(0.18, 0.25, 700); tone(160, 70, 0.15, 'sine', 0.15); },
-  power() {
-    [523, 659, 784, 1046].forEach((f, i) => tone(f, f * 1.01, 0.12, 'triangle', 0.12, i * 0.06));
-  },
-  swarm() { tone(180, 900, 0.35, 'sawtooth', 0.06); noiseBurst(0.4, 0.2, 3000); },
-  launch() {
-    if (!AU.ctx) return;
-    const now = AU.ctx.currentTime;
-    if (now - (AU.lastLaunch || 0) < 0.04) return;
-    AU.lastLaunch = now;
-    noiseBurst(0.16, 0.12, 4000); tone(600, 1500, 0.12, 'triangle', 0.035);
-  },
-  wing() { noiseBurst(0.12, 0.08, 4000); tone(700, 1600, 0.1, 'triangle', 0.03); },
+  shoot() { play(pick(['shoot1', 'shoot2', 'shoot3']), 0.16, jitter(0.05), 0.09); },
+  tick() { play('hit', 0.22, jitter(0.1), 0.06); },
+  pop() { play('pop', 0.45, jitter(0.08), 0.03); },
+  boom() { play(pick(['boom1', 'boom2']), 0.7, jitter(0.06), 0.03); },
+  bigBoom() { play('wreck', 1.0, 1); play('boom2', 0.7, 0.8); },
+  hurt() { play('hurt', 0.9, 0.9); play('pop', 0.5, 0.7); },
+  shield() { play('shield', 0.7, 1.1); },
+  zap() { play('zap', 0.26, jitter(0.08), 0.05); },
+  jump() { play('jump', 0.5, 1); },
+  land() { play('land', 0.45, 0.75); },
+  power() { play('power', 0.65, 1); },
+  swarm() { play('swarm', 0.6, 1); },
+  launch() { play('launch', 0.2, jitter(0.1), 0.04); },
+  wing() { play('launch', 0.13, 1.3 * jitter(0.08), 0.04); },
   // passing someone on the leaderboard during a run
-  pass() { tone(880, 880, 0.08, 'square', 0.04); tone(1320, 1320, 0.12, 'square', 0.04, 0.08); },
+  pass() { play('pass', 0.5, 1); },
   // big moments: new best, world rank, challenge beaten
-  fanfare() {
-    [523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, f, 0.18, 'square', 0.05, i * 0.09));
-    [1046, 1318, 1568].forEach((f, i) => tone(f, f * 1.005, 0.5, 'triangle', 0.09, 0.5 + i * 0.02));
-  },
+  fanfare() { play('fanfare', 1.0, 1); },
+  // settings tick (volume slider)
+  ui() { play('ui', 0.4, 1, 0.1); },
 };
 
+// Runs every frame: steers the engine hum and the music to match what's happening.
 function audioEngine() {
-  if (!AU.ctx || !AU.engGain) return;
-  const t = AU.ctx.currentTime;
-  const on = (G.state === 'play') && !paused && SET.sound && SET.engine;
-  AU.engGain.gain.setTargetAtTime(on ? 0.05 : 0, t, 0.1);
-  AU.engOsc.frequency.setTargetAtTime(40 + G.speed * 0.9 + Math.abs(player.vx) * 2, t, 0.1);
-  AU.engFilter.frequency.setTargetAtTime(220 + G.speed * 5, t, 0.1);
+  const c = AU.ctx;
+  if (!c) return;
+  const t = c.currentTime;
+  const racing = (G.state === 'play') && !paused;
+  // how far into the run, 0 at the start -> 1 at top speed (the same curve the speed follows)
+  const heat = G.state === 'play' || G.state === 'dying' ? 1 - Math.exp(-G.d / 4500) : 0;
+
+  if (AU.engSrc) {
+    const on = racing && SET.sound && SET.engine;
+    AU.engGain.gain.setTargetAtTime(on ? 0.13 : 0, t, 0.15);
+    AU.engSrc.playbackRate.setTargetAtTime(0.75 + G.speed / 90 * 0.6 + Math.min(0.15, Math.abs(player.vx) * 0.01), t, 0.15);
+    AU.engFilter.frequency.setTargetAtTime(400 + G.speed * 14, t, 0.15);
+  }
+
+  if (AU.musicSrc) {
+    let vol = SET.music ? MUSIC_VOL : 0;
+    let rate = 1;
+    let cut = 18000;
+    if (G.state === 'play') {
+      // starts chill and a little muffled, opens up and speeds up as the road gets faster
+      rate = 1 + (MUSIC_RATE_MAX - 1) * heat;
+      cut = 1600 * Math.pow(18000 / 1600, Math.min(1, heat / 0.45));
+      if (paused) { cut = 450; vol *= 0.55; rate = 1; }
+    } else if (G.state === 'dying' || G.state === 'over') {
+      // "tape stop" when you crash, then the music drifts back in, muffled
+      if (!AU.deadAt) AU.deadAt = t;
+      const since = t - AU.deadAt;
+      if (since < 2.2) { rate = 0.3; vol = 0; cut = 600; }
+      else { rate = 1; cut = 700; vol *= 0.6; }
+    } else {
+      // title screen and menus: laid back, like it's playing in the next room
+      cut = 900;
+      vol *= 0.7;
+    }
+    if (G.state !== 'dying' && G.state !== 'over') AU.deadAt = 0;
+    const dying = AU.deadAt && t - AU.deadAt < 2.2;
+    AU.musicSrc.playbackRate.setTargetAtTime(rate, t, dying ? 0.35 : 0.8);
+    AU.musicFilter.frequency.setTargetAtTime(cut, t, dying ? 0.3 : 0.6);
+    AU.musicBus.gain.setTargetAtTime(vol, t, dying ? 0.5 : 0.6);
+  }
 }
 
 function applySound() {
@@ -4544,6 +4611,7 @@ function quitToTitle() {
 function fillSettings() {
   $('setSound').checked = SET.sound;
   $('setVolume').value = SET.volume;
+  $('setMusic').checked = SET.music;
   $('setEngine').checked = SET.engine;
   $('setHaptics').checked = SET.haptics;
   $('setSens').value = SET.sens;
@@ -4577,11 +4645,9 @@ $('setVolume').addEventListener('input', (e) => {
   saveSettings();
   audioInit();
   applySound();
-  if (AU.ctx && AU.ctx.currentTime - AU.lastTick > 0.12) {
-    AU.lastTick = AU.ctx.currentTime;
-    tone(880, 660, 0.06, 'triangle', 0.15);
-  }
+  sfx.ui();
 });
+$('setMusic').addEventListener('change', (e) => { SET.music = e.target.checked; saveSettings(); audioInit(); });
 $('setEngine').addEventListener('change', (e) => { SET.engine = e.target.checked; saveSettings(); });
 $('setHaptics').addEventListener('change', (e) => {
   SET.haptics = e.target.checked;

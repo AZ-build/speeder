@@ -4,6 +4,27 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.6.0] — 2026-11-04
+
+### Session 6 — Real sounds and music
+
+Adrian: the generated beeps felt cheap. Swapped them for free, professionally made sounds.
+
+- **All sound effects are now real recordings** from Kenney's free packs (Sci-Fi Sounds, Digital
+  Audio, Music Jingles), all CC0 (public domain). Lasers pick from 3 variations with a little pitch
+  wobble so rapid fire doesn't sound like a machine gun of the same clip. Sources: `audio/CREDITS.md`.
+- **Engine hum** is a looping sci-fi engine recording that pitches up with speed (was a buzzing sawtooth).
+- **Background music:** "Synthwave House Loop" by Fupi (CC0, 114 BPM). It reacts to the run:
+  - Title screen: soft and muffled, like it's in the next room.
+  - Start of a run: chill and a bit muffled; it opens up to full brightness by about 2.5 km.
+  - Tempo climbs with the speed curve, from 114 to about 130 BPM at top speed (knob: `MUSIC_RATE_MAX`).
+  - Pause: muffled and quieter. Crash: "tape stop" slow-down, then it drifts back in on the game-over screen.
+- New **Music** on/off switch in Settings (the Sound switch and volume still control everything).
+- Sounds load in the background after the first tap and are cached for offline play (~1.2 MB).
+- Version v0.6.0; service worker cache bumped.
+
+---
+
 ## [v0.5.3] — 2026-11-04
 
 ### Session 5d — No back-to-back barriers

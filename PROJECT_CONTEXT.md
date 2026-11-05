@@ -18,7 +18,7 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.5.3 |
+| **Current Version** | v0.6.0 |
 | **Phase** | Prototype / Exploration (friends playing; waiting on feedback) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-04 |
@@ -71,7 +71,7 @@ shot, or pick which gate to take), all with a single control.
   speeder, never over the road ahead.
 - **Menus (v0.2):** pause button → Resume / Leaderboard / Settings / Quit run, with a 3-2-1
   countdown on resume. Auto-pauses when you leave the app. Settings (per device): sound,
-  volume, engine hum, vibration, steering speed, leaderboard name.
+  volume, music, engine hum, vibration, steering speed, leaderboard name.
 - **Curving track (v0.3):** the road bends, runs S-curves and climbs onto sky roads. Bends get
   sharper with distance. Turns push you gently toward the outside; yellow chevrons warn of bends.
   Gameplay still runs on a straight "track space" underneath, so collisions are unaffected.
@@ -96,7 +96,7 @@ shot, or pick which gate to take), all with a single control.
 |-------|--------|-------|
 | Frontend | Plain HTML + JavaScript + Canvas 2D | One file: `index.html`. No libraries, nothing to install. |
 | 3D look | Homemade perspective math ("pseudo-3D") | Out Run-style. Everything is projected from world x/y/distance onto the screen. |
-| Sound | Web Audio, generated in code | No audio files. Mute button saved per device. |
+| Sound | Web Audio playing CC0 audio files in `audio/` | Effects from Kenney's free packs, music "Synthwave House Loop" by Fupi. Credits in `audio/CREDITS.md`. Music tempo and brightness follow the run. |
 | Offline / install | `manifest.webmanifest` + `sw.js` (service worker) | Bump `CACHE` in sw.js after each change so phones get updates. |
 | Backend / DB | Firebase Firestore, **ORBit's project `orbit-23921`**, list `speeder_scores` | Loaded only when needed (Firestore "lite" library). Settings and local scores live in the browser's localStorage. Rules: `firestore-rules-speeder.txt`. |
 | Hosting | GitHub Pages (planned) | A PWA needs https to install; GitHub Pages provides it for free. |
@@ -109,6 +109,7 @@ Speeder/
 ├── manifest.webmanifest   ← app name, icons, colors (for "install")
 ├── sw.js                  ← service worker (offline caching)
 ├── icons/                 ← app icons (192, 512, maskable 512, Apple 180)
+├── audio/                 ← sound effects, engine loop, music + CREDITS.md (all CC0)
 ├── README.md              ← how to play it locally and publish it
 ├── firestore-rules-speeder.txt ← the database rules block for the leaderboard
 ├── PROJECT_CONTEXT.md / CHANGELOG.md / BACKLOG.md / TODO.md
@@ -126,6 +127,7 @@ Speeder/
 from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))`) ·
 steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun levels ·
 `MULT_TIME` 2X duration · `BANK_MAX` / `BANK_GAIN` how far the speeder leans in turns · `SWARM_N` missiles per MISSILES pickup ·
+`MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch ·
 `choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
 
 ### Testing hooks
@@ -167,6 +169,8 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 | Scenery | Recycled pool, drawn under gameplay, kept off the track | Rich world without hurting readability or frame rate. |
 | Zones | One shared system, 5 color/prop mixes that blend | Variety without five separate environments to maintain. |
 | Graphics quality | Auto steps down if the frame rate drops | Keeps older phones smooth without asking players to tune anything. |
+| Sound (v0.6) | Free CC0 sound files instead of generated tones | Adrian found the generated sounds cheap. CC0 means no licence worries or credit needed. |
+| Music speed-up | Play the loop faster (pitch rises too) as speed climbs, capped at +14% | Simple, no extra files, and the rising pitch adds urgency. Trade-off: a pitch-preserving version would need several pre-made copies of the track. |
 
 ---
 
@@ -199,12 +203,14 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.5.3, 2026-11-04):**
+**Where things stand (after v0.6.0, 2026-11-04):**
+- v0.6.0 replaced all generated sounds with CC0 recordings and added reactive synthwave music.
+  Needs a listen on real phones: overall mix, music level vs effects, and the tempo rise.
 - Firebase rules updated to the v0.5 version (looser score check). All setup steps are done.
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
-- Start from friends' feedback: Share & challenge, the moving obstacles, missiles, gun levels 5-8, banking.
+- Start from friends' feedback (now including the new sound and music): Share & challenge, the moving obstacles, missiles, gun levels 5-8, banking.
 - Scoring balance: today kills are roughly 2/3 of a score and distance about 1/5. Adrian said the
   score "should be mostly about distance", but chose to **leave the leaderboard as is for now**.
   Option on the table: a growing per-km distance bonus and smaller kill points, with a board reset.
