@@ -1,6 +1,6 @@
 // Speeder service worker: lets the game load offline once it has been opened.
 // When you change the game, bump CACHE so phones pick up the new files.
-const CACHE = 'speeder-v0.6.4';
+const CACHE = 'speeder-v0.7.0';
 const ASSETS = [
   './',
   './index.html',

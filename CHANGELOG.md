@@ -4,6 +4,49 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.7.0] — 2026-11-05
+
+### Session 8 — Visual polish pass
+
+Adrian: gameplay is good, but the animations and designs could use more love. We screenshotted
+every zone on a phone-sized screen, listed the weak spots, and Adrian picked all four areas.
+
+**What we did:**
+- **Explosions.** Debris used to be flat squares. Now every blast has a hot flash, a shockwave
+  ring, sparks that streak (drawn from where they were a moment ago, so they smear like real
+  sparks), and tumbling debris chunks, some of which trail embers. New particle kinds in
+  `burst()`, `debris()`, `shockRing()`, `flashAt()`. Cap: `PART_MAX`.
+- **The wreck.** The speeder now comes apart: a big flash, two ground shockwaves, hull plates and
+  engine pods flying off and burning, and about a second of slow motion (`G.slowmo`, eased in
+  `frame()`). The game-over panel appears a touch sooner to make up for it.
+- **Speeder.** Brighter top deck, darker sides (stronger silhouette), and a canopy lit from
+  inside with a soft pink glow.
+- **3D enemies.** Drones, ram bikes and turrets are now small 3D models like the speeder and
+  pylons (`DRONE_MESH`, `RAM_MESH`, `TURRET_BASE` / `TURRET_HEAD`). Drones bank as they move,
+  ram bikes lean toward you, turret barrels track you. Hits flash the whole model white
+  (`MESH_TINT`). Collisions didn't change.
+- **Glossy road (High graphics only).** The sky glows in the far road, the sun lays a broken
+  column of light down it, rails and their lamps show upside down, and the speeder, pylons,
+  mines and enemies all reflect. `drawGloss()`, `reflect()`, `QUALS[].gloss`.
+- **Shield.** A glassy bubble with a honeycomb, a bright band drifting through it and a glint
+  racing round the rim. A hit flares it white and cracks it; losing the last shield shatters it.
+- **Pickups.** Taking a gate fires a flash and a ring at the gate, and the power's icon flies
+  from the speeder up into the top bar.
+- **Hull hit.** The hex you lose bursts outward in the top bar.
+- **Zone title card.** A neon line wipes open in the new zone's colors and the name settles in.
+- **Readability.** A soft dark band behind the top bar (GUNS was unreadable over the sun);
+  "Touch to ride" sits in a pill and no longer fades to almost nothing.
+- **Lower graphics levels** make fewer particles (`QUALS[].fx`: Low 0.5, Med 0.75, High 1).
+- Test hooks added to `window.SPEEDER`: `explode`, `killEnemy`, `addEnemy`, `hurt`, `render`.
+- Drawing cost per frame measured about 15% higher than v0.6.4 on a desktop test; the auto
+  graphics setting still steps down on slow phones.
+- Version v0.7.0; service worker cache bumped.
+
+**Needs a look on real phones:** frame rate on a mid-range phone (High graphics), whether the
+glossy road is too busy in Neon Desert (sun reflection), and how the wreck slow motion feels.
+
+---
+
 ## [v0.6.4] — 2026-11-05
 
 ### Session 7b — Analytics switched on

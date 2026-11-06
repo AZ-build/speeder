@@ -110,14 +110,20 @@
   .how b { color: #fff; }
   .cta {
     margin-top: 20px;
+    padding: 10px 22px 10px 26px;
     font-size: 15px;
+    font-weight: 700;
     letter-spacing: 0.3em;
     text-transform: uppercase;
     color: var(--yellow);
-    text-shadow: 0 0 10px rgba(255, 210, 60, 0.6);
-    animation: pulse 1.2s ease-in-out infinite;
+    text-shadow: 0 0 12px rgba(255, 210, 60, 0.75);
+    background: rgba(10, 3, 30, 0.55);
+    border: 1px solid rgba(255, 210, 60, 0.4);
+    border-radius: 999px;
+    box-shadow: 0 0 18px rgba(255, 210, 60, 0.18);
+    animation: pulse 1.4s ease-in-out infinite;
   }
-  @keyframes pulse { 50% { opacity: 0.3; } }
+  @keyframes pulse { 50% { opacity: 0.6; transform: scale(0.97); } }
   .best {
     font-size: 12px;
     letter-spacing: 0.2em;
@@ -627,7 +633,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.6.4';
+const VERSION = '0.7.0';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -805,9 +811,9 @@ function saveSettings() { storeSet('speeder.settings', JSON.stringify(SET)); }
 // ---------- Graphics quality ----------
 // Auto starts on High and steps down by itself if the phone can't keep up.
 const QUALS = [
-  { name: 'Low',  dprCap: 1,   scn: 0.5,  grid: 5, streaks: 26, trails: false, nebula: false },
-  { name: 'Med',  dprCap: 1.5, scn: 0.75, grid: 7, streaks: 36, trails: true,  nebula: true },
-  { name: 'High', dprCap: 2,   scn: 1,    grid: 9, streaks: 46, trails: true,  nebula: true },
+  { name: 'Low',  dprCap: 1,   scn: 0.5,  grid: 5, streaks: 26, trails: false, nebula: false, fx: 0.5,  gloss: false },
+  { name: 'Med',  dprCap: 1.5, scn: 0.75, grid: 7, streaks: 36, trails: true,  nebula: true,  fx: 0.75, gloss: false },
+  { name: 'High', dprCap: 2,   scn: 1,    grid: 9, streaks: 46, trails: true,  nebula: true,  fx: 1,    gloss: true },
 ];
 let qLevel = SET.gfx === 'low' ? 0 : 2;
 let QUAL = QUALS[qLevel];
@@ -1613,6 +1619,7 @@ function drawGround() {
   ctx.fillStyle = rgba(PAL.accent, 0.05);
   ctx.fill();
   ctx.globalCompositeOperation = 'source-over';
+  if (QUAL.gloss) drawGloss();
 
   // lane lines running down the track
   ctx.strokeStyle = rgba(PAL.grid, 0.22);
@@ -1729,6 +1736,72 @@ function drawGround() {
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
+}
+
+/* ---------- Glossy track (High graphics) ----------
+   The road is polished like wet glass: the sky glows in it near the horizon, the sun
+   lays a broken column of light down it, and the rails and their lamps show upside down.
+   Everything is clipped to the road, which is still the current path when this runs. */
+const GLOSS_SUN = 'rgba(255, 170, 80, 1)';
+function drawGloss() {
+  const L = PAL.L;
+  ctx.save();
+  ctx.clip();
+  ctx.globalCompositeOperation = 'lighter';
+  // the sky's glow, strongest at the far end of the road
+  const yTop = Math.min(HZ, sy(0, FAR)), yBot = yTop + H * 0.42;
+  const sg = ctx.createLinearGradient(0, yTop, 0, yBot);
+  sg.addColorStop(0, rgba(PAL.haze, 0.3));
+  sg.addColorStop(0.35, rgba(PAL.haze, 0.1));
+  sg.addColorStop(1, rgba(PAL.haze, 0));
+  ctx.fillStyle = sg;
+  ctx.fillRect(-OS, yTop, W + OS * 2, yBot - yTop);
+  const camD = VIEW_D;
+  // the sun's reflection: bars that scroll toward you, like light on rippled water
+  if (L.sun > 0.02) {
+    const cxs = skyX(1);
+    ctx.fillStyle = GLOSS_SUN;
+    const gap = 5;
+    for (let ld = Math.ceil((camD + 6) / gap) * gap; ld < camD + FAR; ld += gap) {
+      const z = ld - camD;
+      const y = sy(0, z);
+      const th = clamp(0.55 * FOCAL / z, 0.6, 9);
+      const w = sunR * (0.55 + 0.35 * Math.sin(ld * 0.61)) * (0.55 + 0.45 * clamp(z / 120, 0, 1));
+      ctx.globalAlpha = L.sun * 0.32 * clamp((z - 10) / 70, 0, 1) * fogA(z);
+      ctx.fillRect(cxs - w, y - th / 2, w * 2, th);
+    }
+  }
+  // the rails, mirrored in the road
+  ctx.globalAlpha = 1;
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = rgba(PAL.rail, 0.1);
+  ctx.beginPath();
+  traceLine(-TRACK_HALF, -0.42, true, FAR, true);
+  traceLine(TRACK_HALF, -0.42, true, FAR, true);
+  ctx.stroke();
+  ctx.lineWidth = 1.2;
+  ctx.strokeStyle = rgba(PAL.rail, 0.22);
+  ctx.stroke();
+  // rail lamps: long soft streaks under each lit post
+  const postGap = 24;
+  for (let pd = Math.ceil((camD + 1) / postGap) * postGap; pd < camD + FAR * 0.7; pd += postGap) {
+    const z = pd - camD;
+    const r = clamp(0.5 * FOCAL / z, 2, 26);
+    const a = fogA(z) * 0.4 * (0.65 + 0.35 * Math.sin(G.t * 6 + pd * 0.05));
+    for (const side of [-1, 1]) glow(SPR.cyan, sx(side * (TRACK_HALF - 0.05), z), sy(-0.9, z), r * 0.55, r * 2.2, a);
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.restore();
+}
+// a light source's reflection on the glossy road: a soft streak below it
+function reflect(spr, x, h, z, w, a) {
+  if (!QUAL.gloss || z < 1.2) return;
+  const s = FOCAL / z;
+  ctx.globalCompositeOperation = 'lighter';
+  glow(spr, sx(x, z), sy(-h, z), w * s, Math.max(w, h * 0.8) * s, a);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
 }
 
 /* ---------- Roadside scenery ----------
@@ -2114,7 +2187,8 @@ const G = {
   invuln: 0, slow: 0, fireT: 0, nextSpawn: 0, nextGate: 0, overT: 0,
   flash: 0, flashColor: '#fff', shake: 0,
   toast: '', toastColor: '#fff', toastT: 0, dragged: false, runT: 0,
-  kick: 0, pulse: 0, pulseColor: '#fff', zoneT: 0, zoneName: '', zoneIdx: 0, air: 0,
+  kick: 0, pulse: 0, pulseColor: '#fff', zoneT: 0, zoneName: '', zoneIdx: 0, air: 0, slowmo: 0,
+  fly: null, hullHit: 0, shHit: 0, cracks: null,
 };
 const player = { x: 0, tx: 0, vx: 0, bank: 0, lean: 0, edge: 0, alive: true, y: 0, vy: 0, ramp: null };
 const objs = [];      // obstacles: pylons, walls, mines
@@ -2170,7 +2244,7 @@ function resetRun() {
     t: 0, speed: 32, d: 0, score: 0, kills: 0,
     hull: MAX_HULL, shield: 0, weapon: 1, rapid: 0, mult: 0, mx: 1, wingT: 1,
     invuln: 0, slow: 0, fireT: 0.3, nextSpawn: 110, nextGate: 420, overT: 0,
-    flash: 0, shake: 0, toastT: 0, runT: 0, kick: 0, pulse: 0, zoneT: 0, zoneIdx: 0,
+    flash: 0, shake: 0, toastT: 0, runT: 0, kick: 0, pulse: 0, zoneT: 0, zoneIdx: 0, slowmo: 0, fly: null, hullHit: 0, shHit: 0,
   });
   player.x = 0; player.tx = 0; player.vx = 0; player.bank = 0; player.lean = 0; player.edge = 0; player.alive = true;
   player.y = 0; player.vy = 0; player.ramp = null; G.air = 0; G.lastPat = '';
@@ -2441,12 +2515,17 @@ function popup(text, x, y, d, color) {
   popups.push({ text, x: sx(x, z), y: sy(y + 0.6, z), t: 0, color: color || '#fff' });
 }
 
+// Particles come in four kinds (k): 0 spark (a hot streak), 1 debris chunk (tumbles and
+// bounces, some trail embers), 2 shockwave ring, 3 flash (a big soft glow that fades fast).
+const PART_MAX = 560;
+function partRoom(n) { return Math.max(0, Math.min(Math.round(n * QUAL.fx), PART_MAX - parts.length)); }
 function burst(x, y, d, color, n, spd, vdBase, life) {
+  n = partRoom(n);
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2;
     const v = rand(0.3, 1) * spd;
     parts.push({
-      kind: 'part', x, y, d,
+      kind: 'part', k: 0, x, y, d,
       vx: Math.cos(a) * v, vy: Math.abs(Math.sin(a)) * v * 0.9 + rand(0, 2),
       vd: vdBase + rand(-1, 1) * spd,
       life: rand(0.5, 1) * (life || 0.8), max: life || 0.8,
@@ -2454,10 +2533,40 @@ function burst(x, y, d, color, n, spd, vdBase, life) {
     });
   }
 }
+// tumbling debris: dark faces with a bright edge; 'burn' pieces shed embers as they fly
+function debris(x, y, d, fill, edge, n, spd, vdBase, size, burn) {
+  n = partRoom(n);
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const v = rand(0.35, 1) * spd;
+    parts.push({
+      kind: 'part', k: 1, x, y, d,
+      vx: Math.cos(a) * v, vy: rand(0.4, 1) * spd * 0.8 + 1.5,
+      vd: vdBase + rand(-0.6, 1) * spd,
+      life: rand(0.8, 1.3), max: 1.3, color: edge, fill,
+      size: rand(0.6, 1.2) * (size || 0.12), rot: rand(0, 6.28), spin: rand(-14, 14),
+      burn: burn && Math.random() < 0.6, emb: 0,
+    });
+  }
+}
+function shockRing(x, y, d, color, r, life, vd) {
+  if (parts.length >= PART_MAX) return;
+  parts.push({ kind: 'part', k: 2, x, y, d, vx: 0, vy: 0, vd: vd || 0, life, max: life, color, size: r });
+}
+function flashAt(x, y, d, spr, r, life, vd) {
+  if (parts.length >= PART_MAX) return;
+  parts.push({ kind: 'part', k: 3, x, y, d, vx: 0, vy: 0, vd: vd || 0, life, max: life, spr, size: r });
+}
 
 function explode(x, y, d, color, big, vdBase) {
-  burst(x, y, d, color, big ? 34 : 14, big ? 7 : 4, vdBase || 0, big ? 1 : 0.6);
-  burst(x, y, d, '#fff4c0', big ? 12 : 5, big ? 4 : 2, vdBase || 0, 0.4);
+  vdBase = vdBase || 0;
+  const hot = color === COLORS.red ? SPR.red : SPR.orange;
+  flashAt(x, y, d, SPR.yellow, big ? 2.4 : 1.4, big ? 0.32 : 0.22, vdBase);
+  flashAt(x, y, d, hot, big ? 3.6 : 2, big ? 0.5 : 0.32, vdBase);
+  shockRing(x, y, d, color, big ? 3.2 : 1.8, big ? 0.45 : 0.32, vdBase);
+  burst(x, y, d, color, big ? 30 : 12, big ? 7 : 4, vdBase, big ? 0.9 : 0.55);
+  burst(x, y, d, '#fff4c0', big ? 14 : 6, big ? 5 : 3, vdBase, 0.35);
+  debris(x, y, d, color === COLORS.red ? '#5a0f22' : '#5a2a0c', color, big ? 7 : 3, big ? 4.2 : 3, vdBase, big ? 0.14 : 0.1, big);
   G.shake = Math.max(G.shake, big ? 0.35 : 0.15);
   if (big) sfx.boom(); else sfx.pop();
 }
@@ -2473,6 +2582,24 @@ function killEnemy(e) {
   popup('+' + e.pts * scoreX(), e.x, e.y, e.d, COLORS.yellow);
 }
 
+// jagged crack lines across the shield bubble (unit circle space), made fresh for each hit
+function makeCracks() {
+  const out = [];
+  const a0 = rand(0, 6.283);
+  for (let i = 0; i < 5; i++) {
+    const a = a0 + i * 1.25 + rand(-0.3, 0.3);
+    const pts = [Math.cos(a0) * 0.15, Math.sin(a0) * 0.15];
+    let r = 0.15;
+    while (r < 1) {
+      r = Math.min(1, r + rand(0.18, 0.3));
+      const aa = a + rand(-0.25, 0.25);
+      pts.push(Math.cos(aa) * r, Math.sin(aa) * r);
+    }
+    out.push(pts);
+  }
+  return out;
+}
+
 function hurt() {
   if (G.invuln > 0 || !player.alive) return false;
   if (G.shield > 0) {
@@ -2481,16 +2608,26 @@ function hurt() {
     G.flash = 0.6; G.flashColor = COLORS.cyan;
     G.shake = Math.max(G.shake, 0.3);
     burst(player.x, 0.5, G.d, COLORS.cyan, 26, 5, G.speed, 0.6);
+    G.shHit = 1; G.cracks = makeCracks();
+    if (G.shield === 0) {
+      // the bubble shatters
+      debris(player.x, 0.55, G.d, '#0b4a5a', '#9ffcff', 10, 5, G.speed * 0.8, 0.12, false);
+      shockRing(player.x, 0.5, G.d, COLORS.cyan, 2.6, 0.4, G.speed * 0.9);
+    }
     sfx.shield();
     vibrate(40);
     return true;
   }
   G.hull--;
+  G.hullHit = 1;
   G.invuln = 1.6;
   G.slow = 1.0;
   G.flash = 0.9; G.flashColor = COLORS.red;
   G.shake = Math.max(G.shake, 0.6);
   burst(player.x, 0.5, G.d, COLORS.orange, 24, 5, G.speed * 0.8, 0.7);
+  flashAt(player.x, 0.5, G.d, SPR.red, 2.6, 0.3, G.speed * 0.9);
+  shockRing(player.x, 0.4, G.d, COLORS.red, 2.2, 0.35, G.speed * 0.9);
+  debris(player.x, 0.5, G.d, '#2a2878', COLORS.cyan, 3, 4, G.speed * 0.7, 0.12, true);
   sfx.hurt();
   vibrate(90);
   if (G.hull <= 0) die();
@@ -2502,10 +2639,22 @@ function die() {
   G.state = 'dying';
   G.overT = 0;
   G.flash = 1; G.flashColor = '#ffffff';
-  G.shake = 1.1;
-  burst(player.x, 0.5, G.d, COLORS.cyan, 50, 9, G.speed * 0.5, 1.4);
-  burst(player.x, 0.5, G.d, COLORS.pink, 40, 7, G.speed * 0.5, 1.2);
-  burst(player.x, 0.5, G.d, '#fff4c0', 30, 5, G.speed * 0.5, 0.8);
+  G.shake = 1.2;
+  G.slowmo = 1;        // a moment of slow motion as the speeder comes apart
+  const x = player.x, y = 0.5 + player.y, d = G.d, vd = G.speed * 0.55;
+  flashAt(x, y, d, SPR.white, 3.2, 0.45, vd);
+  flashAt(x, y, d, SPR.pink, 6, 0.9, vd);
+  flashAt(x, y, d, SPR.cyan, 4.5, 1.1, vd);
+  shockRing(x, 0.05, d, COLORS.cyan, 7, 0.9, vd);
+  shockRing(x, 0.05, d, COLORS.pink, 4.5, 0.7, vd);
+  shockRing(x, y, d, '#ffffff', 3, 0.4, vd);
+  burst(x, y, d, COLORS.cyan, 44, 9, vd, 1.3);
+  burst(x, y, d, COLORS.pink, 34, 7, vd, 1.1);
+  burst(x, y, d, '#fff4c0', 26, 5, vd, 0.7);
+  // the speeder itself: hull plates, wings and the two engine pods
+  debris(x, y, d, '#2a2878', COLORS.cyan, 9, 6, vd, 0.2, true);
+  debris(x, y, d, '#5c2296', '#ff4fdc', 6, 6.5, vd, 0.18, true);
+  debris(x, y, d, '#141040', COLORS.cyan, 2, 4, vd, 0.3, true);
   sfx.bigBoom();
   vibrate([70, 40, 160]);
 }
@@ -2699,6 +2848,9 @@ function update(dt) {
   G.shake = Math.max(0, G.shake - dt * 2.2);
   G.kick = Math.max(0, G.kick - dt * 1.6);
   G.pulse = Math.max(0, G.pulse - dt * 1.8);
+  G.hullHit = Math.max(0, G.hullHit - dt * 1.6);
+  G.shHit = Math.max(0, G.shHit - dt * 2);
+  if (G.fly) { G.fly.t += dt; if (G.fly.t > 0.75) G.fly = null; }
   if (G.zoneT > 0) G.zoneT -= dt;
   if (G.toastT > 0) G.toastT -= dt;
 
@@ -2754,7 +2906,7 @@ function update(dt) {
     G.speed *= Math.exp(-dt * 1.6);
     G.d += G.speed * dt;
     G.overT += dt;
-    if (G.state === 'dying' && G.overT > 1.4) showOver();
+    if (G.state === 'dying' && G.overT > 1.25) showOver();
   }
 
   // Player movement
@@ -3008,7 +3160,10 @@ function update(dt) {
         if (pg === took) {
           pg.taken = true;
           burst(pg.x, 1.3, pg.d, POWERS[pg.type].color, 40, 6, G.speed * 0.7, 0.8);
+          shockRing(pg.x, 1.3, pg.d, POWERS[pg.type].color, 3, 0.4, G.speed * 0.85);
+          flashAt(pg.x, 1.3, pg.d, SPR.white, 2.4, 0.25, G.speed * 0.85);
           applyPower(pg.type);
+          if (pg.type !== 'missile') G.fly = { type: pg.type, t: 0 };
         } else {
           pg.missed = true;
         }
@@ -3020,14 +3175,30 @@ function update(dt) {
   }
 
   // Particles
-  for (const p of parts) {
+  for (let i = 0, n = parts.length; i < n; i++) {
+    const p = parts[i];
     p.life -= dt;
     if (p.life <= 0) { p.dead = true; continue; }
+    p.d += p.vd * dt;
+    if (p.k >= 2) continue;   // rings and flashes only drift with the action
     p.x += p.vx * dt;
     p.y += p.vy * dt;
-    p.d += p.vd * dt;
-    p.vy -= 9 * dt;
-    if (p.y < 0.02) { p.y = 0.02; p.vy *= -0.4; p.vx *= 0.7; }
+    p.vy -= (p.k === 1 ? 11 : 9) * dt;
+    if (p.y < 0.02) {
+      p.y = 0.02; p.vy *= -0.4; p.vx *= 0.7;
+      if (p.k === 1) { p.spin *= 0.6; p.vd += (G.speed * 0.6 - p.vd) * 0.5; }   // debris skids along the road
+    }
+    if (p.k === 1) {
+      p.rot += p.spin * dt;
+      if (p.burn && p.life > 0.25) {
+        p.emb -= dt;
+        if (p.emb <= 0 && parts.length < PART_MAX) {
+          p.emb = 0.035;
+          parts.push({ kind: 'part', k: 0, x: p.x, y: p.y, d: p.d, vx: rand(-0.4, 0.4), vy: rand(0.2, 1.2), vd: p.vd * 0.7,
+            life: rand(0.25, 0.5), max: 0.5, color: Math.random() < 0.5 ? '#ffb347' : '#ff5fa0', size: rand(0.03, 0.06) });
+        }
+      }
+    }
   }
 
   for (const p of popups) {
@@ -3199,6 +3370,8 @@ function drawObj(o) {
   const z = o._z;
   const a = fogA(z) * passFade(z + o.dep);
   if (a < 0.01) return;
+  if (o.type === 'pylon') reflect(SPR.pink, o.x, 1.1, z + o.dep / 2, 0.45, a * 0.4);
+  else if (o.type === 'mine') reflect(SPR.orange, o.x, (o.y || 0.25) + 0.15, z, 0.4, a * 0.5);
   if (o.type === 'ramp') { drawRamp(o, z, a); return; }
   if (o.type === 'laser') { drawLaser(o, z, a); return; }
   if (o.type === 'pylon') {
@@ -3384,54 +3557,45 @@ function drawEnemy(e) {
   const a = fogA(z) * passFade(z + 0.6);
   if (a < 0.01) return;
   const s = FOCAL / z;
-  const hitFlash = e.flashT > 0;
+  reflect(SPR.red, e.x, e.type === 'drone' ? e.y : 0.35, z, e.type === 'drone' ? 0.5 : 0.45, a * (e.type === 'drone' ? 0.35 : 0.5));
+  MESH_TINT = e.flashT > 0 ? 0.85 : 0;
+  MT.yaw = 0; MT.scale = 1;
   if (e.type === 'drone') {
     shadow(e.x, z, 0.55, a * 0.35);
-    const px = sx(e.x, z), py = sy(e.y, z);
-    ctx.save();
-    ctx.globalAlpha = a;
-    ctx.translate(px, py);
-    ctx.rotate(clamp((e.tx - e.x) * 0.12, -0.35, 0.35));
-    ctx.scale(s, s);
-    // glow
+    // red under-glow
     ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(255, 43, 78, 0.18)';
-    ctx.beginPath(); ctx.ellipse(0, 0.05, 0.8, 0.3, 0, 0, Math.PI * 2); ctx.fill();
+    glow(SPR.red, sx(e.x, z), sy(e.y - 0.05, z), 0.95 * s, 0.4 * s, a * 0.45);
     ctx.globalCompositeOperation = 'source-over';
-    // wings
-    ctx.beginPath();
-    ctx.moveTo(-0.66, -0.02); ctx.lineTo(-0.22, -0.16); ctx.lineTo(0.22, -0.16); ctx.lineTo(0.66, -0.02);
-    ctx.lineTo(0.24, 0.1); ctx.lineTo(-0.24, 0.1); ctx.closePath();
-    ctx.fillStyle = hitFlash ? '#ffffff' : '#2a0712';
-    ctx.fill();
-    ctx.strokeStyle = COLORS.red; ctx.lineWidth = 0.035; ctx.stroke();
-    // hanging pod
-    ctx.beginPath();
-    ctx.moveTo(-0.12, 0.08); ctx.lineTo(0.12, 0.08); ctx.lineTo(0.06, 0.34); ctx.lineTo(-0.06, 0.34); ctx.closePath();
-    ctx.fillStyle = '#1a040b'; ctx.fill(); ctx.stroke();
-    // eye
+    MT.x = e.x; MT.y = e.y; MT.z = z;
+    MT.roll = -clamp((e.tx - e.x) * 0.12, -0.35, 0.35); MT.pitch = -0.22;
+    const ok = drawMesh(DRONE_MESH, MT, a, 0.02);
+    MESH_TINT = 0;
+    if (!ok) return;
+    ctx.globalCompositeOperation = 'lighter';
+    // the eye, low on the front of the saucer
     const pulse = 0.7 + 0.3 * Math.sin(e.t * 8);
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(255, 60, 90, ' + (0.5 * pulse).toFixed(2) + ')';
-    ctx.beginPath(); ctx.arc(0, -0.03, 0.2, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = e.flashT > 0.1 ? '#fff' : '#ff7088';
-    ctx.beginPath(); ctx.arc(0, -0.03, 0.08, 0, Math.PI * 2); ctx.fill();
-    // thrusters
-    ctx.fillStyle = 'rgba(255, 157, 46, 0.8)';
-    ctx.beginPath(); ctx.arc(-0.42, 0.06, 0.05, 0, Math.PI * 2); ctx.arc(0.42, 0.06, 0.05, 0, Math.PI * 2); ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
-    // spinning rotors on the wingtips
+    let p = shipPoint(MT, 0, -0.03, -0.4);
+    const ex = sx(p[0], p[2]), ey = sy(p[1], p[2]);
+    glow(SPR.red, ex, ey, 0.32 * s, 0.32 * s, a * pulse);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = e.flashT > 0.1 ? '#fff' : '#ffd0d8';
+    ctx.beginPath(); ctx.arc(ex, ey, Math.max(1, 0.06 * s), 0, Math.PI * 2); ctx.fill();
+    // spinning rotors on the wingtips, with thrusters underneath
     for (const side of [-1, 1]) {
-      const rx = side * 0.7;
-      ctx.fillStyle = 'rgba(255, 90, 120, 0.16)';
-      ctx.beginPath(); ctx.ellipse(rx, -0.1, 0.3, 0.07, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 200, 210, 0.75)'; ctx.lineWidth = 0.025;
-      const bl = Math.cos(e.t * 40 + side) * 0.3;
-      ctx.beginPath(); ctx.moveTo(rx - bl, -0.1 - 0.03); ctx.lineTo(rx + bl, -0.1 + 0.03); ctx.stroke();
-      ctx.fillStyle = '#ff2b4e';
-      ctx.fillRect(rx - 0.03, -0.1, 0.06, 0.12);
+      p = shipPoint(MT, side * 0.72, 0.16, 0.1);
+      const rx = sx(p[0], p[2]), ry = sy(p[1], p[2]);
+      ctx.globalAlpha = a * 0.22;
+      ctx.fillStyle = '#ff5a78';
+      ctx.beginPath(); ctx.ellipse(rx, ry, 0.3 * s, 0.07 * s, MT.roll * -1, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = a * 0.8;
+      ctx.strokeStyle = '#ffd0d8'; ctx.lineWidth = Math.max(1, 0.025 * s);
+      const bl = Math.cos(e.t * 40 + side) * 0.3 * s;
+      ctx.beginPath(); ctx.moveTo(rx - bl, ry - 0.03 * s); ctx.lineTo(rx + bl, ry + 0.03 * s); ctx.stroke();
+      p = shipPoint(MT, side * 0.72, 0, 0.1);
+      glow(SPR.orange, sx(p[0], p[2]), sy(p[1], p[2]), 0.14 * s, 0.14 * s, a * 0.9);
     }
-    ctx.restore();
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
   } else if (e.type === 'ram') {
     // headlight beams thrown on the road in front of it (toward you)
     if (z > 2.2) {
@@ -3447,67 +3611,40 @@ function drawEnemy(e) {
       ctx.globalCompositeOperation = 'source-over';
     }
     shadow(e.x, z, 0.42, a * 0.45);
-    const px = sx(e.x, z), py = sy(e.y + Math.sin(e.t * 7) * 0.03, z);
-    ctx.save();
-    ctx.globalAlpha = a;
-    ctx.translate(px, py);
-    ctx.scale(s, s);
     ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(255, 43, 78, 0.25)';
-    ctx.beginPath(); ctx.ellipse(0, 0.38, 0.5, 0.1, 0, 0, Math.PI * 2); ctx.fill();
+    glow(SPR.red, sx(e.x, z), sy(0, z), 0.6 * s, 0.14 * s, a * 0.6);
     ctx.globalCompositeOperation = 'source-over';
-    ctx.beginPath();
-    ctx.moveTo(0, -0.22); ctx.lineTo(0.36, 0.06); ctx.lineTo(0.22, 0.14); ctx.lineTo(-0.22, 0.14); ctx.lineTo(-0.36, 0.06);
-    ctx.closePath();
-    ctx.fillStyle = hitFlash ? '#fff' : '#300a1a';
-    ctx.fill();
-    ctx.strokeStyle = COLORS.red; ctx.lineWidth = 0.035; ctx.stroke();
+    MT.x = e.x; MT.y = e.y - 0.2 + Math.sin(e.t * 7) * 0.03; MT.z = z;
+    MT.roll = -clamp((player.x - e.x) * 0.1, -0.3, 0.3); MT.pitch = -0.14;
+    const ok = drawMesh(RAM_MESH, MT, a, 0.02);
+    MESH_TINT = 0;
+    if (!ok) return;
     ctx.globalCompositeOperation = 'lighter';
-    // ram plate spikes
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#ff2b4e';
-    ctx.beginPath();
-    for (const sx2 of [-0.24, -0.08, 0.08, 0.24]) { ctx.moveTo(sx2 - 0.05, 0.14); ctx.lineTo(sx2, 0.26); ctx.lineTo(sx2 + 0.05, 0.14); }
-    ctx.fill();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = 'rgba(255, 230, 230, 0.95)';
-    ctx.beginPath(); ctx.ellipse(-0.13, 0.05, 0.06, 0.035, 0, 0, Math.PI * 2); ctx.ellipse(0.13, 0.05, 0.06, 0.035, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(255, 60, 90, 0.35)';
-    ctx.beginPath(); ctx.ellipse(0, 0.04, 0.3, 0.12, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.restore();
-  } else if (e.type === 'turret') {
-    const r = drawBox(e.x, 0, z, 1.0, 0.7, 1.0, hitFlash ? { face: '#fff', side: '#fff', top: '#fff', edge: '#fff' } : TURRET_C, a);
-    if (!r) return;
-    const cxp = (r.nxl + r.nxr) / 2;
-    const domeR = 0.3 * s;
-    ctx.globalAlpha = a;
-    ctx.fillStyle = '#3d0a18';
-    ctx.strokeStyle = COLORS.red;
-    ctx.lineWidth = clamp(0.04 * s, 1, 3);
-    // barrel swings to follow you
-    const aim = clamp((player.x - e.x) * 0.25, -0.9, 0.9);
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#2a0710';
-    ctx.lineWidth = Math.max(2, 0.16 * s);
-    ctx.beginPath(); ctx.moveTo(cxp, r.nyt - domeR * 0.4);
-    ctx.lineTo(cxp + Math.sin(aim) * domeR * 1.3, r.nyt - domeR * 0.4 + Math.cos(aim) * domeR * 0.9); ctx.stroke();
-    ctx.strokeStyle = COLORS.red;
-    ctx.lineWidth = Math.max(1, 0.05 * s);
-    ctx.stroke();
-    ctx.lineCap = 'butt';
-    ctx.fillStyle = '#3d0a18';
-    ctx.beginPath();
-    ctx.arc(cxp, r.nyt, domeR, Math.PI, 0);
-    ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.globalCompositeOperation = 'lighter';
-    const charge = e.flashT > 0 ? 1 : 0.4 + 0.3 * Math.sin(e.t * 6);
-    ctx.fillStyle = 'rgba(255, 80, 60, ' + charge.toFixed(2) + ')';
-    ctx.beginPath(); ctx.arc(cxp, r.nyt - domeR * 0.45, Math.max(1.5, domeR * 0.3), 0, Math.PI * 2); ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
+    for (const side of [-1, 1]) {
+      const p = shipPoint(MT, side * 0.16, 0.04, -0.52);
+      glow(SPR.white, sx(p[0], p[2]), sy(p[1], p[2]), 0.13 * s, 0.09 * s, a);
+    }
     ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  } else if (e.type === 'turret') {
+    shadow(e.x, z, 0.7, a * 0.4);
+    MT.x = e.x; MT.y = 0; MT.z = z; MT.roll = 0; MT.pitch = 0;
+    if (!drawMesh(TURRET_BASE, MT, a, 0.03)) { MESH_TINT = 0; return; }
+    // the head swings its barrel to follow you
+    MT.yaw = -clamp((player.x - e.x) * 0.25, -0.9, 0.9);
+    drawMesh(TURRET_HEAD, MT, a, 0.03);
+    MESH_TINT = 0;
+    const charge = e.flashT > 0 ? 1 : 0.45 + 0.35 * Math.sin(e.t * 6);
+    const p = shipPoint(MT, 0, 0.77, -0.8);
+    ctx.globalCompositeOperation = 'lighter';
+    glow(SPR.red, sx(p[0], p[2]), sy(p[1], p[2]), 0.28 * s, 0.28 * s, a * charge);
+    const q = shipPoint(MT, 0, 0.62, 0);
+    glow(SPR.red, sx(q[0], q[2]), sy(q[1], q[2]), 0.55 * s, 0.12 * s, a * 0.5);
+    MT.yaw = 0;
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
   }
+  MESH_TINT = 0;
 }
 
 function drawGate(g) {
@@ -3711,11 +3848,60 @@ function drawEShot(e) {
 function drawPart(p) {
   const z = p._z;
   if (z < 0.8) return;
-  const size = clamp(p.size * FOCAL / z, 1, 9);
-  ctx.globalCompositeOperation = 'lighter';
-  ctx.globalAlpha = clamp(p.life / p.max, 0, 1);
-  ctx.fillStyle = p.color;
-  ctx.fillRect(sx(p.x, z) - size / 2, sy(p.y, z) - size / 2, size, size);
+  const f = clamp(p.life / p.max, 0, 1);
+  const s = FOCAL / z;
+  const px = sx(p.x, z), py = sy(p.y, z);
+  if (p.k === 0) {
+    // a hot streak: drawn from where it was a moment ago, so fast sparks smear like real ones
+    const k = 0.035;
+    const z0 = Math.max(0.8, z - (p.vd - G.speed) * 0.02);
+    const x0 = sx(p.x - p.vx * k, z0), y0 = sy(p.y - p.vy * k, z0);
+    const w = clamp(p.size * 0.8 * s, 1, 7);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = f;
+    ctx.strokeStyle = p.color;
+    ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(px + 0.01, py); ctx.stroke();
+    if (f > 0.45 && w > 1.6) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = w * 0.4;
+      ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+  } else if (p.k === 1) {
+    // tumbling debris (a flat triangle seen spinning)
+    const r = clamp(p.size * s, 1.2, 28);
+    const c = Math.cos(p.rot), sn = Math.sin(p.rot), sq = 0.55 + 0.45 * Math.sin(p.rot * 0.7);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = Math.min(1, f * 2.5);
+    ctx.beginPath();
+    ctx.moveTo(px + c * r, py + sn * r * sq);
+    ctx.lineTo(px + (-c * 0.6 - sn * 0.8) * r, py + (-sn * 0.6 + c * 0.8) * r * sq);
+    ctx.lineTo(px + (-c * 0.5 + sn * 0.7) * r, py + (-sn * 0.5 - c * 0.7) * r * sq);
+    ctx.closePath();
+    ctx.fillStyle = p.fill;
+    ctx.fill();
+    ctx.strokeStyle = p.color;
+    ctx.lineWidth = clamp(0.02 * s, 0.8, 2.5);
+    ctx.stroke();
+  } else if (p.k === 2) {
+    // shockwave: a ring that races outward and thins away
+    const t = 1 - f, e = 1 - (1 - t) * (1 - t) * (1 - t);
+    const rx = p.size * e * s;
+    if (rx < 1) return;
+    const ry = rx * clamp((CAM_H + CAM_LIFT - p.y) / z, 0.18, 1);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = f * 0.9;
+    ctx.strokeStyle = p.color;
+    ctx.lineWidth = clamp(0.16 * s * f, 1, 14);
+    ctx.beginPath(); ctx.ellipse(px, py, rx, ry, 0, 0, Math.PI * 2); ctx.stroke();
+  } else {
+    // flash: a big glow that swells a little and fades fast
+    const r = p.size * s * (0.75 + 0.35 * (1 - f));
+    ctx.globalCompositeOperation = 'lighter';
+    glow(p.spr, px, py, r, r, f * f);
+  }
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
 }
@@ -3804,6 +3990,15 @@ function drawPlayer() {
   ctx.beginPath(); ctx.ellipse(px, gyy, 0.6 * s * air * thin, 0.09 * s * air, 0, 0, Math.PI * 2); ctx.fill();
   ctx.globalCompositeOperation = 'lighter';
   glow(SPR.cyan, px, gyy, 0.95 * s * air * thin, 0.18 * s * air, 0.5 * air);
+  if (QUAL.gloss && !blink) {
+    // the speeder mirrored in the road: a violet smear of the hull and a streak per engine
+    const rh = 0.42 + player.y;
+    glow(SPR.violet, px, sy(-rh, z), 0.55 * s * thin, 0.4 * s, 0.3 * air);
+    for (let i = 0; i < 3; i++) {
+      const ex = player.x + (i - 1) * SHIP_POD_X * SHIP_SCALE * Math.cos(player.bank);
+      glow(i === 1 ? SPR.pink : SPR.cyan, sx(ex, z), sy(-rh + 0.02, z), 0.13 * s, 0.55 * s, 0.45 * air);
+    }
+  }
   ctx.globalAlpha = 1;
 
   drawTrails();
@@ -3823,6 +4018,14 @@ function drawPlayer() {
   }
   ctx.globalCompositeOperation = 'source-over';
   drawMesh(SHIP, MT, baseA, 0.013);
+  // the cockpit light spills out through the glass
+  {
+    const p = shipPoint(MT, 0, 0.2, 0.12);
+    const r = 0.32 * s * (0.9 + 0.1 * Math.sin(G.t * 3));
+    ctx.globalCompositeOperation = 'lighter';
+    glow(SPR.pink, sx(p[0], p[2]), sy(p[1], p[2]), r, r * 0.8, baseA * 0.45);
+    ctx.globalCompositeOperation = 'source-over';
+  }
   // engines: glowing nozzles with flames streaming back toward you
   ctx.globalCompositeOperation = 'lighter';
   for (let i = 0; i < SHIP_ENGINES.length; i++) {
@@ -3851,23 +4054,8 @@ function drawPlayer() {
   }
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
-  // shield bubble
-  if (G.shield > 0) {
-    const pulse = 0.6 + 0.4 * Math.sin(G.t * 5);
-    const by = sy(0.5 + bob + player.y, z);
-    ctx.globalAlpha = 0.16 + 0.1 * pulse;
-    ctx.fillStyle = COLORS.cyan;
-    ctx.beginPath(); ctx.ellipse(px, by, 0.68 * s, 0.42 * s, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.globalAlpha = 0.75;
-    ctx.strokeStyle = COLORS.cyan;
-    ctx.lineWidth = Math.max(1.5, (G.shield > 1 ? 0.035 : 0.018) * s);
-    ctx.stroke();
-    if (G.shield > 1) {
-      ctx.globalAlpha = 0.4;
-      ctx.beginPath(); ctx.ellipse(px, by, 0.76 * s, 0.48 * s, 0, 0, Math.PI * 2); ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-  }
+  // shield bubble: a glassy dome, brightest at its rim, with a honeycomb and a sweeping glint
+  if (G.shield > 0 || G.shHit > 0) drawShield(px, sy(0.5 + bob + player.y, z), s);
 
   // power-up ring bursting off the speeder
   if (G.pulse > 0) {
@@ -3881,6 +4069,90 @@ function drawPlayer() {
     ctx.globalCompositeOperation = 'source-over';
   }
 }
+const SHIELD_HEX = (() => {
+  const out = [];
+  for (let gy2 = -1; gy2 <= 1; gy2 += 0.28) {
+    const row = Math.round(gy2 / 0.28);
+    for (let gx2 = -1.1; gx2 <= 1.1; gx2 += 0.32) {
+      const cx = gx2 + (row & 1 ? 0.16 : 0);
+      if (cx * cx + gy2 * gy2 < 0.82) out.push(cx, gy2);
+    }
+  }
+  return out;
+})();
+function drawShield(px, by, s) {
+  const rx = 0.7 * s, ry = 0.46 * s;
+  const hit = G.shHit;
+  const pulse = 0.6 + 0.4 * Math.sin(G.t * 5);
+  ctx.save();
+  ctx.translate(px, by);
+  ctx.scale(1, ry / rx);
+  const grow = 1 + hit * 0.08;
+  const R = rx * grow;
+  ctx.globalCompositeOperation = 'lighter';
+  if (G.shield > 0) {
+    const g = ctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R);
+    g.addColorStop(0, 'rgba(41, 243, 255, 0.02)');
+    g.addColorStop(0.72, 'rgba(41, 243, 255, ' + (0.06 + 0.04 * pulse).toFixed(3) + ')');
+    g.addColorStop(1, 'rgba(41, 243, 255, ' + (0.32 + 0.1 * pulse).toFixed(3) + ')');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill();
+    // honeycomb, faint, with a bright band drifting through it
+    const hr = R * 0.15;
+    const band = Math.sin(G.t * 1.7) * R;
+    ctx.lineWidth = 1;
+    for (let pass = 0; pass < 2; pass++) {
+      ctx.strokeStyle = pass ? 'rgba(180, 255, 255, 0.4)' : 'rgba(41, 243, 255, 0.13)';
+      ctx.beginPath();
+      for (let i = 0; i < SHIELD_HEX.length; i += 2) {
+        const cx = SHIELD_HEX[i] * R, cy = SHIELD_HEX[i + 1] * R;
+        if (pass && Math.abs(cx - band) > R * 0.18) continue;
+        for (let k = 0; k < 6; k++) {
+          const a = Math.PI / 6 + k * Math.PI / 3;
+          const x = cx + Math.cos(a) * hr, y = cy + Math.sin(a) * hr;
+          if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+      }
+      ctx.stroke();
+    }
+    // rim (doubled when you hold two shields) and a glint racing round it
+    ctx.strokeStyle = COLORS.cyan;
+    ctx.globalAlpha = 0.8;
+    ctx.lineWidth = Math.max(1.5, (G.shield > 1 ? 0.03 : 0.018) * s);
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.stroke();
+    if (G.shield > 1) {
+      ctx.globalAlpha = 0.45;
+      ctx.beginPath(); ctx.arc(0, 0, R * 1.1, 0, Math.PI * 2); ctx.stroke();
+    }
+    const ga = G.t * 2.4;
+    ctx.globalAlpha = 0.85;
+    ctx.strokeStyle = '#eaffff';
+    ctx.lineWidth = Math.max(2, 0.03 * s);
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(0, 0, R, ga, ga + 0.7); ctx.stroke();
+    ctx.lineCap = 'butt';
+  }
+  // just hit: the bubble flares white and cracks
+  if (hit > 0 && G.cracks) {
+    ctx.globalAlpha = hit;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(1.5, 0.02 * s);
+    ctx.beginPath();
+    for (const c of G.cracks) {
+      ctx.moveTo(c[0] * R, c[1] * R);
+      for (let i = 2; i < c.length; i += 2) ctx.lineTo(c[i] * R, c[i + 1] * R);
+    }
+    ctx.stroke();
+    ctx.globalAlpha = hit * 0.6;
+    ctx.lineWidth = Math.max(2, 0.06 * s * hit);
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+
 // a tapered flame from (ax, ay) to the tip (bx, by)
 function flame(ax, ay, bx, by, w) {
   let nx = by - ay, ny = ax - bx;
@@ -3948,6 +4220,7 @@ function ringSides(faces, a, b, n, col, edge, flags) {
 }
 
 const MT = { x: 0, y: 0, z: 0, roll: 0, yaw: 0, pitch: 0, scale: 1 };
+let MESH_TINT = 0;   // 0..1: paint the next model toward white (enemy hit flash)
 // Transform, project, cull, sort and paint a model. Returns false if it was behind the camera.
 function drawMesh(m, T, alpha, edgeW) {
   const V = m.v;
@@ -4000,9 +4273,11 @@ function drawMesh(m, T, alpha, edgeW) {
     ctx.moveTo(m.px[idx[0]], m.py[idx[0]]);
     for (let j = 1; j < idx.length; j++) ctx.lineTo(m.px[idx[j]], m.py[idx[j]]);
     ctx.closePath();
-    const c = f.col, sh = f.emit ? 1 : f.shade;
+    const c = f.col, sh = f.emit ? 1 : f.shade, tn = MESH_TINT;
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = 'rgb(' + ((c[0] * sh) | 0) + ',' + ((c[1] * sh) | 0) + ',' + ((c[2] * sh) | 0) + ')';
+    let r = c[0] * sh, g = c[1] * sh, bl = c[2] * sh;
+    if (tn > 0) { r += (255 - r) * tn; g += (255 - g) * tn; bl += (255 - bl) * tn; }
+    ctx.fillStyle = 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (bl | 0) + ')';
     ctx.fill();
     if (f.edge) {
       ctx.strokeStyle = f.edge;
@@ -4046,7 +4321,7 @@ const SHIP = (() => {
     -0.03, 0.168, 0.05, 0.03, 0.168, 0.05,   // 20, 21
     -0.03, 0.158, -0.44, 0.03, 0.158, -0.44, // 22, 23
   ];
-  const HULL_T = [70, 78, 190], HULL_S = [42, 40, 128], HULL_B = [16, 14, 46], REAR = [22, 18, 60];
+  const HULL_T = [84, 98, 240], HULL_S = [30, 26, 100], HULL_B = [10, 8, 32], REAR = [18, 14, 52];
   const CYAN = '#29f3ff', PINK = '#ff4fdc';
   const fc = [0, 0.04, 0.05];
   const f = [
@@ -4059,14 +4334,15 @@ const SHIP = (() => {
     [[0, 11, 12], HULL_B, null], [[11, 7, 8, 12], HULL_B, null], [[7, 9, 10, 8], HULL_B, null],
     [[5, 6, 10, 9], REAR, CYAN],
   ];
-  const glass = [235, 80, 220], co = { o: [0, 0.12, 0.1], b: 8 };
-  f.push([[13, 15, 16], glass, '#ffd6fb', co], [[13, 16, 14], glass, '#ffd6fb', co],
-    [[14, 16, 17], [150, 50, 190], '#ffd6fb', co], [[16, 15, 17], [150, 50, 190], '#ffd6fb', co]);
+  // glass canopy lit from inside (emissive, so it glows the same at every angle)
+  const glass = [255, 96, 228], co = { o: [0, 0.12, 0.1], b: 8, e: true };
+  f.push([[13, 15, 16], glass, '#fff0fd', co], [[13, 16, 14], [235, 70, 215], '#fff0fd', co],
+    [[14, 16, 17], [140, 40, 175], '#ffd6fb', co], [[16, 15, 17], [160, 48, 190], '#ffd6fb', co]);
   const stripeF = { e: true, b: 4, o: [0, -1, 0] };
   f.push([[18, 19, 21, 20], [255, 79, 220], null, stripeF], [[20, 21, 23, 22], [255, 79, 220], null, stripeF]);
 
   // engine pods: 6-sided, tapering to a point at the front
-  const POD = [48, 44, 140], POD_E = CYAN;
+  const POD = [40, 40, 140], POD_E = CYAN;
   for (const side of [-1, 1]) {
     const cx = side * SHIP_POD_X, cy = 0.02;
     const rear = ringVerts(v, cx, cy, -0.52, 0.105, 6, 'z', Math.PI / 6);
@@ -4121,6 +4397,87 @@ const PYLON_MESH = (() => {
   f.push([[c0, c0 + 1, c0 + 2, c0 + 3, c0 + 4, c0 + 5], CAP, '#ffd0fb', { o: [0, 5, 0] }]);
   for (let k = 0; k < 6; k++) f.push([[c1 + k, c1 + (k + 1) % 6, tip], [200, 70, 220], '#ffd0fb', { o: [0, 4.3, 0] }]);
   return makeMesh(v, f, ctr);
+})();
+
+/* ---------- Enemy models ----------
+   Built the same way as the speeder, facing the camera (model -z = their front). */
+const EN_DARK = [58, 10, 26], EN_MID = [96, 16, 40], EN_EDGE = '#ff2b4e', EN_HOT = [255, 43, 78];
+// drone: a squat saucer with a hanging pod and two swept wings to rotor pods
+const DRONE_MESH = (() => {
+  const v = [], f = [];
+  const t0 = ringVerts(v, 0, 0.12, 0, 0.24, 6, 'y', Math.PI / 6);
+  const m0 = ringVerts(v, 0, 0, 0, 0.4, 6, 'y', Math.PI / 6);
+  const b0 = ringVerts(v, 0, -0.12, 0, 0.2, 6, 'y', Math.PI / 6);
+  const top = v.length / 3; v.push(0, 0.2, 0);
+  const pod = v.length / 3; v.push(0, -0.36, 0);
+  const o = { o: [0, 0, 0] };
+  ringSides(f, t0, m0, 6, EN_MID, EN_EDGE, o);
+  ringSides(f, m0, b0, 6, EN_DARK, EN_EDGE, o);
+  for (let k = 0; k < 6; k++) {
+    f.push([[t0 + k, t0 + (k + 1) % 6, top], [120, 22, 50], '#ff7a92', o]);
+    f.push([[b0 + k, b0 + (k + 1) % 6, pod], [40, 6, 18], EN_EDGE, o]);
+  }
+  for (const side of [-1, 1]) {
+    const w = v.length / 3;
+    v.push(side * 0.3, 0.02, -0.14, side * 0.72, 0.1, 0.02, side * 0.72, 0.06, 0.2, side * 0.3, 0.0, 0.18);
+    f.push([[w, w + 1, w + 2, w + 3], [74, 12, 32], EN_EDGE, { d: true }]);
+    // rotor housing at the wingtip
+    const r0 = ringVerts(v, side * 0.72, 0.02, 0.1, 0.07, 6, 'y'), r1 = ringVerts(v, side * 0.72, 0.14, 0.1, 0.07, 6, 'y');
+    ringSides(f, r0, r1, 6, EN_DARK, EN_EDGE, { o: [side * 0.72, 0.08, 0.1] });
+  }
+  return makeMesh(v, f, [0, 0, 0]);
+})();
+// ram bike: a low wedge with a spiked ram plate on the front
+const RAM_MESH = (() => {
+  const v = [
+    0, 0.02, -0.75,  -0.15, 0.13, -0.3,  0.15, 0.13, -0.3,  -0.22, 0.17, 0.5,  0.22, 0.17, 0.5,
+    -0.36, -0.06, -0.1,  0.36, -0.06, -0.1,  -0.3, -0.06, 0.55,  0.3, -0.06, 0.55,  -0.2, -0.08, -0.5,  0.2, -0.08, -0.5,
+    -0.08, 0.15, -0.22,  0.08, 0.15, -0.22,  0, 0.25, 0.08,
+    -0.44, -0.08, -0.6,  0.44, -0.08, -0.6,  0.44, 0.13, -0.55,  -0.44, 0.13, -0.55,
+  ];
+  const o = { o: [0, 0.05, 0] };
+  const f = [
+    [[0, 2, 1], EN_MID, EN_EDGE, o], [[1, 2, 4, 3], EN_MID, EN_EDGE, o],
+    [[0, 1, 5, 9], EN_DARK, EN_EDGE, o], [[1, 3, 7, 5], EN_DARK, EN_EDGE, o],
+    [[0, 10, 6, 2], EN_DARK, EN_EDGE, o], [[2, 6, 8, 4], EN_DARK, EN_EDGE, o],
+    [[9, 5, 6, 10], [24, 4, 12], null, o], [[5, 7, 8, 6], [24, 4, 12], null, o], [[0, 9, 10], [24, 4, 12], null, o],
+    [[3, 4, 8, 7], [40, 8, 20], EN_EDGE, o],
+    [[11, 12, 13], [255, 70, 100], '#ffd0d8', { e: true, b: 4, o: [0, 0, 0] }],
+    [[14, 15, 16, 17], [80, 14, 30], '#ff8a9c', { d: true, b: 3 }],
+  ];
+  for (const x of [-0.3, -0.1, 0.1, 0.3]) {
+    const i = v.length / 3;
+    v.push(x - 0.07, 0.02, -0.58, x + 0.07, 0.02, -0.58, x, 0.04, -0.82);
+    f.push([[i, i + 1, i + 2], EN_HOT, null, { e: true, d: true, b: 5 }]);
+  }
+  return makeMesh(v, f, [0, 0.05, 0]);
+})();
+// turret: an armoured hex base, then a dome with a barrel that turns to follow you
+const TURRET_BASE = (() => {
+  const v = [], f = [];
+  const a0 = ringVerts(v, 0, 0, 0, 0.6, 6, 'y'), a1 = ringVerts(v, 0, 0.48, 0, 0.54, 6, 'y'), a2 = ringVerts(v, 0, 0.62, 0, 0.42, 6, 'y');
+  const o = { o: [0, 0.3, 0] };
+  ringSides(f, a0, a1, 6, [52, 9, 22], EN_EDGE, o);
+  ringSides(f, a1, a2, 6, [90, 16, 36], '#ff7a92', o);
+  f.push([[a2, a2 + 1, a2 + 2, a2 + 3, a2 + 4, a2 + 5], [70, 12, 28], EN_EDGE, { o: [0, 0, 0] }]);
+  return makeMesh(v, f, [0, 0.3, 0]);
+})();
+const TURRET_HEAD = (() => {
+  const v = [], f = [];
+  const d0 = ringVerts(v, 0, 0.6, 0, 0.34, 6, 'y'), d1 = ringVerts(v, 0, 0.84, 0, 0.25, 6, 'y');
+  const cap = v.length / 3; v.push(0, 0.95, 0);
+  const o = { o: [0, 0.75, 0] };
+  ringSides(f, d0, d1, 6, [70, 12, 30], EN_EDGE, o);
+  for (let k = 0; k < 6; k++) f.push([[d1 + k, d1 + (k + 1) % 6, cap], [110, 20, 44], '#ff7a92', o]);
+  // barrel: a box from the dome out toward you
+  const b = v.length / 3;
+  v.push(-0.07, 0.7, -0.1, 0.07, 0.7, -0.1, 0.07, 0.84, -0.1, -0.07, 0.84, -0.1,
+    -0.06, 0.71, -0.78, 0.06, 0.71, -0.78, 0.06, 0.83, -0.78, -0.06, 0.83, -0.78);
+  const bo = { o: [0, 0.77, -0.45], b: 2 };
+  f.push([[b, b + 1, b + 5, b + 4], [36, 6, 16], EN_EDGE, bo], [[b + 1, b + 2, b + 6, b + 5], [36, 6, 16], EN_EDGE, bo],
+    [[b + 2, b + 3, b + 7, b + 6], [60, 10, 24], EN_EDGE, bo], [[b + 3, b, b + 4, b + 7], [36, 6, 16], EN_EDGE, bo],
+    [[b + 4, b + 5, b + 6, b + 7], EN_HOT, '#ffd0d8', { e: true, b: 3, o: [0, 0.77, 0] }]);
+  return makeMesh(v, f, [0, 0.75, 0]);
 })();
 
 const drawList = [];
@@ -4191,6 +4548,7 @@ function timerChip(x, y, label, color, frac) {
   return lw + 60;
 }
 
+let hudBand = null, hudBandH = 0;
 function drawHUD() {
   // low-hull warning glow
   if (G.state === 'play' && G.hull === 1) {
@@ -4210,6 +4568,16 @@ function drawHUD() {
   if (G.state !== 'play' && G.state !== 'dying') return;
 
   const top = SAFE_TOP + 12;
+  // a soft dark band behind the top bar, so it stays readable over the sun and bright skies
+  if (!hudBand || hudBandH !== top + 110) {
+    hudBandH = top + 110;
+    hudBand = ctx.createLinearGradient(0, 0, 0, hudBandH);
+    hudBand.addColorStop(0, 'rgba(6, 1, 18, 0.62)');
+    hudBand.addColorStop(0.55, 'rgba(6, 1, 18, 0.32)');
+    hudBand.addColorStop(1, 'rgba(6, 1, 18, 0)');
+  }
+  ctx.fillStyle = hudBand;
+  ctx.fillRect(0, 0, W, hudBandH);
   const left = 16;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
@@ -4250,6 +4618,12 @@ function drawHUD() {
   const py = top + 54;
   for (let i = 0; i < MAX_HULL; i++) {
     hex(x, py, 7, i < G.hull, COLORS.pink);
+    if (i === G.hull && G.hullHit > 0) {
+      const k = 1 - G.hullHit;
+      ctx.globalAlpha = G.hullHit;
+      hex(x, py, 7 + k * 14, false, '#ffffff');
+      ctx.globalAlpha = 1;
+    }
     x += 19;
   }
   for (let i = 0; i < G.shield; i++) {
@@ -4259,6 +4633,9 @@ function drawHUD() {
   // gun level: 4 yellow bars, then 4 orange "overdrive" bars
   ctx.font = '800 10px ' + FONT;
   ctx.textBaseline = 'middle';
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(6, 1, 18, 0.7)';
+  ctx.strokeText('GUNS', x + 10, py);
   ctx.fillStyle = COLORS.yellow;
   ctx.fillText('GUNS', x + 10, py);
   const gx = x + 10 + ctx.measureText('GUNS').width + 6;
@@ -4285,22 +4662,50 @@ function drawHUD() {
   ctx.fillStyle = '#cbb7ff';
   ctx.fillText('KM/H', W - 16, top + 62);
 
-  // zone name when you cross into a new area
+  // zone title card when you cross into a new area: a neon line wipes open,
+  // the name settles into place, then everything fades
   if (G.zoneT > 0) {
-    const a = clamp(G.zoneT / 0.6, 0, 1) * clamp((3 - G.zoneT) / 0.4, 0, 1);
-    ctx.globalAlpha = a;
+    const T = 3 - G.zoneT;                       // time since the card appeared
+    const out = clamp(G.zoneT / 0.6, 0, 1);
+    const open = 1 - Math.pow(1 - clamp(T / 0.45, 0, 1), 3);
+    const nameIn = clamp((T - 0.12) / 0.4, 0, 1);
+    const th = THEMES[G.zoneIdx % THEMES.length];
+    const acc = 'rgb(' + th.accent.join(',') + ')', rail = 'rgb(' + th.rail.join(',') + ')';
+    const zy = SHIP_Y + clamp((H - SHIP_Y) * 0.7, 100, 270);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '500 10px ' + FONT;
-    ctx.fillStyle = '#cbb7ff';
-    // below the speeder, with the other helper text, so it never covers the road
-    const zy = SHIP_Y + clamp((H - SHIP_Y) * 0.7, 100, 270);
-    ctx.fillText('ZONE ' + (G.zoneIdx + 1), CX, zy - 19);
-    ctx.font = '800 17px ' + FONT;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillText(G.zoneName, CX + 1, zy + 1);
+    // backing so the text reads over any road
+    const bw = Math.min(W - 40, 300) * open;
+    ctx.globalAlpha = out * 0.5;
+    ctx.fillStyle = 'rgba(6, 1, 18, 1)';
+    ctx.fillRect(CX - bw / 2, zy - 30, bw, 52);
+    // the two neon lines
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = out;
+    ctx.fillStyle = acc;
+    ctx.fillRect(CX - bw / 2, zy - 31, bw, 2);
+    ctx.fillStyle = rail;
+    ctx.fillRect(CX - bw / 2, zy + 21, bw, 2);
+    glow(SPR.white, CX - bw / 2, zy - 30, 10, 4, out * open * (1 - open * 0.6));
+    glow(SPR.white, CX + bw / 2, zy + 22, 10, 4, out * open * (1 - open * 0.6));
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = out * nameIn;
+    ctx.font = '700 10px ' + FONT;
+    ctx.fillStyle = rail;
+    ctx.fillText('Z O N E   ' + (G.zoneIdx + 1), CX, zy - 17);
+    const sc = 1 + (1 - nameIn) * 0.35;
+    ctx.save();
+    ctx.translate(CX, zy + 4);
+    ctx.scale(sc, sc);
+    ctx.font = '900 20px ' + FONT;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillText(G.zoneName, 1, 2);
+    ctx.shadowColor = acc;
+    ctx.shadowBlur = 12;
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(G.zoneName, CX, zy);
+    ctx.fillText(G.zoneName, 0, 0);
+    ctx.shadowBlur = 0;
+    ctx.restore();
     ctx.globalAlpha = 1;
   }
 
@@ -4391,6 +4796,34 @@ function drawHUD() {
     ctx.fillText(p.text, p.x, p.y - p.t * 50);
   }
   ctx.globalAlpha = 1;
+
+  // the power you just took flies from the speeder up into the top bar
+  if (G.fly) {
+    const t = clamp(G.fly.t / 0.75, 0, 1);
+    const e = t * t * (3 - 2 * t);
+    const P = POWERS[G.fly.type];
+    const x0 = sx(player.x, VIEW_Z), y0 = SHIP_Y - 10;
+    const x1 = G.fly.type === 'weapon' ? left + 110 : G.fly.type === 'rapid' || G.fly.type === 'mult' ? left + 30 : left + 30;
+    const y1 = G.fly.type === 'rapid' || G.fly.type === 'mult' ? py + 20 : py;
+    const fx = x0 + (x1 - x0) * e, fy = y0 + (y1 - y0) * e - Math.sin(e * Math.PI) * 60;
+    const r = 16 * (1 - e * 0.5) * (t < 0.12 ? t / 0.12 : 1);
+    ctx.globalCompositeOperation = 'lighter';
+    glow(SPR[P.color === COLORS.cyan ? 'cyan' : 'white'], fx, fy, r * 2.4, r * 2.4, 0.5 * (1 - t * 0.5));
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1 - Math.max(0, t - 0.85) / 0.15;
+    ctx.fillStyle = 'rgba(11, 4, 32, 0.85)';
+    ctx.beginPath(); ctx.arc(fx, fy, r * 1.25, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = P.color; ctx.lineWidth = 2; ctx.stroke();
+    powerIcon(G.fly.type, fx, fy, r * 0.7, P.color, 2);
+    ctx.globalAlpha = 1;
+    if (t > 0.92) {
+      // landing sparkle
+      ctx.globalCompositeOperation = 'lighter';
+      glow(SPR.white, x1, y1, 26, 26, (1 - t) / 0.08);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+    }
+  }
 
   // first-run steering hint
   if (G.state === 'play' && !G.dragged && G.runT < 6) {
@@ -5656,6 +6089,11 @@ function frame(now) {
   last = now;
   watchPerf(dt);
   if (dt > 0.05) dt = 0.05;
+  if (G.slowmo > 0) {
+    // wreck slow motion: starts at a quarter speed and eases back to normal
+    G.slowmo = Math.max(0, G.slowmo - dt * 1.15);
+    dt *= 1 - 0.75 * G.slowmo * G.slowmo;
+  }
   tickCountdown(dt);
   if (!paused) update(dt);
   else audioEngine();
@@ -5676,7 +6114,7 @@ setTimeout(() => {
 requestAnimationFrame(frame);
 
 // handy for testing in the browser console
-window.SPEEDER = { shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
+window.SPEEDER = { explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
 </script>
 </body>
 </html>
