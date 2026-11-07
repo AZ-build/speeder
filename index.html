@@ -531,6 +531,7 @@
     <div class="setting"><label for="setEngine">Engine hum</label><input type="checkbox" id="setEngine" class="switch"></div>
     <div class="setting"><label for="setHaptics">Vibration <small>Android only</small></label><input type="checkbox" id="setHaptics" class="switch"></div>
     <div class="setting"><label for="setSens">Steering speed <small id="sensLabel"></small></label><input type="range" id="setSens" min="50" max="160" step="10"></div>
+    <div class="setting"><label for="setCam">Camera <small>how far back</small></label><button class="btn chip" id="setCam" type="button">Normal</button></div>
     <div class="setting"><label for="setGfx">Graphics <small id="gfxNote"></small></label><button class="btn chip" id="setGfx" type="button">Auto</button></div>
     <div class="setting"><label for="setShake">Screen shake</label><input type="checkbox" id="setShake" class="switch"></div>
     <div class="setting col"><label for="setName">Leaderboard name</label><input id="setName" class="name-input" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="YOUR NAME" enterkeyhint="done"></div>
@@ -612,8 +613,12 @@ const $ = (id) => document.getElementById(id);
 // Sideways it moves in lockstep with the speeder (no lag), only as far as needed to keep
 // the rail you're next to on screen. Wide screens that can show the whole track don't move.
 const VIEW_TAN = 2.6 / 9;   // camera height ÷ distance behind the speeder (the viewing angle)
-const VIEW_SHARE = 0.38;    // share of the track's width visible at the speeder's row on a phone (v0.7.1 was ~0.27)
-const VIEW_MAX_H = 0.104;   // zoom cap: pixels per track unit as a share of screen height (keeps big screens as close as phones)
+// Camera setting (v0.7.6): how much of the track's width you see at the speeder's row on a phone.
+// Close = v0.7.1, Normal = the default slight pull-back, Far = more, Full = both rails always on screen.
+const CAM_VIEWS = { close: 0.27, normal: 0.38, far: 0.55, full: 1.05 };
+const CAM_LABEL = { close: 'Close', normal: 'Normal', far: 'Far', full: 'Full track' };
+const CAM_ORDER = ['close', 'normal', 'far', 'full'];
+const VIEW_MAX_H = 0.104;   // zoom cap at Normal: pixels per track unit as a share of screen height (keeps big screens as close as phones)
 const FIT_WIDE = 0.85;      // wide screens (tablets, unfolded foldables): the whole track fills at most this share of the width
 let CAM_H = 2.6;            // camera height above the ground (set in resize)
 let PLAYER_Z = 9;           // how far in front of the camera the speeder sits (set in resize)
@@ -644,7 +649,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.7.5';
+const VERSION = '0.7.6';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -809,7 +814,7 @@ function vibrate(p) {
 }
 
 // ---------- Settings (saved on this device) ----------
-const SETTINGS_DEFAULT = { sound: true, volume: 70, music: true, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true };
+const SETTINGS_DEFAULT = { sound: true, volume: 70, music: true, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true, cam: 'normal' };
 function loadSettings() {
   let saved = {};
   try { saved = JSON.parse(storeGet('speeder.settings') || '{}') || {}; } catch (e) { saved = {}; }
@@ -868,18 +873,20 @@ function resize() {
   buildBackdrop();
 }
 
-// Zoom: phones see VIEW_SHARE of the track's width at the speeder's row. Wide screens
+// Zoom: phones see CAM_VIEWS[SET.cam] of the track's width at the speeder's row. Wide screens
 // (tablets, unfolded foldables) blend toward showing the whole track at FIT_WIDE of the
 // width, so it never fills the whole screen; VIEW_MAX_H keeps desktops from zooming in more
 // than a phone does.
 function fitView(gap) {
   const full = TRACK_HALF + 0.35;                          // half the track, rail glow included
-  const phone = (W / 2) / (full * VIEW_SHARE);             // pixels per unit, phone rule
+  const share = CAM_VIEWS[SET.cam] || CAM_VIEWS.normal;
+  const capH = H * VIEW_MAX_H * CAM_VIEWS.normal / share;  // the height cap zooms out with the setting too
+  const phone = (W / 2) / (full * share);                  // pixels per unit, phone rule
   const whole = W * FIT_WIDE / 2 / full;                   // pixels per unit that fit the whole track
   const u = clamp((W / H - 0.55) / 0.2, 0, 1);
-  const wide = Math.max(whole, Math.min(phone, H * VIEW_MAX_H));
+  const wide = Math.max(whole, Math.min(phone, capH));
   let ppu = phone + (Math.min(phone, whole) - phone) * u * u * (3 - 2 * u);
-  ppu = Math.min(ppu, H * VIEW_MAX_H, Math.max(phone, wide));
+  ppu = Math.min(ppu, capH, Math.max(phone, wide));
   CAM_H = gap / ppu;
   PLAYER_Z = CAM_H / VIEW_TAN;
   // camera copies just enough of your sideways move that the rail you're next to stays in view
@@ -5192,6 +5199,7 @@ function fillSettings() {
   $('setSens').value = SET.sens;
   $('setShake').checked = SET.shake;
   fillGfx();
+  fillCam();
   $('sensLabel').textContent = SET.sens + '%';
   $('setName').value = SET.name;
 }
@@ -5228,6 +5236,14 @@ $('setHaptics').addEventListener('change', (e) => {
   SET.haptics = e.target.checked;
   saveSettings();
   vibrate(40);
+});
+function fillCam() { $('setCam').textContent = CAM_LABEL[SET.cam] || 'Normal'; }
+$('setCam').addEventListener('click', () => {
+  const i = CAM_ORDER.indexOf(SET.cam);
+  SET.cam = CAM_ORDER[(i + 1) % CAM_ORDER.length];
+  saveSettings();
+  resize();          // re-fit the camera right away, so you see the change behind the menu
+  fillCam();
 });
 const GFX_LABEL = { auto: 'Auto', high: 'High', low: 'Low' };
 function fillGfx() {

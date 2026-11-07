@@ -4,6 +4,17 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.7.6] — 2026-11-07
+
+- **Camera setting.** Settings → Camera cycles Close / Normal / Far / Full track and re-fits
+  the camera right away. Close is exactly v0.7.1, Normal (default) is v0.7.5's slight
+  pull-back, Far is further back, and Full track keeps both rails on screen at the speeder
+  (like v0.7.2). Saved per device in `speeder.settings` (`cam`). Knob: `CAM_VIEWS`
+  (share of the track's width visible at the speeder on a phone); replaces `VIEW_SHARE`.
+  Big screens zoom out with the setting too, and still never let the track fill the screen.
+
+---
+
 ## [v0.7.5] — 2026-11-07
 
 - **Camera feel back to v0.7.1.** v0.7.3's lockstep camera felt stiff. The camera again eases
