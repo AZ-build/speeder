@@ -629,7 +629,6 @@ const EDGE_START = 2.8;     // how far from the middle the bank begins (rail is 
 const EDGE_BANK = 1.2;      // roll at the rail (radians, about 70°)
 const EDGE_HALF_W = 0.15;   // collision half-width when fully on its side (half the normal)
 const EDGE_YAW = 0.25;      // how much the nose points back toward the middle while banked
-const STEER_CROSS = 230;    // finger travel (screen points, ~1.4 in) to cross the whole track at 100% steering
 const STEER_EASE = 14;      // how quickly the speeder glides to where your thumb is (higher = snappier)
 const LEAN_MAX = 0.35;      // most the speeder leans while moving across the track (radians, about 20°)
 const LEAN_GAIN = 0.07;     // how quickly that lean builds with sideways speed
@@ -643,7 +642,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.7.3';
+const VERSION = '0.7.4';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -5957,10 +5956,8 @@ function playerHalfW() { return PLAYER_HALF_W + (EDGE_HALF_W - PLAYER_HALF_W) * 
 
 function steerSensitivity() {
   // world units per pixel of finger movement, scaled by the "Steering speed" setting.
-  // Based on thumb distance, not screen width, so it feels the same on a phone, a tablet
-  // or an unfolded foldable: about STEER_CROSS points crosses the whole track.
-  const span = 2 * (TRACK_HALF - 0.45);
-  return (span / Math.min(STEER_CROSS, W * 0.6)) * (SET.sens / 100);
+  // Crossing the whole track takes a drag of nearly the full screen width (capped on big screens).
+  return (11 / Math.min(W, 520)) * (SET.sens / 100);
 }
 
 window.addEventListener('pointerdown', (e) => {

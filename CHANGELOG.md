@@ -4,6 +4,14 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.7.4] — 2026-11-07
+
+- **Steering back to the original feel.** v0.7.2's thumb-distance steering was too touchy.
+  Crossing the track takes a drag of nearly the full screen width again (capped at 520 points
+  on big screens), same as v0.7.1. Removed `STEER_CROSS`. The camera changes from v0.7.3 stay.
+
+---
+
 ## [v0.7.3] — 2026-11-07
 
 ### Session 10b — Back to the close camera, just pulled back a little
