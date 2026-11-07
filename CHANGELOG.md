@@ -4,6 +4,39 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.7.2] — 2026-11-07
+
+### Session 10 — Camera locked to the middle, whole track on screen
+
+On an iPhone 13 Adrian couldn't see both rails where the speeder is, the camera slid side to
+side, and on fast runs he couldn't get from one side to the other in one thumb motion. His
+friend on an unfolded Android foldable had it worse.
+
+What was going on: the track was never fully on screen at the speeder's row. On an iPhone 13
+only about a quarter of its width fit (it was about 1,400 points wide on a 390-point screen),
+so the camera followed you sideways to keep the speeder in view. That's been true since the
+start; the v0.6 "tighter camera" just made the sliding more noticeable. Steering needed a drag
+of ~92% of the screen width to cross the track, and up to 470 points on big screens.
+
+- **Camera locked to the middle.** It no longer follows you sideways, and in bends it keeps the
+  track centered at the speeder's row. Only the speeder moves.
+- **Whole track on screen.** The camera sits farther back and higher, along the same viewing
+  angle, so the road ahead looks the same and only the near view zooms out. Worked out per
+  screen: phones fill ~92% of the width with the track; wider screens (tablets, unfolded
+  foldables, desktop) fill 70% or less so scenery still shows at the sides.
+  Knobs: `VIEW_TAN`, `FIT_NARROW`, `FIT_WIDE`, `FIT_MAX_H`.
+- **One-motion steering.** Steering now goes by thumb distance instead of screen width: about
+  230 points (~1.4 in) crosses the whole track at 100%, on any screen. Knob: `STEER_CROSS`.
+- **Bigger speeder.** It's drawn 50% bigger (`SHIP_SCALE` 0.8 → 1.2) so it still reads well
+  in the wider view. Its hit area is unchanged, so it's a little forgiving.
+- Drones that swoop in from behind now start behind the camera, so they don't pop in mid-screen.
+- Removed `CAM_FOLLOW` and `AIM_Z`.
+
+**To check on real phones:** does it still feel fast? Are near hazards big enough to read?
+Is steering too twitchy for precise dodges (try the Steering speed setting)?
+
+---
+
 ## [v0.7.1] — 2026-11-07
 
 ### Session 9 — Battery fix for big Android phones
