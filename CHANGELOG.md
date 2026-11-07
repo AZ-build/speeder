@@ -4,6 +4,36 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.7.1] — 2026-11-07
+
+### Session 9 — Battery fix for big Android phones
+
+A friend on an Android foldable said the game drained his battery fast after v0.7.0. Adrian's
+iPhone was fine. Likely cause: two things that only hit his kind of phone.
+
+**What we found:**
+- **120 frames a second.** Many Android phones refresh 90-120 times a second, and Chrome asks
+  the game to draw on every refresh. iPhone Safari asks for 60. So his phone was drawing about
+  twice as many frames as Adrian's, for no visible gain.
+- **A much bigger screen.** Unfolded, his canvas was about 3.6 million pixels vs 1.3 million on
+  an iPhone, so every frame cost almost 3x as much. v0.7.0's heavier effects made that worse.
+- **Reflections** were about 10-15% of the drawing cost in tests. A real cost, but not the main one.
+
+**What we did:**
+- **60fps cap** in `frame()` (`FPS_PLAY`). Extra screen refreshes are skipped. iPhones don't change.
+- **Lower frame rate when little moves:** title and game over draw at 30fps (`FPS_IDLE`), the
+  pause menu at 15 (`FPS_PAUSED`). The resume countdown and the wreck stay at 60.
+- **Pixel budget** per graphics level (`QUALS[].px`, High = 2.3M). Normal phones fit under it and
+  look the same; big screens draw a bit less sharp. Unfolded foldable: 3.65M → 2.3M pixels.
+- **Reflections only on phone-sized screens** (`GLOSS_MAX_AREA`, `glossOn`). Kept on regular phones.
+- Measured on a simulated unfolded foldable: drawing work per second down to roughly a quarter
+  to a third of before (cheaper frames × half as many). iPhone-sized screen: unchanged.
+
+**To check:** ask the friend to reinstall or reopen (it may take two opens to pick up the update)
+and compare. If it's still heavy, next steps: reflections off everywhere, or fewer glows/particles on High.
+
+---
+
 ## [v0.7.0] — 2026-11-05
 
 ### Session 8 — Visual polish pass

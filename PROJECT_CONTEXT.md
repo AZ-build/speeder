@@ -18,10 +18,10 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.7.0 |
+| **Current Version** | v0.7.1 |
 | **Phase** | Prototype / Exploration (friends playing; waiting on feedback) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-05 |
+| **Last Updated** | 2026-11-07 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://az-build.github.io/speeder/ |
 
 ---
@@ -125,7 +125,7 @@ Speeder/
 `DRIFT` how hard turns push you outward · `kMaxAt()` how sharp bends get with distance ·
 `planCourse()` the bend and hill generator · `THEMES` zone colors, sky layers, props and hills ·
 `ZONE_LEN` zone length · `RAMP_*` / `JUMP_T` / `JUMP_G` ramp size and jump feel · `QUALS` what each graphics level turns on ·
-`FAR` draw distance · `TRACK_HALF` track half-width · `PATTERNS` which hazards appear and
+`FAR` draw distance · `FPS_PLAY` / `FPS_IDLE` / `FPS_PAUSED` frame-rate caps · `QUALS[].px` pixel budget · `GLOSS_MAX_AREA` biggest screen that gets reflections · `TRACK_HALF` track half-width · `PATTERNS` which hazards appear and
 from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))`) ·
 steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun levels ·
 `MULT_TIME` 2X duration · `EDGE_START` / `EDGE_BANK` / `EDGE_HALF_W` / `EDGE_YAW` the edge bank and how skinny it gets · `CAM_FOLLOW` how tightly the camera follows sideways · `STEER_EASE` how quickly the speeder glides to your thumb · `LEAN_MAX` / `LEAN_GAIN` the small lean while moving · `SWARM_N` missiles per MISSILES pickup ·
@@ -181,6 +181,8 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 | Leaderboard reads (v0.6.3) | Reuse a recent download; only re-download after a run that could make the top 25 | Free Firebase plan is ~50k reads/day, shared with ORBit. |
 | Built-in browsers (v0.6.3) | Detect TikTok/Instagram etc. and say "Open in browser" | They can't install the game, and the game is being shared on TikTok. |
 | Visual polish (v0.7) | Particles with flashes, shockwaves and debris; 3D enemies; glossy road on High only | Adrian wanted more polish. Heavier effects are tied to the graphics level so older phones skip them. |
+| Frame rate (v0.7.1) | Capped at 60fps; 30 on title/game over, 15 when paused | 120Hz Android phones were drawing twice as often as iPhones and draining battery. |
+| Big screens (v0.7.1) | Pixel budget per graphics level; reflections only on phone-sized screens | An unfolded foldable drew ~3x the pixels of an iPhone. Normal phones are unaffected. |
 | Music speed-up | Play the loop faster (pitch rises too) as speed climbs, capped at +14% | Simple, no extra files, and the rising pitch adds urgency. Trade-off: a pitch-preserving version would need several pre-made copies of the track. |
 
 ---
@@ -214,7 +216,11 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.7.0, 2026-11-05):**
+**Where things stand (after v0.7.1, 2026-11-07):**
+- v0.7.1 fixed battery drain on a friend's Android foldable: 60fps cap, slower redraws on menus,
+  a pixel budget for big screens, reflections only on phone-sized screens. Waiting to hear if it helped.
+
+**Earlier (after v0.7.0, 2026-11-05):**
 - v0.7.0 was a visual polish pass: new explosions and wreck, 3D enemies, glossy road, shield
   bubble, pickup and zone animations, readability fixes. Needs a check on a real mid-range phone
   for frame rate.

@@ -633,7 +633,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.7.0';
+const VERSION = '0.7.1';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -810,11 +810,18 @@ function saveSettings() { storeSet('speeder.settings', JSON.stringify(SET)); }
 
 // ---------- Graphics quality ----------
 // Auto starts on High and steps down by itself if the phone can't keep up.
+// px = the most real screen pixels we draw each frame. A normal phone fits under it and
+// looks exactly as before; big screens (foldables opened up, tablets) get drawn at a
+// slightly lower sharpness so they don't do 2-3x the work of a phone.
 const QUALS = [
-  { name: 'Low',  dprCap: 1,   scn: 0.5,  grid: 5, streaks: 26, trails: false, nebula: false, fx: 0.5,  gloss: false },
-  { name: 'Med',  dprCap: 1.5, scn: 0.75, grid: 7, streaks: 36, trails: true,  nebula: true,  fx: 0.75, gloss: false },
-  { name: 'High', dprCap: 2,   scn: 1,    grid: 9, streaks: 46, trails: true,  nebula: true,  fx: 1,    gloss: true },
+  { name: 'Low',  dprCap: 1,   px: 1.0e6, scn: 0.5,  grid: 5, streaks: 26, trails: false, nebula: false, fx: 0.5,  gloss: false },
+  { name: 'Med',  dprCap: 1.5, px: 1.6e6, scn: 0.75, grid: 7, streaks: 36, trails: true,  nebula: true,  fx: 0.75, gloss: false },
+  { name: 'High', dprCap: 2,   px: 2.3e6, scn: 1,    grid: 9, streaks: 46, trails: true,  nebula: true,  fx: 1,    gloss: true },
 ];
+// The glossy road is only drawn on phone-sized screens (screen area in CSS pixels).
+// On a big screen it covers so much more area that it isn't worth the battery.
+const GLOSS_MAX_AREA = 560000;
+let glossOn = false;
 let qLevel = SET.gfx === 'low' ? 0 : 2;
 let QUAL = QUALS[qLevel];
 
@@ -828,9 +835,11 @@ const OS = 90;         // overscan, so leaning the camera never shows the canvas
 const cam = { x: 0 };
 
 function resize() {
-  DPR = Math.min(window.devicePixelRatio || 1, QUAL.dprCap);
   W = window.innerWidth;
   H = window.innerHeight;
+  // sharpness: the screen's own, capped by the graphics level and by the pixel budget
+  DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, QUAL.dprCap, Math.sqrt(QUAL.px / Math.max(1, W * H))));
+  glossOn = QUAL.gloss && W * H <= GLOSS_MAX_AREA;
   cvs.width = Math.round(W * DPR);
   cvs.height = Math.round(H * DPR);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -1619,7 +1628,7 @@ function drawGround() {
   ctx.fillStyle = rgba(PAL.accent, 0.05);
   ctx.fill();
   ctx.globalCompositeOperation = 'source-over';
-  if (QUAL.gloss) drawGloss();
+  if (glossOn) drawGloss();
 
   // lane lines running down the track
   ctx.strokeStyle = rgba(PAL.grid, 0.22);
@@ -1738,7 +1747,7 @@ function drawGround() {
   ctx.globalAlpha = 1;
 }
 
-/* ---------- Glossy track (High graphics) ----------
+/* ---------- Glossy track (High graphics, phone-sized screens only: see GLOSS_MAX_AREA) ----------
    The road is polished like wet glass: the sky glows in it near the horizon, the sun
    lays a broken column of light down it, and the rails and their lamps show upside down.
    Everything is clipped to the road, which is still the current path when this runs. */
@@ -1796,7 +1805,7 @@ function drawGloss() {
 }
 // a light source's reflection on the glossy road: a soft streak below it
 function reflect(spr, x, h, z, w, a) {
-  if (!QUAL.gloss || z < 1.2) return;
+  if (!glossOn || z < 1.2) return;
   const s = FOCAL / z;
   ctx.globalCompositeOperation = 'lighter';
   glow(spr, sx(x, z), sy(-h, z), w * s, Math.max(w, h * 0.8) * s, a);
@@ -3990,7 +3999,7 @@ function drawPlayer() {
   ctx.beginPath(); ctx.ellipse(px, gyy, 0.6 * s * air * thin, 0.09 * s * air, 0, 0, Math.PI * 2); ctx.fill();
   ctx.globalCompositeOperation = 'lighter';
   glow(SPR.cyan, px, gyy, 0.95 * s * air * thin, 0.18 * s * air, 0.5 * air);
-  if (QUAL.gloss && !blink) {
+  if (glossOn && !blink) {
     // the speeder mirrored in the road: a violet smear of the hull and a streak per engine
     const rh = 0.42 + player.y;
     glow(SPR.violet, px, sy(-rh, z), 0.55 * s * thin, 0.4 * s, 0.3 * air);
@@ -6083,8 +6092,24 @@ function watchPerf(raw) {
 }
 
 // ---------- Main loop ----------
-let last = performance.now();
+// Many Android phones (foldables especially) refresh 90 or 120 times a second, and the
+// browser asks us for a new frame every time. iPhones ask for 60. Drawing 120 frames
+// a second looks no better here but costs twice the battery, so we cap the game at 60,
+// and draw less often on screens where little is moving (title, game over, paused).
+const FPS_PLAY = 60, FPS_IDLE = 30, FPS_PAUSED = 15;
+let last = performance.now(), lastTick = last, frameAcc = 0;
+function frameGap() {
+  if (paused && resumeT <= 0) return 1000 / FPS_PAUSED;
+  if (G.state === 'title' || G.state === 'over') return 1000 / FPS_IDLE;
+  return 1000 / FPS_PLAY;
+}
 function frame(now) {
+  requestAnimationFrame(frame);
+  frameAcc += now - lastTick;
+  lastTick = now;
+  const gap = frameGap();
+  if (frameAcc < gap - 2.5) return;           // too soon: skip this screen refresh
+  frameAcc = Math.min(Math.max(0, frameAcc - gap), gap);
   let dt = (now - last) / 1000;
   last = now;
   watchPerf(dt);
@@ -6098,7 +6123,6 @@ function frame(now) {
   if (!paused) update(dt);
   else audioEngine();
   render();
-  requestAnimationFrame(frame);
 }
 
 applySound();
