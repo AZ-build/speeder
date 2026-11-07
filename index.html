@@ -629,6 +629,8 @@ const EDGE_START = 2.8;     // how far from the middle the bank begins (rail is 
 const EDGE_BANK = 1.2;      // roll at the rail (radians, about 70°)
 const EDGE_HALF_W = 0.15;   // collision half-width when fully on its side (half the normal)
 const EDGE_YAW = 0.25;      // how much the nose points back toward the middle while banked
+const CAM_FOLLOW = 6;       // how quickly the camera eases after the speeder sideways (v0.7.1 feel; higher = tighter)
+const AIM_AHEAD = 31;       // the camera looks this far past the speeder into each turn (v0.7.1 feel)
 const STEER_EASE = 14;      // how quickly the speeder glides to where your thumb is (higher = snappier)
 const LEAN_MAX = 0.35;      // most the speeder leans while moving across the track (radians, about 20°)
 const LEAN_GAIN = 0.07;     // how quickly that lean builds with sideways speed
@@ -642,7 +644,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.7.4';
+const VERSION = '0.7.5';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -884,6 +886,8 @@ function fitView(gap) {
   const halfView = (W / 2) / ppu;                          // world units visible each side of center
   const lim = TRACK_HALF - 0.45;
   CAM_TRACK = clamp((full - halfView) / lim, 0, 1);
+  // phones follow like v0.7.1 (85% of your sideways move); screens that show the whole track barely move
+  if (CAM_TRACK >= 0.5) CAM_TRACK = Math.max(CAM_TRACK, 0.85);
 }
 
 /* ---------- Track shape: curves and hills ----------
@@ -1020,8 +1024,9 @@ function buildView(dt) {
     slope += kc * SEG;
     bendX[i] = lat;
   }
-  // keep the track centered on screen at the speeder's row, even in bends (camera locked to the middle)
-  const aim = lx(PLAYER_Z) / PLAYER_Z;
+  // the camera looks a little into each turn (as in v0.7.1)
+  const aimZ = PLAYER_Z + AIM_AHEAD;
+  const aim = lx(aimZ) / aimZ;
   for (let i = 1; i < NS; i++) bendX[i] -= i * SEG * aim;
   bendXEnd = slope - aim;
 
@@ -2969,7 +2974,8 @@ function update(dt) {
     player.edge = u * u * (3 - 2 * u);
     player.bank = player.lean - Math.sign(player.x) * EDGE_BANK * player.edge;
   }
-  cam.x = player.x * CAM_TRACK;   // moves in lockstep with the speeder: no lag, no drift
+  // eases after the speeder with a slight lag, so it feels smooth (as in v0.7.1)
+  cam.x += (player.x * CAM_TRACK - cam.x) * (1 - Math.exp(-dt * CAM_FOLLOW));
 
   // In the air: gravity pulls you back down; you can still steer.
   if (player.y > 0 || player.vy > 0) {

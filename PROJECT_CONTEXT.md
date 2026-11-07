@@ -18,7 +18,7 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.7.4 |
+| **Current Version** | v0.7.5 |
 | **Phase** | Prototype / Exploration (friends playing; waiting on feedback) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-07 |
@@ -128,7 +128,7 @@ Speeder/
 `FAR` draw distance · `FPS_PLAY` / `FPS_IDLE` / `FPS_PAUSED` frame-rate caps · `QUALS[].px` pixel budget · `GLOSS_MAX_AREA` biggest screen that gets reflections · `TRACK_HALF` track half-width · `PATTERNS` which hazards appear and
 from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))`) ·
 steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun levels ·
-`MULT_TIME` 2X duration · `EDGE_START` / `EDGE_BANK` / `EDGE_HALF_W` / `EDGE_YAW` the edge bank and how skinny it gets · `VIEW_TAN` / `VIEW_SHARE` / `FIT_WIDE` / `VIEW_MAX_H` camera angle, how close it is, and big-screen fit (`fitView()`) · `CAM_TRACK` how much the camera copies your sideways move · `STEER_EASE` how quickly the speeder glides to your thumb · `LEAN_MAX` / `LEAN_GAIN` the small lean while moving · `SWARM_N` missiles per MISSILES pickup ·
+`MULT_TIME` 2X duration · `EDGE_START` / `EDGE_BANK` / `EDGE_HALF_W` / `EDGE_YAW` the edge bank and how skinny it gets · `VIEW_TAN` / `VIEW_SHARE` / `FIT_WIDE` / `VIEW_MAX_H` camera angle, how close it is, and big-screen fit (`fitView()`) · `CAM_TRACK` how much the camera follows your sideways move · `CAM_FOLLOW` how quickly it eases after you · `AIM_AHEAD` how far it looks into turns · `STEER_EASE` how quickly the speeder glides to your thumb · `LEAN_MAX` / `LEAN_GAIN` the small lean while moving · `SWARM_N` missiles per MISSILES pickup ·
 `MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch ·
 `PART_MAX` particle cap · `QUALS[].fx` / `QUALS[].gloss` particle amount and glossy road per graphics level · `DRONE_MESH` / `RAM_MESH` / `TURRET_BASE` / `TURRET_HEAD` enemy models · `drawGloss()` road reflections · `drawShield()` shield bubble · `G.slowmo` wreck slow motion ·
 `GC_CODE` analytics on/off (GoatCounter site code, now `speeder`; dashboard https://speeder.goatcounter.com) · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
@@ -181,7 +181,7 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 | Leaderboard reads (v0.6.3) | Reuse a recent download; only re-download after a run that could make the top 25 | Free Firebase plan is ~50k reads/day, shared with ORBit. |
 | Built-in browsers (v0.6.3) | Detect TikTok/Instagram etc. and say "Open in browser" | They can't install the game, and the game is being shared on TikTok. |
 | Visual polish (v0.7) | Particles with flashes, shockwaves and debris; 3D enemies; glossy road on High only | Adrian wanted more polish. Heavier effects are tied to the graphics level so older phones skip them. |
-| Camera fit (v0.7.3) | Close chase camera, ~1.5x farther back than v0.7.1; moves in lockstep with the speeder, only enough to keep the near rail on screen; wide screens show the whole track (≤85% width) and don't move | v0.7.2 fit the whole track on phones but was too zoomed out: lost the feel of flying. A close camera can't show both rails, so the near rail is what's guaranteed. |
+| Camera fit (v0.7.5) | Close chase camera, ~1.5x farther back than v0.7.1; eases after the speeder (85% follow, slight lag) and looks into turns, as in v0.7.1; wide screens show the whole track (≤85% width) and don't move | v0.7.2 fit the whole track on phones but was too zoomed out: lost the feel of flying. A close camera can't show both rails. v0.7.3's lag-free lockstep camera felt stiff, so the v0.7.1 smoothing is back. |
 | Steering (v0.7.4) | Crossing the track takes a drag of nearly the full screen width (capped at 520 points) | Tried thumb-distance steering in v0.7.2 (~230 points to cross); Adrian found it too touchy. |
 | Frame rate (v0.7.1) | Capped at 60fps; 30 on title/game over, 15 when paused | 120Hz Android phones were drawing twice as often as iPhones and draining battery. |
 | Big screens (v0.7.1) | Pixel budget per graphics level; reflections only on phone-sized screens | An unfolded foldable drew ~3x the pixels of an iPhone. Normal phones are unaffected. |
@@ -218,8 +218,8 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.7.3, 2026-11-07):**
-- v0.7.3: close camera with a slight pull-back, no camera lag, near rail always visible,
+**Where things stand (after v0.7.5, 2026-11-07):**
+- v0.7.5: v0.7.1's smooth camera feel with a slight pull-back so the near rail shows,
   original steering feel (v0.7.4). (v0.7.2's full zoom-out and quicker steering were both too much.) Needs a feel check on real phones.
 
 **Earlier (after v0.7.1, 2026-11-07):**

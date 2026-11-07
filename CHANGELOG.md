@@ -4,6 +4,15 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.7.5] — 2026-11-07
+
+- **Camera feel back to v0.7.1.** v0.7.3's lockstep camera felt stiff. The camera again eases
+  after the speeder with a slight lag (`CAM_FOLLOW` 6), follows 85% of your sideways move on
+  phones, and looks a little into each turn (`AIM_AHEAD` 31). The only camera change left from
+  v0.7.1 is the slight pull-back (`VIEW_SHARE`) and the big-screen fit (`FIT_WIDE`).
+
+---
+
 ## [v0.7.4] — 2026-11-07
 
 - **Steering back to the original feel.** v0.7.2's thumb-distance steering was too touchy.
