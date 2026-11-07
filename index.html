@@ -606,16 +606,18 @@ const ctx = cvs.getContext('2d');
 const $ = (id) => document.getElementById(id);
 
 // ---------- Tuning ----------
-// Camera (v0.7.2): it sits behind and above the speeder, always pointed at the middle of the
-// track, and is pulled back far enough that BOTH rails fit on screen at the speeder's row.
-// Its height and distance are worked out per screen in resize() (see fitView), keeping the
-// same viewing angle, so the road ahead looks the same and only the near view zooms out.
+// Camera (v0.7.3): close chase camera, pulled back a little from v0.7.1. Its height and
+// distance are worked out per screen in resize() (see fitView), keeping the same viewing
+// angle, so the road ahead looks the same and only the near view changes.
+// Sideways it moves in lockstep with the speeder (no lag), only as far as needed to keep
+// the rail you're next to on screen. Wide screens that can show the whole track don't move.
 const VIEW_TAN = 2.6 / 9;   // camera height ÷ distance behind the speeder (the viewing angle)
-const FIT_NARROW = 0.92;    // share of the screen width the track fills on a normal phone
-const FIT_WIDE = 0.7;       // ...and on wide screens (tablets, unfolded foldables)
-const FIT_MAX_H = 0.065;    // cap on zoom for wide screens: pixels per track unit, as a share of screen height
+const VIEW_SHARE = 0.38;    // share of the track's width visible at the speeder's row on a phone (v0.7.1 was ~0.27)
+const VIEW_MAX_H = 0.104;   // zoom cap: pixels per track unit as a share of screen height (keeps big screens as close as phones)
+const FIT_WIDE = 0.85;      // wide screens (tablets, unfolded foldables): the whole track fills at most this share of the width
 let CAM_H = 2.6;            // camera height above the ground (set in resize)
 let PLAYER_Z = 9;           // how far in front of the camera the speeder sits (set in resize)
+let CAM_TRACK = 0;          // how much of the speeder's sideways move the camera copies (set in resize)
 const SHIP_AT = 0.6;        // where the speeder sits on screen (0 = top, 1 = bottom), portrait
 const FAR = 240;            // draw distance
 const SPAWN_AHEAD = 250;    // new things appear this far ahead
@@ -641,7 +643,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.7.2';
+const VERSION = '0.7.3';
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -865,16 +867,24 @@ function resize() {
   buildBackdrop();
 }
 
-// Zoom so the whole track (rail to rail) fits across the screen at the speeder's row.
-// Narrow phones: the track fills ~92% of the width. Wider screens (tablets, unfolded
-// foldables, desktop) fill less, and the height cap stops the track getting huge there,
-// so the scenery still shows at the sides.
+// Zoom: phones see VIEW_SHARE of the track's width at the speeder's row. Wide screens
+// (tablets, unfolded foldables) blend toward showing the whole track at FIT_WIDE of the
+// width, so it never fills the whole screen; VIEW_MAX_H keeps desktops from zooming in more
+// than a phone does.
 function fitView(gap) {
-  const u = clamp((W / H - 0.5) / 0.3, 0, 1);
-  const frac = FIT_NARROW + (FIT_WIDE - FIT_NARROW) * u * u * (3 - 2 * u);
-  const ppu = Math.min(W * frac / 2 / (TRACK_HALF + 0.35), H * FIT_MAX_H);   // pixels per unit at the speeder
+  const full = TRACK_HALF + 0.35;                          // half the track, rail glow included
+  const phone = (W / 2) / (full * VIEW_SHARE);             // pixels per unit, phone rule
+  const whole = W * FIT_WIDE / 2 / full;                   // pixels per unit that fit the whole track
+  const u = clamp((W / H - 0.55) / 0.2, 0, 1);
+  const wide = Math.max(whole, Math.min(phone, H * VIEW_MAX_H));
+  let ppu = phone + (Math.min(phone, whole) - phone) * u * u * (3 - 2 * u);
+  ppu = Math.min(ppu, H * VIEW_MAX_H, Math.max(phone, wide));
   CAM_H = gap / ppu;
   PLAYER_Z = CAM_H / VIEW_TAN;
+  // camera copies just enough of your sideways move that the rail you're next to stays in view
+  const halfView = (W / 2) / ppu;                          // world units visible each side of center
+  const lim = TRACK_HALF - 0.45;
+  CAM_TRACK = clamp((full - halfView) / lim, 0, 1);
 }
 
 /* ---------- Track shape: curves and hills ----------
@@ -2960,7 +2970,7 @@ function update(dt) {
     player.edge = u * u * (3 - 2 * u);
     player.bank = player.lean - Math.sign(player.x) * EDGE_BANK * player.edge;
   }
-  cam.x = 0;   // the camera stays locked to the middle of the track; only the speeder moves
+  cam.x = player.x * CAM_TRACK;   // moves in lockstep with the speeder: no lag, no drift
 
   // In the air: gravity pulls you back down; you can still steer.
   if (player.y > 0 || player.vy > 0) {
@@ -4323,7 +4333,7 @@ function drawMesh(m, T, alpha, edgeW) {
 /* ---------- The speeder model ----------
    A low arrowhead hull with a glass canopy, two engine pods on short wings and
    twin tail fins, so it reads clearly from behind even at speed. */
-const SHIP_SCALE = 1.2;          // drawn a bit bigger than its hit area (v0.7.2) so it reads well with the wider view
+const SHIP_SCALE = 1.0;          // a little bigger than v0.7.1's 0.8, so it keeps its size with the slight pull-back
 const SHIP_TILT = -0.3;            // nose tipped up a little so the low camera can see its deck
 const SHIP_POD_X = 0.43;            // engine pods, left and right of the hull
 const SHIP = (() => {

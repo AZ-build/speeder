@@ -4,6 +4,29 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.7.3] — 2026-11-07
+
+### Session 10b — Back to the close camera, just pulled back a little
+
+v0.7.2 zoomed out too far (camera ~4x farther back): Adrian lost the feeling of flying the
+speeder. He liked the tight, close view and only wanted a slight pull-back.
+
+- **Close camera, slight pull-back.** On phones the camera is ~1.5x farther back than v0.7.1
+  (was 4x in v0.7.2): you see about 38% of the track's width at the speeder instead of ~27%.
+  Knob: `VIEW_SHARE`.
+- **Camera moves in lockstep, no lag.** With a close camera both rails can't fit at once, so the
+  camera copies just enough of your sideways move to keep the rail you're next to on screen,
+  and it moves exactly with the speeder (no sliding or catch-up after you stop). `CAM_TRACK`
+  is worked out per screen in `fitView()`.
+- **Wide screens** (unfolded foldables, tablets): show the whole track at up to 85% of the
+  width, so the camera never needs to move and the track never fills the screen.
+  Desktops stay as close as a phone. Knobs: `FIT_WIDE`, `VIEW_MAX_H`.
+- Speeder drawn at `SHIP_SCALE` 1.0 (v0.7.1 0.8, v0.7.2 1.2).
+- Kept from v0.7.2: one-swipe steering by thumb distance (`STEER_CROSS`), bends keep the
+  track centered at the speeder, drones from behind start off-screen.
+
+---
+
 ## [v0.7.2] — 2026-11-07
 
 ### Session 10 — Camera locked to the middle, whole track on screen
