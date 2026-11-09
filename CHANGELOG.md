@@ -4,6 +4,19 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.7.7] — 2026-11-08
+
+- **Foldables steer like phones.** Adrian's friend on an unfolded Android fold had to lift his
+  thumb to cross the track. Steering scaled with screen width up to 520 points, so on an
+  unfolded fold a full cross took ~3.1 in of thumb travel vs ~2.3 in on an iPhone 13. Now
+  capped at 400 points (`STEER_MAX_W`), so wide screens need the same thumb travel as an
+  iPhone. Phones up to 400 points wide (iPhone 13/14/15/16, most Androids) are unchanged;
+  Plus/Pro Max iPhones are ~7–9% lighter.
+- Why he noticed now: v0.7.2–v0.7.3 (same session, 2026-11-07) briefly had much lighter
+  steering (~1.4 in to cross). He got used to it; v0.7.4 put the original back.
+
+---
+
 ## [v0.7.6] — 2026-11-07
 
 - **Camera setting.** Settings → Camera cycles Close / Normal / Far / Full track and re-fits

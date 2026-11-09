@@ -18,7 +18,7 @@ fire on their own.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.7.6 |
+| **Current Version** | v0.7.7 |
 | **Phase** | Prototype / Exploration (friends playing; waiting on feedback) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-07 |
@@ -183,7 +183,7 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 | Visual polish (v0.7) | Particles with flashes, shockwaves and debris; 3D enemies; glossy road on High only | Adrian wanted more polish. Heavier effects are tied to the graphics level so older phones skip them. |
 | Camera fit (v0.7.5) | Close chase camera, ~1.5x farther back than v0.7.1; eases after the speeder (85% follow, slight lag) and looks into turns, as in v0.7.1; wide screens show the whole track (≤85% width) and don't move | v0.7.2 fit the whole track on phones but was too zoomed out: lost the feel of flying. A close camera can't show both rails. v0.7.3's lag-free lockstep camera felt stiff, so the v0.7.1 smoothing is back. |
 | Camera setting (v0.7.6) | Players pick Close / Normal / Far / Full track; Normal is the default | People disagree on close-and-thrilling vs seeing the whole track; a setting lets each player choose. |
-| Steering (v0.7.4) | Crossing the track takes a drag of nearly the full screen width (capped at 520 points) | Tried thumb-distance steering in v0.7.2 (~230 points to cross); Adrian found it too touchy. |
+| Steering (v0.7.7) | Crossing the track takes a drag of nearly the full screen width on a phone; capped at 400 points (`STEER_MAX_W`) so foldables/tablets need the same thumb travel as an iPhone | Tried thumb-distance steering in v0.7.2 (~230 points to cross); Adrian found it too touchy. The old 520-point cap made unfolded folds need ~3.1 in of thumb travel. |
 | Frame rate (v0.7.1) | Capped at 60fps; 30 on title/game over, 15 when paused | 120Hz Android phones were drawing twice as often as iPhones and draining battery. |
 | Big screens (v0.7.1) | Pixel budget per graphics level; reflections only on phone-sized screens | An unfolded foldable drew ~3x the pixels of an iPhone. Normal phones are unaffected. |
 | Music speed-up | Play the loop faster (pitch rises too) as speed climbs, capped at +14% | Simple, no extra files, and the rising pitch adds urgency. Trade-off: a pitch-preserving version would need several pre-made copies of the track. |
@@ -219,7 +219,8 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.7.6, 2026-11-07):**
+**Where things stand (after v0.7.7, 2026-11-08):**
+- v0.7.7: unfolded foldables now steer with the same thumb travel as an iPhone.
 - v0.7.6 added a Camera setting (Close = v0.7.1, Normal default, Far, Full track).
 - v0.7.5: v0.7.1's smooth camera feel with a slight pull-back so the near rail shows,
   original steering feel (v0.7.4). (v0.7.2's full zoom-out and quicker steering were both too much.) Needs a feel check on real phones.
