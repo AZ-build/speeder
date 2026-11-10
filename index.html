@@ -41,11 +41,14 @@
     font-family: 'Orbitron', system-ui, -apple-system, 'Segoe UI', sans-serif;
     color: #fff;
   }
+  /* --app-h is the real height of the screen, set from the script (see measureScreen):
+     an installed iPhone app can report a height that is too short by the status bar. */
   canvas {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
     width: 100vw;
-    height: 100vh;
+    height: var(--app-h, 100vh);
     display: block;
   }
   #safe {
@@ -59,7 +62,10 @@
   }
   .overlay {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--app-h, 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -71,11 +77,27 @@
     box-sizing: border-box;
   }
   .hidden { display: none !important; }
-  .spacer { flex: 1 1 auto; min-height: 150px; }
+  /* the gap on the title screen where the speeder shows through: it gives way on short
+     screens, so the buttons and the version line under it always fit */
+  .spacer { flex: 1 1 auto; min-height: 12px; }
   #title {
     justify-content: flex-start;
     padding-top: calc(env(safe-area-inset-top, 0px) + 11vh);
     background: linear-gradient(to bottom, rgba(8, 2, 24, 0.55), rgba(8, 2, 24, 0) 40%, rgba(8, 2, 24, 0) 55%, rgba(8, 2, 24, 0.75));
+  }
+  @media (max-height: 740px) {
+    #title { padding-top: calc(env(safe-area-inset-top, 0px) + 6vh); gap: 10px; }
+    #title .how { margin-top: 8px; font-size: 14px; line-height: 1.7; }
+  }
+  @media (max-height: 610px) {
+    #title { padding-top: calc(env(safe-area-inset-top, 0px) + 3vh); gap: 8px; }
+    #title .how { display: none; }
+  }
+  @media (max-height: 460px) {
+    /* a phone on its side */
+    #title { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); gap: 6px; }
+    #title .logo { font-size: 38px; }
+    #title .tag { display: none; }
   }
   .logo {
     font-weight: 800;
@@ -681,7 +703,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.9.0';
+const VERSION = '0.9.1';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -938,9 +960,42 @@ let ROLL = 0;          // camera lean in turns (radians)
 const OS = 90;         // overscan, so leaning the camera never shows the canvas edge
 const cam = { x: 0 };
 
+// The size of the screen and how much of its top is taken by the notch / status bar.
+// Two iPhone quirks in an app installed to the Home Screen are handled here:
+//  - the window can say it is shorter than the screen by the height of the status bar,
+//    which left a dead strip along the bottom. The real screen height is used instead.
+//  - the notch size can read as zero for a moment at launch (and no "resize" follows when
+//    it settles), which put the score under the clock. If the window is short by the
+//    status bar, that shortfall IS the notch size; and checkSize() re-measures regularly.
+function measureScreen() {
+  const w = window.innerWidth;
+  let h = window.innerHeight;
+  let safe = $('safe').offsetHeight || 0;
+  if (IS_IOS && isInstalled()) {
+    const full = h > w ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+    const short = full - h;
+    if (short > 0 && short < 90) {       // (a bigger difference is a real smaller window, e.g. iPad split view)
+      h = full;
+      if (h > w) safe = Math.max(safe, short);
+    }
+  }
+  return { w, h, safe };
+}
+// Screens change without always telling us (see above): look again a few times a second.
+let sizeCheckT = 0;
+function checkSize(dt) {
+  sizeCheckT -= dt;
+  if (sizeCheckT > 0) return;
+  sizeCheckT = 0.3;
+  const m = measureScreen();
+  if (m.w !== W || m.h !== H || m.safe !== SAFE_TOP) resize();
+}
+
 function resize() {
-  W = window.innerWidth;
-  H = window.innerHeight;
+  const m = measureScreen();
+  W = m.w;
+  H = m.h;
+  document.documentElement.style.setProperty('--app-h', H + 'px');
   // sharpness: the screen's own, capped by the graphics level and by the pixel budget
   DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, QUAL.dprCap, Math.sqrt(QUAL.px / Math.max(1, W * H))));
   glossOn = QUAL.gloss && W * H <= GLOSS_MAX_AREA;
@@ -957,7 +1012,7 @@ function resize() {
   BASE_FOCAL = gap * PLAYER_Z / CAM_H;
   FOCAL = BASE_FOCAL;
   SHIP_Y = HORIZON + CAM_H * BASE_FOCAL / PLAYER_Z;
-  SAFE_TOP = $('safe').offsetHeight || 0;
+  SAFE_TOP = m.safe;
   buildBackdrop();
 }
 
@@ -8264,6 +8319,8 @@ document.addEventListener('visibilitychange', () => {
 });
 
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => { sizeCheckT = 0; });
+window.addEventListener('pageshow', () => { sizeCheckT = 0; });
 window.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // ---------- Install (PWA) ----------
@@ -8374,6 +8431,7 @@ function frame(now) {
   frameAcc = Math.min(Math.max(0, frameAcc - gap), gap);
   let dt = (now - last) / 1000;
   last = now;
+  checkSize(dt);
   watchPerf(dt);
   if (dt > 0.05) dt = 0.05;
   if (G.slowmo > 0) {

@@ -4,6 +4,33 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.9.1] — 2026-11-10
+
+### Session 12b — iPhone screen fit
+
+Adrian's screenshots from the installed app on his iPhone showed three things: a dead strip
+along the bottom of every screen, the title screen cut off below "How to play" (no version
+line), and in a run the score sitting under the iPhone's clock with the speed and loop
+readout behind the pause and sound buttons.
+
+- **Title screen always fits.** Since v0.8 added the two mode buttons it was taller than any
+  phone under about 770 points, and the bottom was simply cut off (on an iPhone SE too, not
+  only Adrian's). The gap where the speeder shows through now gives way first, the hints
+  shrink and then hide on short screens, and a phone on its side gets a compact layout.
+- **Score under the clock.** The game reads the notch size once at launch; on an installed
+  iPhone app that reading can come back as zero for a moment, with no "resize" afterwards.
+  The game now re-measures a few times a second (`checkSize`) and, when the window is short
+  by the status bar, uses that shortfall as the notch size (`measureScreen`).
+- **Dead strip along the bottom.** An installed iPhone app can report a window shorter than
+  the screen by the height of the status bar. The game now uses the real screen height there
+  (`measureScreen`, `--app-h`). Had been there in earlier versions too.
+
+**Tested** in the test browser at seven screen sizes and with the iPhone's wrong height faked.
+**Not verified on a real iPhone:** the bottom strip is a quirk of iOS itself, so that fix is
+a best attempt until Adrian checks it. The other two don't depend on it.
+
+---
+
 ## [v0.9.0] — 2026-11-10
 
 ### Session 12 — Warp Run after Adrian's first playtest

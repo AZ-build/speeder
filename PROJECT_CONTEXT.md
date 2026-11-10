@@ -22,7 +22,7 @@ endless run, kept exactly as it was in v0.7.7.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.9.0 |
+| **Current Version** | v0.9.1 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-10 |
@@ -289,6 +289,11 @@ See `CHANGELOG.md` for a full session-by-session history.
   three-stage Warden, cells that stay on the road, fairer slalom and lasers at top speed, the
   laser pass-through bug, a limit on rail riding, real-looking city buildings plus roadside
   details in every world, and a Warp board reset.
+- v0.9.1 (same day) fixed screen fit on Adrian's installed iPhone app: the title screen now
+  always fits (version line visible), the HUD no longer slides under the clock (the notch size
+  is re-measured, `checkSize` / `measureScreen`), and the game uses the real screen height
+  where iOS reports a window short by the status bar (`--app-h`). **The bottom-strip part is
+  unverified on a real iPhone**: ask Adrian whether the dark strip along the bottom is gone.
 - v0.9 was tested by automated drivers and screenshots only. **No human has played it yet**:
   the boss, the 40-second worlds and the rail limit are first guesses.
 - The Warp board is reset by version (`W_BOARD_MIN_V = '0.9.0'`). Adrian's two v0.8 test
