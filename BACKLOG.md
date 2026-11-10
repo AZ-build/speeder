@@ -16,6 +16,8 @@ on right now. Add anything here so it doesn't get lost.
 - [x] ~~**Zone boss at the end of each loop**~~ Done in v0.8 (the Warden, Warp Run).
 - [ ] **A different boss per loop** (v0.8 has one boss that gets faster and angrier).
 - [x] ~~**Near-miss bonus**~~ Done in v0.8 for Warp Run ("close calls"). Not in Classic.
+- [ ] **Each run starts by loading in** the first world the way a world gate does (v0.9's effect), instead of it just being there.
+- [ ] **Rail riding in Classic**: v0.9's rail overheat is Warp Run only, to keep Classic as it was.
 - [ ] **Warp Run: more per-world set pieces**: a crystal cave, a canyon in the desert, a space station to fly through.
 - [ ] **Warp Run: roadside markers** for your best distance and the next leaderboard rival.
 - [ ] **Warp Run: more prototypes** (side guns, a drone wingman, a one-time revive).

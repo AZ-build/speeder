@@ -17,15 +17,19 @@ actually working on right now?
 - [ ] **Adrian:** collect friends' feedback (Share & challenge, moving obstacles, missiles, banking)
 - [x] v0.8.0: Classic and Warp Run modes; five worlds with their own hazards; warp gates; the Warden boss; loops; power cells, OVERDRIVE, close calls, prototypes; mode analytics
 - [x] **Adrian:** Warp Run leaderboard rules published (2026-11-10); `firestore-rules-FULL.txt` is the whole page
-- [ ] Confirm a Warp Run score saves to the world board from a real run
-- [ ] **Adrian:** play Warp Run and note what feels too easy, too hard or unclear
+- [x] Warp Run scores save to the world board (Adrian's two test runs showed up, 2026-11-10)
+- [x] **Adrian:** played Warp Run and gave notes (2026-11-10)
+- [x] v0.9.0: world gates you see through and worlds that load in; 40-second worlds; three-stage Warden; cells stay on the road; fairer slalom and lasers at top speed; laser pass-through fix; rail overheat; city buildings and roadside details; Warp board reset
+- [ ] **Adrian:** play v0.9 and say how these feel: the gates, the boss, 40 s per world, the rail limit
+- [ ] **Adrian (optional):** delete the two v0.8 test entries in the Firebase console (they're already hidden from the board)
+- [ ] Check v0.9's frame rate on a real mid-range phone (new buildings and roadside props)
 
 ---
 
 ## ⏭️ Next Up
 
 - [ ] Tune feel from playtest notes (steering speed default, speed curve, spawn spacing)
-- [ ] Tune Warp Run from Adrian's playtest (speed per loop, boss health, hazard mix per world)
+- [ ] Tune Warp Run from Adrian's v0.9 playtest (`W_WORLD_T`, `BOSS_TOUGH`, `BOSS_PACE`, `RAIL_HOT_T`, slalom and laser spacing)
 - [ ] Decide the next big feature: a second boss, music per world, or more set pieces (see BACKLOG)
 - [ ] Name filter for rude leaderboard names
 

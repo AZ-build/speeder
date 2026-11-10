@@ -117,7 +117,7 @@ only works from the hosted web address, not from a file on your computer.
 | **Pause** | The ❚❚ button, top right. Opens Leaderboard and Settings too |
 
 **Modes:** pick **WARP RUN** or **CLASSIC** on the title screen. Warp Run has five worlds with their
-own hazards, a warp gate between each, a boss after the fifth, and loops that get faster and
+own hazards, a world gate between each (you can see the next world through it), a boss after the fifth, and loops that get faster and
 multiply your score. Classic is the original endless run. Each has its own leaderboard.
 The How to play page in the game explains everything in Warp Run.
 

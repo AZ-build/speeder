@@ -4,6 +4,100 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.9.0] — 2026-11-10
+
+### Session 12 — Warp Run after Adrian's first playtest
+
+Adrian played Warp Run and liked it, but it "doesn't feel done". His notes: the world
+transitions feel cheap (a wormhole that looks overlaid on the game, then a hyperspace tube);
+worlds go by too fast, 10-15 seconds in high loops; the boss is too easy; the green gems float
+along with you instead of staying where the enemy died; slalom walls and sliding laser fences
+are too hard at top speed; sometimes you pass straight through a laser fence without being
+hurt; the worlds could be more immersive (city buildings don't look like buildings up close);
+you can ride the wall through a whole zone; and his two test scores should come off the board.
+
+- **World gates replace the wormhole and the hyperspace tube.** Each world now ends at a gate
+  built across the road: two pillars and a top beam (`drawPortal`, `GATE_*`). Its opening is a
+  **window onto the next world**: that world's sky, ground and road, lined up with this one.
+  You fly through it and you're there. There is no flash and no jump: the world changes at the
+  moment the window fills the whole screen (`enterWorld`), a moment after the speeder itself
+  has gone through.
+- **The new world loads in around you** over about 1.5 seconds (`REZ_T`): the road is there
+  at once, the sky switches on piece by piece (stars, mountains, skyline, sun: `REZ_AT`), and
+  the scenery rises out of the ground in a wave that spreads away from you (`rezWave`). A few
+  bars of static for the first third of a second. No strobing: each piece blinks once, softly.
+- **No more dead time around a gate.** The road runs straight through it, there are about two
+  seconds of clear road after it, and then hazards start again. The world's name card comes
+  once the world has loaded in, after the WORLD CLEARED message. Before: a white flash,
+  1.9 seconds in a tube, another flash.
+- **Worlds last about 40 seconds in every loop** (`W_WORLD_T`). A world's length is now worked
+  out from the speed you'll be doing in it (`sectorLen`), never shorter than the old 3.4 km.
+  Loop 1: about 55 s for the first world, then 40 s each. Loop 5: 40 s each instead of ~15 s.
+  Tunnels and crosswinds stretch with the world. A full loop is now about 4 minutes.
+- **The Warden is a real fight** (`BOSS_SEQ`, `BOSS_PACE`, `bossStageUp`):
+  - Three stages, one for each third of its health, marked by notches on its health bar.
+  - Stage 1: aimed shots, mine wall, lane beams, and a new **laser fence** it sends down the
+    road. Stage 2 adds **three-way bursts** and **ram bikes** it drops at you (they give
+    points and cells). Stage 3 does everything with shorter pauses.
+  - It weaves faster and follows you less, so you have to chase it. Its hit area is narrower
+    (3.0 wide, was 3.8).
+  - More health: `BOSS_TOUGH` 34 (was 25), about 23 seconds of on-target fire with one gun
+    and 15 fully maxed (was 16 and 8).
+  - Lane beams light 3 or 4 lanes (was 2 to 4), and a safe lane is always next door or two away.
+- **Power cells stay on the road** where the enemy went down, and come at you with the road
+  like everything else. Close up they lean toward you a little so a near pass still collects.
+- **Top speed is fairer** (Warp Run only; `sp`, `v` and `ml` in `spawnPattern`):
+  - Slalom walls are at least 0.55 seconds apart at any speed (at 655 km/h that is 3x the old gap).
+  - Double walls: the second comes at least 0.55 s later and its gap moves at most 3 units.
+  - Laser fences: the gap is never tighter than 2.8 (was 2.2) and widens a little at very high
+    speed, it slides more gently, and a second fence follows at least 0.7 s later with its gap
+    timed to be almost where the first one's was when you went through.
+  - Every other pattern's inner spacing stretches with speed too. How fast moving hazards slide
+    stops rising part-way through loop 2.
+- **Fixed: flying through lasers and walls unharmed.** At high speed the road moves further in
+  one frame than a laser or wall is deep, so a hit could fall between two frames. Measured at
+  655 km/h before the fix: a laser fence hit only 59% of the time, a wall 70%, a ram bike 44%.
+  Now 100%, including when the phone drops frames. This fix is in Classic too (rarer there:
+  worked out, not measured, about 1 in 8 laser fences at Classic's top speed).
+- **Rail riding has a limit** (Warp Run only; `updateRail`, `RAIL_*`). Ride a rail and it
+  heats up: sparks go yellow, orange, red and "RAIL HOT" flashes. After about 3 seconds it
+  overloads: you're thrown back onto the road (no damage) and both rails are locked for
+  5 seconds. Traffic in Neon City now fills the road rail to rail, so there's no free lane
+  along the edge.
+- **Worlds look more alive.**
+  - Buildings are buildings: stacked tiers, lit windows on the front and on the side facing
+    the road, a strip of lit shopfronts at street level, neon blade signs, roof masts
+    (`drawTower`, `buildWindowTex`). The detail is in the lowest dozen units, because that is
+    all a phone ever shows of a nearby building. (Classic's Neon City gets these too.)
+  - Warp Run only: palms in the desert, holo billboards and street lamps in the city,
+    floating rocks and paper lanterns in the sky, drifting lights over the crystal plain,
+    beacons and rocks in space (`SKINS[].extra`, `drawRoadside`). No measurable cost in the
+    test browser's frame time; not yet checked on a real phone.
+- **Warp Run leaderboard reset** (`W_BOARD_MIN_V`): the board only shows runs made on v0.9.0
+  or newer, and each device forgets its own Warp Run records once when it updates. Adrian's
+  two v0.8 test scores no longer appear for anyone. They are still in the database (the rules
+  don't allow deleting); he can delete them in the Firebase console if he wants them gone.
+- How to play updated: world gates, the Warden's stages, cells, riding the rail.
+
+**Tested:** frame-by-frame screenshots of the gate in portrait and landscape; three full loops
+with an automated driver (no errors); a driver with human-speed reactions at loops 1-3 and 5-6
+(no laser or slalom hits); Classic for four minutes; real-time play with touch input.
+**No human has played v0.9 yet.**
+
+**Decisions made:**
+- A gate you can see through, with the world building itself on the far side, instead of a
+  flash that hides a swap. Adrian's idea ("blinks into existence, since it's a digital world").
+- World length follows time, not distance.
+- Rail riding is limited, not punished: no damage, and the edge trick still works for a gap.
+- A board reset is a version number in the code, so it needs no Firebase work.
+
+**Next session focus:**
+- Adrian plays v0.9: is the boss now a good fight or too much? Is 40 s per world right?
+  Does the rail limit feel fair? Do the gates feel good at speed?
+- Then tune: `W_WORLD_T`, `BOSS_TOUGH`, `BOSS_PACE`, `RAIL_HOT_T`, slalom/laser spacing.
+
+---
+
 ## [v0.8.0] — 2026-11-09
 
 ### Session 11 — Two modes: Classic, and the new Warp Run

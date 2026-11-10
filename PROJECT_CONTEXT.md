@@ -14,7 +14,7 @@ high speed. The camera sits low behind you, so the horizon is near the top of th
 hazards rush at you from far away. **The only control is steering left and right.** The guns
 fire on their own.
 
-There are two modes (v0.8): **WARP RUN**, five worlds with their own hazards, a warp gate
+There are two modes (v0.8): **WARP RUN**, five worlds with their own hazards, a world gate
 between each, a boss, and loops that get faster and score more; and **CLASSIC**, the original
 endless run, kept exactly as it was in v0.7.7.
 
@@ -22,10 +22,10 @@ endless run, kept exactly as it was in v0.7.7.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.8.0 |
-| **Phase** | Prototype / Exploration (friends playing; Warp Run just shipped, needs playtesting) |
+| **Current Version** | v0.9.0 |
+| **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-09 |
+| **Last Updated** | 2026-11-10 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://az-build.github.io/speeder/ |
 
 ---
@@ -94,28 +94,41 @@ shot, or pick which gate to take), all with a single control.
   obstacle and enemy with its limits. Update it whenever a power-up or hazard changes.
 - **Ladder (v0.5):** under the score during a run, the next leaderboard score to beat.
 
-### Warp Run (v0.8), the second mode
+### Warp Run (v0.8, reworked in v0.9), the second mode
 
 Same steering, guns, power-up gates and hazards as above, plus:
 
-- **Worlds:** five, in a fixed order, 3.4 km each: Neon Desert → Neon City → Sky Islands →
-  Crystal Wastes → Cosmic Highway. Each has its own rail/grid/road colors, its own pylon and
-  wall look, and a signature hazard: ram packs · traffic and tunnels · chasms and crosswind ·
-  crystals that burst from the road (3 hits) · meteors and floaty jumps. Danger colors stay
-  the same everywhere (mines orange, ramps lime, lasers and enemies red).
-- **Warp gates:** each world ends at a gate; flying in gives a short hyperspace jump (no
-  hazards, invulnerable) and +1,000. The world swap is hidden inside the white flash.
-- **Boss:** the Warden waits at the end of Cosmic Highway, on a straight. Line up to shoot it;
-  dodge its aimed volleys, mine walls and lane beams. Its health scales with your guns and the
-  loop. +5,000, six power cells and a prototype for beating it.
+- **Worlds:** five, in a fixed order: Neon Desert → Neon City → Sky Islands → Crystal Wastes →
+  Cosmic Highway. Each lasts **about 40 seconds whatever your speed** (v0.9: its length is worked
+  out from the speed you'll be doing, never under 3.4 km; the very first world is about 55 s).
+  Each has its own rail/grid/road colors, its own pylon and wall look, and a signature hazard:
+  ram packs · traffic and tunnels · chasms and crosswind · crystals that burst from the road
+  (3 hits) · meteors and floaty jumps. Danger colors stay the same everywhere (mines orange,
+  ramps lime, lasers and enemies red).
+- **World gates (v0.9):** each world ends at a gate built across the road. Its opening is a
+  window onto the next world (that world's sky, ground and road). Fly through and you're there:
+  no flash, no jump. The new world then **loads in** around you over about 1.5 seconds (sky
+  switches on piece by piece, scenery rises out of the ground in a wave spreading away from
+  you). About two seconds of clear road, then hazards again. +1,000.
+- **Boss:** the Warden waits at the end of Cosmic Highway, on a straight. Line up to shoot it.
+  **Three stages** (v0.9), one per third of its health: aimed shots, mine walls, lane beams and
+  laser fences it sends down the road; then three-way bursts and ram bikes; then everything
+  faster. It weaves and you have to chase it. Its health scales with your guns and the loop.
+  +5,000, six power cells and a prototype for beating it.
 - **Loops:** after the boss the worlds repeat as loop 2, 3, ... Score is multiplied by the
   loop number; top speed rises 50 km/h a loop to 655 km/h; patterns and enemies get tougher.
-- **Power cells / OVERDRIVE:** enemies drop cells; 8 cells = 8 seconds of double fire rate and
-  +1 damage. **Close calls** (passing within half a unit of an obstacle) score and charge it too.
+  Anything you react to in sequence (slalom, double walls, paired laser fences) is spaced by
+  time, not distance, so top speed stays fair (v0.9).
+- **Power cells / OVERDRIVE:** enemies drop cells that **stay on the road where they fell**
+  (v0.9); 8 cells = 8 seconds of double fire rate and +1 damage. **Close calls** (passing
+  within half a unit of an obstacle) score and charge it too.
+- **Rail riding limit (v0.9):** ride a side rail for about 3 seconds and it overloads: you're
+  thrown back onto the road (no damage) and both rails are locked for 5 seconds. Warp Run only.
 - **Prototypes:** permanent upgrades chosen from a gate pair after each boss: HEAVY CORE,
   TWIN WINGS, HULL +1, AEGIS, MAGNET, CHAIN BLAST.
 - **Own leaderboard:** Firestore list `speeder_warp_scores`; local keys under `speeder.w.`.
-- Timing with a perfect driver: loop 1 takes about 3.5 minutes, later loops about 2.
+  It only shows runs from version `W_BOARD_MIN_V` or newer: raising that number resets the board.
+- Timing with a perfect driver: a loop takes about 4 minutes (five 40-second worlds plus the boss).
 
 ---
 
@@ -163,11 +176,11 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 `GC_CODE` analytics on/off (GoatCounter site code, now `speeder`; dashboard https://speeder.goatcounter.com) · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
 `choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
 
-**Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_SECTOR` world length · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `WARP_T` length of a warp jump · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
+**Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
 
 ### Testing hooks
 
-Warp Run keeps the same per-mode keys under `speeder.w.` (`speeder.w.best`, `speeder.w.local`, `speeder.w.worldTop`, ...), plus `speeder.w.live` (set once its world board has loaded). `speeder.pendingRuns` is shared; each run carries its mode.
+Warp Run keeps the same per-mode keys under `speeder.w.` (`speeder.w.best`, `speeder.w.local`, `speeder.w.worldTop`, ...), plus `speeder.w.live` (set once its world board has loaded), `speeder.w.boardV` (the board reset this device has applied) and `speeder.w.hidden` (scores of older-version entries, left out of your rank). `speeder.pendingRuns` is shared; each run carries its mode.
 
 Local storage keys: `speeder.settings`, `speeder.best`, `speeder.local`, `speeder.pid` (player ID), `speeder.onlineBest`, `speeder.myRuns` (your board entries), `speeder.pendingRuns` (waiting to upload), `speeder.worldTop` (cached top 25 for the ladder), `speeder.worldTopAt` (when it was downloaded), `speeder.challenge`, `speeder.seen` (analytics: not a new player).
 
@@ -176,7 +189,7 @@ jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics,
 `SPEEDER.applyPower('missile')` gives a power-up, `SPEEDER.die()` ends the run, `SPEEDER.explode(x, y, d, color, big)` sets off a blast,
 `SPEEDER.hurt()` takes a hit, `SPEEDER.addEnemy('turret', {...})` places an enemy).
 
-Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec`, `theme`, `phase`, `perks`, `od`), `SPEEDER.G.d = SPEEDER.WP.gateD - 200` (jump to just before the warp gate or boss), `SPEEDER.startBoss()`, `SPEEDER.spawnWarpPattern('traffic' | 'chasm' | 'spikes' | 'meteors' | 'rampack', SPEEDER.G.d + 100, 5)`, `SPEEDER.chargeOD(8)`, `SPEEDER.applyPerk('p_core')`, `SPEEDER.stats.pat` (how many of each pattern have spawned), `SPEEDER.step(1/60, 600)` (run 10 seconds of game instantly).
+Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec`, `theme`, `phase`, `perks`, `od`, `rez`), `SPEEDER.G.d = SPEEDER.WP.gateD - 200` (jump to just before the world gate or boss), `SPEEDER.enterWorld()` (go to the next world now), `SPEEDER.WP.rez = 0` (replay the load-in), `SPEEDER.WP.rail` / `railLock` (rail heat and lock), `SPEEDER.startBoss()`, `SPEEDER.spawnWarpPattern('traffic' | 'chasm' | 'spikes' | 'meteors' | 'rampack', SPEEDER.G.d + 100, 5)`, `SPEEDER.chargeOD(8)`, `SPEEDER.applyPerk('p_core')`, `SPEEDER.stats.pat` (how many of each pattern have spawned), `SPEEDER.step(1/60, 600)` (run 10 seconds of game instantly).
 
 ---
 
@@ -222,9 +235,15 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Frame rate (v0.7.1) | Capped at 60fps; 30 on title/game over, 15 when paused | 120Hz Android phones were drawing twice as often as iPhones and draining battery. |
 | Big screens (v0.7.1) | Pixel budget per graphics level; reflections only on phone-sized screens | An unfolded foldable drew ~3x the pixels of an iPhone. Normal phones are unaffected. |
 | Modes (v0.8) | Classic kept untouched; all new ideas live in a second mode, Warp Run, which is the default | Adrian's call: keep the existing experience as Classic. Separate best scores and leaderboards, so Classic's board never needs a reset. |
-| World length (v0.8) | 3.4 km per world in Warp Run (Classic zones are 1.96 km on the HUD) | A Classic zone lasts ~16 s at top speed with a 4 s fade: too short to notice. 3.4 km is ~27 s at top speed, about a minute in world 1. |
+| World length (v0.8) | 3.4 km per world in Warp Run (Classic zones are 1.96 km on the HUD). Superseded in v0.9: see below | A Classic zone lasts ~16 s at top speed with a 4 s fade: too short to notice. |
 | World identity (v0.8) | Recolor track, rails, pylons and walls per world; never recolor mines, ramps, lasers or enemies | Players read hazards by color at 450+ km/h. Adrian agreed with the push-back on recoloring everything. |
-| World transitions (v0.8) | Warp gate → white flash → hyperspace tube → flash → new world | A hard cut hidden in a flash reads as "somewhere new" and lets the whole world (hills, scenery, palette) swap with no blending. It is also a breather after each world. |
+| World transitions (v0.9) | A gate you can see the next world through; the swap happens when its window fills the screen; the new world then loads in around you | v0.8's wormhole disc, white flash and hyperspace tube felt cheap and overlaid, and broke the flow. Adrian: "a portal gate", and the world "blinks into existence since it all looks like a digital world". |
+| World length (v0.9) | About 40 seconds per world in every loop (length follows speed) | A fixed 3.4 km took ~15 s at loop-5 speed: no time to get into a groove. |
+| Top-speed fairness (v0.9) | Slalom, double walls and paired laser fences are spaced by time; laser gaps never under 2.8 and paired fences line up | Adrian found slalom and sliding lasers too hard at top speed. Warp Run only. |
+| Collisions (v0.9) | Checked against the whole stretch travelled in a frame | At 655 km/h a laser fence only registered 59% of the time (the road moved further in a frame than the fence is deep). Fixed in both modes. |
+| Rail riding (v0.9) | Rail overheats after ~3 s, throws you off with no damage, locks both rails for 5 s | Adrian: you could wall-ride a whole zone. Limiting it keeps the edge trick for tight gaps (his v0.6.1 idea) without punishing a brush with the rail. Warp Run only, so Classic stays as it was. |
+| Boss (v0.9) | Three stages with new attacks, more health, harder to keep in your sights | Adrian found the v0.8 boss too easy. More variety and pressure rather than only a bigger health bar. |
+| Board resets (v0.9) | `W_BOARD_MIN_V`: the Warp board only shows runs from that version on | The game will keep changing; old scores shouldn't be unbeatable. Needs no Firebase work (the rules don't allow deletes). |
 | Loops and score (v0.8) | Score x loop number; +50 km/h and tougher patterns per loop | Makes score mostly about how far you get, which Adrian wanted, without touching Classic's board. |
 | Late-loop fairness (v0.8) | Hazard spacing stretches with speed | Speed is the new difficulty; the time between hazards never drops below Classic's hardest. "Challenging, not impossible." |
 | Boss health (v0.8) | Scales with your firepower (to the power 0.75) and the loop | Gun damage ranges 15x from level 1 to maxed. A fixed health bar was either a wall or a 2-second fight. Better guns still kill it about twice as fast. |
@@ -263,19 +282,29 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.8.0, 2026-11-09):**
-- v0.8.0 added game modes. CLASSIC is v0.7.7 unchanged. WARP RUN (the default) has five
-  longer worlds with their own track colors, obstacle looks and hazards, warp-gate
-  transitions, a boss (the Warden) at the end of each loop, loops with a score multiplier,
-  power cells and OVERDRIVE, close-call bonuses, and prototype upgrades after each boss.
-- It was tested by an automated driver only (five loops, no errors). **No human has played
-  it yet**, so every difficulty number is a first guess.
-- Adrian published the Warp Run leaderboard rules on 2026-11-10 (the whole page now matches
-  `firestore-rules-FULL.txt`; the old v0.2 Speeder block was dropped as redundant). Reading
-  the Warp board works; the first saved score still needs confirming from a real run.
+**Where things stand (after v0.9.0, 2026-11-10):**
+- Adrian played v0.8's Warp Run on 2026-11-10 (a million points on his first run): he liked
+  it but it didn't feel done. v0.9.0 answers every note he gave: world gates you see through
+  and worlds that load in (no wormhole, no hyperspace tube), 40-second worlds in every loop, a
+  three-stage Warden, cells that stay on the road, fairer slalom and lasers at top speed, the
+  laser pass-through bug, a limit on rail riding, real-looking city buildings plus roadside
+  details in every world, and a Warp board reset.
+- v0.9 was tested by automated drivers and screenshots only. **No human has played it yet**:
+  the boss, the 40-second worlds and the rail limit are first guesses.
+- The Warp board is reset by version (`W_BOARD_MIN_V = '0.9.0'`). Adrian's two v0.8 test
+  entries are hidden for everyone but still in Firestore; deleting them is optional and is a
+  job for him in the Firebase console.
+- Classic changed in two small ways: the collision fix (lasers can no longer be skipped
+  between frames) and the new building look in Neon City. Nothing else.
 - Adrian's PC copy of the project (`E:\Claude Projects\Speeder`) is a plain copy, not linked
-  to GitHub. It was refreshed to v0.8.0 on 2026-11-10; refresh it again after future updates.
-- Analytics now show `play/warp` vs `play/classic`, and where Warp runs end.
+  to GitHub. It was last refreshed at v0.8.0; refresh it again.
+- Warp Run's leaderboard rules have been live since 2026-11-10 and scores do save.
+
+**Earlier (after v0.8.0, 2026-11-09):**
+- v0.8.0 added game modes. CLASSIC is v0.7.7 unchanged. WARP RUN (the default) has five
+  worlds with their own track colors, obstacle looks and hazards, a boss (the Warden) at the
+  end of each loop, loops with a score multiplier, power cells and OVERDRIVE, close-call
+  bonuses, and prototype upgrades after each boss.
 
 **Earlier (after v0.7.7, 2026-11-08):**
 - v0.7.7: unfolded foldables now steer with the same thumb travel as an iPhone.
@@ -299,9 +328,11 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
-- Adrian's own playtest of Warp Run: is loop 1 a good first 3 minutes, does the boss feel fair,
-  where does a great run end (target: 6-8 minutes), are the signature hazards readable at speed?
-- Then tune: `W_SPEED_STEP`, `BOSS_TOUGH`, each world's `pat` / `sig` weights, crosswind strength.
+- Adrian's playtest of v0.9: do the gates feel good at speed, is the boss now a good fight or
+  too much, is 40 s per world right, does the rail limit feel fair, where does a great run end?
+- Then tune: `W_WORLD_T`, `BOSS_TOUGH`, `BOSS_PACE`, `RAIL_HOT_T`, each world's `pat` / `sig`
+  weights, slalom and laser spacing, crosswind strength.
+- Check frame rate on a real mid-range phone (new buildings and roadside props).
 - Ideas raised, not built: a different boss per loop, music per world, a near-miss bonus in
   Classic, roadside markers showing your best distance.
 - Start from friends' feedback (now including the new sound and music): Share & challenge, the moving obstacles, missiles, gun levels 5-8, the new edge bank and small middle lean (v0.6.2).
