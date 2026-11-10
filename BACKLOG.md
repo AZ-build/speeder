@@ -10,12 +10,15 @@ on right now. Add anything here so it doesn't get lost.
 > Things we might build someday. No commitment yet.
 
 - [x] ~~**Track curves and hills**~~ Done in v0.3.
-- [x] ~~**Zones**~~ Done in v0.3 (visuals). Still open: zone-specific hazards (e.g. falling rocks in Sky Islands, crystal shards in Crystal Wastes).
+- [x] ~~**Zones**~~ Done in v0.3 (visuals). ~~Zone-specific hazards~~ done in v0.8 for Warp Run (ram packs, traffic and tunnels, chasms and wind, crystals, meteors).
 - [ ] **Synthwave music that changes per zone.**
 - [ ] **Speed pads in bends**: reward taking the inside line of a turn.
-- [ ] **Zone boss at the end of each loop** (after Cosmic Highway).
-- [ ] **Boss encounters** every few zones: a big carrier drone you have to line up shots on while dodging.
-- [ ] **Near-miss bonus**: passing close to a pylon gives points and a "WHOOSH". Rewards risky lines.
+- [x] ~~**Zone boss at the end of each loop**~~ Done in v0.8 (the Warden, Warp Run).
+- [ ] **A different boss per loop** (v0.8 has one boss that gets faster and angrier).
+- [x] ~~**Near-miss bonus**~~ Done in v0.8 for Warp Run ("close calls"). Not in Classic.
+- [ ] **Warp Run: more per-world set pieces**: a crystal cave, a canyon in the desert, a space station to fly through.
+- [ ] **Warp Run: roadside markers** for your best distance and the next leaderboard rival.
+- [ ] **Warp Run: more prototypes** (side guns, a drone wingman, a one-time revive).
 - [ ] **Combo multiplier** for chaining kills without getting hit.
 - [ ] **Boost pads** on the ground: a short speed surge with invulnerability.
 - [ ] **Meta-progression**: earn credits per run and unlock speeder skins or starting upgrades. (v0.4's 3D speeder makes color skins easy: just swap the face colors.)

@@ -59,6 +59,20 @@ too strict for great runs. To update it:
 
 Until you do this, almost every score still saves. Only very high multiplier runs get turned down.
 
+### Adding the Warp Run leaderboard (v0.8, 2 minutes)
+
+Warp Run keeps its scores in a second list, `speeder_warp_scores`, so they never mix with
+Classic's. That list needs its own rule. Nothing about the Classic rule changes.
+
+1. Open **Firestore Database → Rules** in the **orbit-23921** project, as above.
+2. Find the line `match /databases/{database}/documents {`.
+3. Click at the end of that line and press Enter to make an empty line under it.
+4. Open `firestore-rules-warp.txt` from this folder, copy everything, and paste it into that empty line.
+5. Click **Publish**.
+
+Until you do this, the Warp Run leaderboard says it isn't switched on yet. Scores are kept on
+each phone and upload by themselves once the rule is in (your 5 best).
+
 ---
 
 ## Install it on your phone (after Step 1)
@@ -96,6 +110,11 @@ only works from the hosted web address, not from a file on your computer.
 | **Hull** | Pink hexes, top left. 3 hits and you're wrecked |
 | **Gates** | Come in pairs. The two labels under your speeder show both choices early |
 | **Pause** | The ❚❚ button, top right. Opens Leaderboard and Settings too |
+
+**Modes:** pick **WARP RUN** or **CLASSIC** on the title screen. Warp Run has five worlds with their
+own hazards, a warp gate between each, a boss after the fifth, and loops that get faster and
+multiply your score. Classic is the original endless run. Each has its own leaderboard.
+The How to play page in the game explains everything in Warp Run.
 
 **Power-ups:** SHIELD (blocks a hit) · GUNS+ (8 levels: more guns up to level 4, then piercing
 bullets, wing missiles, heavy rounds and max power) · RAPID (fires faster for 12s) · REPAIR (+1 hull) ·

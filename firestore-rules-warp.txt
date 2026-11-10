@@ -1,0 +1,22 @@
+    // ---- Speeder: Warp Run leaderboard (new in Speeder v0.8) ----
+    // Warp Run keeps its own list, so its scores never mix with Classic's.
+    // Same idea as the Classic block: every run is its own entry, anyone can read.
+    // Loops multiply the score, so the "is this score believable?" check allows more per loop.
+    match /speeder_warp_scores/{entryId} {
+      allow read: if true;
+      allow create: if validWarp();
+      allow update: if validWarp() && request.resource.data.score >= resource.data.score;
+      allow delete: if false;
+
+      function validWarp() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['name', 'score', 'dist', 'kills', 'loop', 'v', 'ts'])
+          && d.name is string && d.name.size() >= 1 && d.name.size() <= 12
+          && d.score is int && d.score >= 0 && d.score < 1000000000
+          && d.dist is int && d.dist >= 0
+          && d.kills is int && d.kills >= 0
+          && d.loop is int && d.loop >= 1 && d.loop <= 99
+          && d.score <= (d.dist * 8 + d.kills * 3000 + 100000) * d.loop
+          && d.ts == request.time;
+      }
+    }

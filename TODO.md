@@ -15,13 +15,17 @@ actually working on right now?
 - [x] v0.5.2: How to play page
 - [x] Adrian updated the Firebase rules to the v0.5 version
 - [ ] **Adrian:** collect friends' feedback (Share & challenge, moving obstacles, missiles, banking)
+- [x] v0.8.0: Classic and Warp Run modes; five worlds with their own hazards; warp gates; the Warden boss; loops; power cells, OVERDRIVE, close calls, prototypes; mode analytics
+- [ ] **Adrian:** paste `firestore-rules-warp.txt` into the Firebase rules (README, "Adding the Warp Run leaderboard")
+- [ ] **Adrian:** play Warp Run and note what feels too easy, too hard or unclear
 
 ---
 
 ## ⏭️ Next Up
 
 - [ ] Tune feel from playtest notes (steering speed default, speed curve, spawn spacing)
-- [ ] Decide the next big feature: zone-specific hazards, music, or a boss (see BACKLOG)
+- [ ] Tune Warp Run from Adrian's playtest (speed per loop, boss health, hazard mix per world)
+- [ ] Decide the next big feature: a second boss, music per world, or more set pieces (see BACKLOG)
 - [ ] Name filter for rude leaderboard names
 
 ---

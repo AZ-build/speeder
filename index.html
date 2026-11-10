@@ -438,6 +438,12 @@
     text-shadow: 0 0 24px rgba(255, 210, 60, 0.7);
   }
   .version { font-size: 10px; letter-spacing: 0.2em; color: rgba(203, 183, 255, 0.5); }
+  .modes { display: flex; gap: 10px; width: min(340px, 100%); }
+  .btn.mode { flex: 1; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; min-height: 58px; padding: 8px 6px; opacity: 0.7; }
+  .btn.mode b { font-size: 13px; letter-spacing: 0.12em; }
+  .btn.mode small { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 10px; letter-spacing: 0; text-transform: none; color: #cdbdf2; line-height: 1.2; }
+  .btn.mode.sel { opacity: 1; color: var(--yellow); border-color: var(--yellow); background: rgba(255, 210, 60, 0.1); box-shadow: 0 0 14px rgba(255, 210, 60, 0.25); }
+  .over-mode { font-size: 11px; letter-spacing: 0.3em; color: var(--cyan); text-transform: uppercase; margin-top: -6px; }
   @media (prefers-reduced-motion: reduce) {
     .cta, .celebrate, .cel-title { animation: none; }
   }
@@ -470,6 +476,10 @@
   </div>
   <div class="spacer"></div>
   <div class="challenge hidden" id="titleChallenge"></div>
+  <div class="modes ui" role="group" aria-label="Game mode">
+    <button class="btn mode" id="modeWarp"><b>WARP RUN</b><small>New: 5 worlds, a boss, loops</small></button>
+    <button class="btn mode" id="modeClassic"><b>CLASSIC</b><small>The original endless run</small></button>
+  </div>
   <div class="cta">Touch to ride</div>
   <div class="best" id="titleBest"></div>
   <div class="row ui">
@@ -484,6 +494,7 @@
 
 <div id="over" class="overlay panel hidden">
   <div class="wrecked" id="wrecked">WRECKED</div>
+  <div class="over-mode" id="overMode"></div>
   <div class="celebrate hidden" id="celebrate">
     <div class="cel-title" id="celebrateTitle"></div>
     <div class="cel-sub" id="celebrateSub"></div>
@@ -508,6 +519,7 @@
       <button class="btn" id="overBoardBtn">Leaderboard</button>
       <button class="btn" id="overSettingsBtn">Settings</button>
     </div>
+    <button class="btn ghost" id="overModeBtn">Play CLASSIC instead</button>
   </div>
 </div>
 
@@ -541,6 +553,10 @@
 
 <div id="board" class="overlay panel hidden">
   <div class="panel-title">LEADERBOARD</div>
+  <div class="tabs" role="tablist" aria-label="Game mode">
+    <button class="btn" id="boardWarp" role="tab" aria-selected="true">Warp Run</button>
+    <button class="btn" id="boardClassic" role="tab" aria-selected="false">Classic</button>
+  </div>
   <div class="tabs" role="tablist">
     <button class="btn" id="tabWorld" role="tab" aria-selected="true">World</button>
     <button class="btn" id="tabLocal" role="tab" aria-selected="false">This device</button>
@@ -579,8 +595,21 @@
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="10" y="26" width="24" height="12" fill="#3d0a18" stroke="#ff2b4e" stroke-width="2"/><circle cx="22" cy="24" r="7" fill="#511023" stroke="#ff2b4e" stroke-width="2"/><path d="M22 18 L30 8" stroke="#ff2b4e" stroke-width="4" stroke-linecap="round"/></svg><div class="htxt"><div class="hname">Turrets</div><div>Sit on the road and fire as you get close. Driving into one costs a hit.</div><div class="hlim">3 hits, +200</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M12 36 L16 14 L22 8 L28 14 L32 36 Z" fill="#3d0a18" stroke="#ff2b4e" stroke-width="2" stroke-linejoin="round"/><path d="M14 18 L8 14 M30 18 L36 14" stroke="#ff8a9c" stroke-width="2"/><circle cx="18" cy="30" r="2.5" fill="#fff4c0"/><circle cx="26" cy="30" r="2.5" fill="#fff4c0"/></svg><div class="htxt"><div class="hname">Ram bikes</div><div>Charge straight at you and steer toward you.</div><div class="hlim">2 hits, +150</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="11" fill="rgba(255,70,40,0.3)"/><circle cx="22" cy="22" r="6" fill="#ff784a"/><circle cx="22" cy="22" r="2.5" fill="#fff2c0"/></svg><div class="htxt"><div class="hname">Enemy fire</div><div>Glowing orange balls. Dodge them, or block one with a shield.</div></div></div>
+    <h3>Warp Run</h3>
+    <p class="hnote">The new mode. Pick it on the title screen. Classic is still there, untouched, with its own leaderboard.</p>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><ellipse cx="22" cy="22" rx="15" ry="13" fill="#12052e" stroke="#ffd23c" stroke-width="2.5"/><path d="M14 22 a8 7 0 0 1 12 -5 M30 22 a8 7 0 0 1 -12 5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="22" cy="22" r="2.5" fill="#fff"/></svg><div class="htxt"><div class="hname">Five worlds and warp gates</div><div>Each world has its own colors, its own look for pylons and walls, and its own hazard. At the end of a world, fly into the <b>warp gate</b> to jump to the next. Nothing can hurt you during the jump.</div><div class="hlim">World cleared: +1,000</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 26 l6 -8 h16 l6 8 l-3 6 h-22 z" fill="#3d0a18" stroke="#ff2b4e" stroke-width="2" stroke-linejoin="round"/><path d="M22 32 l4 5 -4 5 -4 -5 z" fill="#ff9d2e" stroke="#fff2c0" stroke-width="1"/><path d="M12 18 v-7 M32 18 v-7" stroke="#ffd23c" stroke-width="2"/></svg><div class="htxt"><div class="hname">The Warden</div><div>The boss at the end of the fifth world. It drifts across the track, so <b>line up under it</b> to hit it. It fires aimed shots, drops walls of mines with a gap, and scorches the lanes that light up red: get out of a lit lane before it fires.</div><div class="hlim">+5,000 and a prototype</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M30 14 a11 11 0 1 0 3 10" stroke="#ffd23c" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M26 6 l6 8 -10 2 z" fill="#ffd23c"/><text x="22" y="27" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="11" fill="#fff">x2</text></svg><div class="htxt"><div class="hname">Loops</div><div>Beat the boss and the five worlds start again, faster and tougher. <b>Every point is multiplied by the loop number</b>: x2 in loop 2, x3 in loop 3, and so on.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 8 l9 14 -9 14 -9 -14 z" fill="#6dff7a" stroke="#eaffea" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Power cells and Overdrive</div><div>Destroyed enemies drop a green cell. Drive through it to collect it. Fill the CELLS bar and your guns go into <b>OVERDRIVE</b>: double fire rate and +1 damage.</div><div class="hlim">8 cells · lasts 8 seconds</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M17 38 L19 10 L22 4 L25 10 L27 38 Z" fill="#2c0d52" stroke="#29f3ff" stroke-width="2" stroke-linejoin="round"/><path d="M31 30 q6 -8 0 -16" stroke="#29f3ff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M35 33 q8 -11 0 -22" stroke="#29f3ff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/></svg><div class="htxt"><div class="hname">Close calls</div><div>Slip past a pylon, wall, mine, truck or crystal with almost no room to spare and you score a bonus. Chain them for more. Close calls also charge Overdrive.</div><div class="hlim">+40, growing to +400 in a chain</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 L39 22 L22 39 L5 22 Z" fill="#0b0420" stroke="#ff5fe0" stroke-width="2.5" stroke-linejoin="round"/><text x="22" y="27" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="14" fill="#ff5fe0">P</text></svg><div class="htxt"><div class="hname">Prototypes</div><div>After each boss you choose one of two permanent upgrades for the rest of the run:<br><b>HEAVY CORE</b> +1 damage on every bullet (can be taken again)<br><b>TWIN WINGS</b> wing missiles fire in pairs<br><b>HULL +1</b> a fourth hull hex, fully repaired<br><b>AEGIS</b> a shield regrows every 20 seconds<br><b>MAGNET</b> cells fly to you, Overdrive lasts 12 seconds<br><b>CHAIN BLAST</b> every kill damages what&rsquo;s near it</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><g fill="#3d0a18" stroke="#ff2b4e" stroke-width="2" stroke-linejoin="round"><path d="M18 10 l4 -5 4 5 v8 h-8 z"/><path d="M6 24 l4 -5 4 5 v8 h-8 z"/><path d="M30 24 l4 -5 4 5 v8 h-8 z"/></g></svg><div class="htxt"><div class="hname">Neon Desert: ram packs</div><div>Wide, fast straights, and ram bikes that come at you in an arrowhead. They hold their formation, so pick a gap or shoot one open.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="9" y="14" width="26" height="18" fill="#0a1230" stroke="#29b4ff" stroke-width="2"/><rect x="13" y="25" width="18" height="2.5" fill="#ffd23c"/><circle cx="14" cy="19" r="2.2" fill="#ffd23c"/><circle cx="30" cy="19" r="2.2" fill="#ffd23c"/></svg><div class="htxt"><div class="hname">Neon City: traffic and tunnels</div><div>Hover-trucks drive the same way you do, only slower. Weave between them. You can&rsquo;t shoot them.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M4 30 H16 M28 30 H40" stroke="#ffe296" stroke-width="3"/><path d="M16 30 q6 -22 12 0" stroke="#b6ff2e" stroke-width="2" fill="none" stroke-dasharray="3 3"/><path d="M6 12 h12 M10 17 h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg><div class="htxt"><div class="hname">Sky Islands: chasms and wind</div><div>Where the road is missing, a full-width ramp throws you across. When WIND shows under your speeder, a crosswind is about to push you sideways: steer against it.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M14 38 L18 20 L22 6 L26 22 L30 38 Z" fill="#12888c" stroke="#c8fff6" stroke-width="2" stroke-linejoin="round"/><path d="M22 6 L22 38" stroke="#c8fff6" stroke-width="1.5"/><path d="M4 38 H40" stroke="#6effe6" stroke-width="2"/></svg><div class="htxt"><div class="hname">Crystal Wastes: crystals</div><div>A glowing crack in the road means a crystal is about to burst out of it. Dodge it or shatter it.</div><div class="hlim">3 hits, +100</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><ellipse cx="22" cy="34" rx="14" ry="4" fill="none" stroke="#ffb347" stroke-width="2"/><path d="M36 4 L24 24" stroke="#ff9d2e" stroke-width="4" stroke-linecap="round"/><circle cx="23" cy="26" r="4.5" fill="#fff2c0" stroke="#ff9d2e" stroke-width="2"/></svg><div class="htxt"><div class="hname">Cosmic Highway: meteors</div><div>An orange ring on the road is where a meteor is about to land. It leaves a burning crater: steer around it or jump it. Jumps are longer and floatier out here.</div></div></div>
     <h3>Score</h3>
-<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 l5 11 12 1 -9 8 3 12 -11 -7 -11 7 3 -12 -9 -8 12 -1 z" fill="none" stroke="#ffd23c" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Points</div><div>You score for distance (faster = more), plus points for everything you destroy and AIR bonuses. The world leaderboard keeps the top 25 runs, and one player can hold several spots. Share a run to challenge a friend.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 l5 11 12 1 -9 8 3 12 -11 -7 -11 7 3 -12 -9 -8 12 -1 z" fill="none" stroke="#ffd23c" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Points</div><div>You score for distance (faster = more), plus points for everything you destroy and AIR bonuses. Each mode has its own world leaderboard, which keeps the top 25 runs, and one player can hold several spots. Share a run to challenge a friend.</div></div></div>
     <h3 id="helpInstall">Put it on your Home Screen</h3>
     <p class="hnote">Speeder installs like an app: full screen, its own icon, and it works with no signal. It&rsquo;s free and there&rsquo;s no app store.</p>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="13" y="4" width="18" height="36" rx="4" fill="none" stroke="#29f3ff" stroke-width="2"/><path d="M22 26 V14 M17 18 l5 -5 5 5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">iPhone and iPad</div><div>1. Open the game in <b>Safari</b> (Chrome works too).<br>2. Tap the <b>Share</b> button (the square with an arrow). On newer iPhones it&rsquo;s inside the <b>&bull;&bull;&bull;</b> menu next to the address.<br>3. Scroll down and tap <b>Add to Home Screen</b>. If you don&rsquo;t see it, tap <b>View More</b>.<br>4. Tap <b>Add</b>. Play from the new icon.</div></div></div>
@@ -650,7 +679,21 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.7.7';
+const VERSION = '0.8.0';
+
+// Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
+// WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
+// between each, a boss at the end of every loop, and loops that get faster and score more.
+const MODES = { warp: 'WARP RUN', classic: 'CLASSIC' };
+const W_SECTOR = 2400;      // Warp Run: length of one world (world units; about 3.4 km on the HUD)
+const W_SPEED_STEP = 10;    // Warp Run: top speed gained per loop (world units a second; 1 = about 5 km/h)
+const W_SPEED_MAX = 130;    // Warp Run: the highest top speed (about 655 km/h, reached in loop 5)
+const W_LVL_STEP = 3;       // Warp Run: how much harder the hazard patterns get per loop
+const WARP_T = 1.9;         // seconds a warp jump lasts
+const OD_NEED = 8;          // power cells needed to fire OVERDRIVE
+const OD_TIME = 8;          // seconds OVERDRIVE lasts
+const BOSS_TOUGH = 25;      // how tough the Warden is (its health also grows with your guns and with each loop)
+const BOSS_PTS = 5000;      // points for beating it (times the loop multiplier)
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
 // Firebase project that ORBit already uses. This key is meant to be public;
@@ -664,6 +707,7 @@ const FIREBASE_CONFIG = {
   appId: '1:680718517274:web:103918e8727a348c837da3',
 };
 const SCORES = 'speeder_scores';
+const SCORES_WARP = 'speeder_warp_scores';   // Warp Run has its own world leaderboard
 const FIREBASE_SDK = 'https://www.gstatic.com/firebasejs/10.12.0/';
 
 const COLORS = {
@@ -682,6 +726,13 @@ const POWERS = {
   repair: { label: 'REPAIR', color: '#ff5fa8' },
   missile: { label: 'MISSILES', color: '#ff8a3d' },
   mult:   { label: '2X SCORE', color: '#b98cff' },
+  // Warp Run prototypes: permanent upgrades, offered as a pair of gates after each boss
+  p_core:   { label: 'HEAVY CORE', color: '#ff5fe0', perk: 'core', sub: '+1 damage on every bullet' },
+  p_wings:  { label: 'TWIN WINGS', color: '#ff8a3d', perk: 'wings', sub: 'wing missiles fire in pairs' },
+  p_hull:   { label: 'HULL +1', color: '#ff5fa8', perk: 'hull', sub: 'max hull 4, fully repaired' },
+  p_aegis:  { label: 'AEGIS', color: '#29f3ff', perk: 'aegis', sub: 'a shield regrows every 20s' },
+  p_magnet: { label: 'MAGNET', color: '#6dff7a', perk: 'magnet', sub: 'cells fly to you, longer overdrive' },
+  p_chain:  { label: 'CHAIN BLAST', color: '#ffd23c', perk: 'chain', sub: 'kills blast what\'s nearby' },
 };
 // Labels that depend on what you already have (the 2X gate says 4X if 2X is running, etc.)
 function powerLabel(type) {
@@ -708,7 +759,7 @@ const MULT_MAX = 2;      // 2X doesn't stack (v0.5.1); taking another while it r
 const MULT_TIME = 15;    // seconds
 
 // Patterns that block most of the track and force you through one gap.
-const BARRIERS = new Set(['wall', 'slalom', 'sweeper', 'jump']);
+const BARRIERS = new Set(['wall', 'slalom', 'sweeper', 'jump', 'chasm']);
 const BARRIER_GAP = 48;   // minimum space after a barrier (world units, about half a second at top speed)
 const PATTERNS = [
   { name: 'pylons',  min: 0,   w: 2.6 },
@@ -753,6 +804,10 @@ function storeGet(key) {
 function storeSet(key, val) {
   try { localStorage.setItem(key, val); } catch (e) { /* storage blocked: fine */ }
 }
+// Each game mode keeps its own best score and leaderboards. Classic uses the original
+// keys ("speeder.best"), Warp Run the same names under "speeder.w." ("speeder.w.best").
+function modeKey(name, mode) { return (mode === 'warp' ? 'speeder.w.' : 'speeder.') + name; }
+function bestFor(mode) { return parseInt(storeGet(modeKey('best', mode)) || '0', 10) || 0; }
 
 // ---------- Analytics (GoatCounter, v0.6.3) ----------
 // Free, no cookies, no personal data. Dashboard: https://<GC_CODE>.goatcounter.com
@@ -815,12 +870,14 @@ function vibrate(p) {
 }
 
 // ---------- Settings (saved on this device) ----------
-const SETTINGS_DEFAULT = { sound: true, volume: 70, music: true, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true, cam: 'normal' };
+const SETTINGS_DEFAULT = { sound: true, volume: 70, music: true, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true, cam: 'normal', mode: 'warp' };
 function loadSettings() {
   let saved = {};
   try { saved = JSON.parse(storeGet('speeder.settings') || '{}') || {}; } catch (e) { saved = {}; }
   if (saved.sound === undefined && storeGet('speeder.muted') === '1') saved.sound = false;
-  return Object.assign({}, SETTINGS_DEFAULT, saved);
+  const out = Object.assign({}, SETTINGS_DEFAULT, saved);
+  if (!MODES[out.mode]) out.mode = SETTINGS_DEFAULT.mode;
+  return out;
 }
 const SET = loadSettings();
 function saveSettings() { storeSet('speeder.settings', JSON.stringify(SET)); }
@@ -939,9 +996,18 @@ function hillAt(d) {
 // the strongest bend the course will use at this distance (bends get sharper as you go)
 // true from the start of a run until you leave the game-over screen (the title has its own calm course)
 function inRun() { return G.state === 'play' || G.state === 'dying' || G.state === 'over'; }
+// How hard things are at distance d. Classic: it just follows distance, as always.
+// Warp Run: distance counts up to level 5, then each loop adds W_LVL_STEP on top.
+function lvlAt(d) { return WP.on ? Math.min(Math.max(0, d) / 1000, 5) + (WP.loop - 1) * W_LVL_STEP : d / 1000; }
+function lvlNow() { return lvlAt(G.d); }
+// The speed you settle at, at distance d.
+function baseSpeed(d) {
+  const top = WP.on ? Math.min(W_SPEED_MAX, 90 + (WP.loop - 1) * W_SPEED_STEP) : 90;
+  return 32 + (top - 32) * (1 - Math.exp(-d / 4500));
+}
 function kMaxAt(d) {
-  const lvl = inRun() ? d / 1000 : 0.4;
-  return 0.001 + Math.min(lvl, 5) * 0.00055;
+  const lvl = inRun() ? lvlAt(d) : 0.4;
+  return (0.001 + Math.min(lvl, 5) * 0.00055) * (WP.on ? SKINS[WP.theme].curve : 1);
 }
 function pushCurve(len, k) {
   curves.push({ d0: curveEnd, len, k });
@@ -956,7 +1022,9 @@ function pushHill(len, amp) {
 function planCourse(upTo) {
   while (curveEnd < upTo) {
     if (curveEnd < 170) { pushCurve(170 - curveEnd, 0); continue; }
-    const lvl = inRun() ? curveEnd / 1000 : 0.4;
+    // Warp Run: the boss fight happens on a straight, so your shots fly true
+    if (WP.on && inRun() && WP.theme === 4 && (WP.phase === 'boss' || (WP.phase === 'run' && curveEnd > WP.gateD - 120))) { pushCurve(160, 0); continue; }
+    const lvl = inRun() ? lvlAt(curveEnd) : 0.4;
     const kMax = kMaxAt(curveEnd);
     if (Math.random() < Math.max(0.12, 0.36 - lvl * 0.05)) { pushCurve(rand(70, 170), 0); continue; }
     // Lean toward turning back the way we came, so the sun is usually somewhere ahead.
@@ -974,7 +1042,7 @@ function planCourse(upTo) {
   while (hillEnd < upTo) {
     const th = THEMES[zoneThemeAt(hillEnd)].hills;
     if (hillEnd < 420 || Math.random() > th.chance) { pushHill(rand(120, 320), 0); continue; }
-    const lvl = inRun() ? hillEnd / 1000 : 0.5;
+    const lvl = inRun() ? lvlAt(hillEnd) : 0.5;
     const amp = rand(th.amp[0], th.amp[1]) * Math.min(1, 0.45 + lvl * 0.3);
     // long enough that the climb is never steeper than about 1 in 18
     pushHill(Math.max(rand(260, 480), amp * 55), amp);
@@ -1136,6 +1204,7 @@ const PAL = { L: {}, grid: [0, 0, 0], road: [0, 0, 0], rail: [0, 0, 0], accent: 
 
 function zoneThemeAt(d) {
   if (!inRun()) return 0;
+  if (WP.on) return WP.theme;   // Warp Run: one world at a time, swapped inside the warp flash
   return Math.floor(Math.max(0, d) / ZONE_LEN) % THEMES.length;
 }
 function mix3(out, a, b, t) {
@@ -1147,6 +1216,8 @@ function rgba(c, a) {
   return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + (a < 0 ? 0 : a > 1 ? 1 : a).toFixed(3) + ')';
 }
 function zoneMix(d) {
+  if (WP.on && inRun()) { warpPalette(); return; }
+  OB = OB_CLASSIC; RAIL_SPR = 'cyan';
   const zi = inRun() ? Math.floor(Math.max(0, d) / ZONE_LEN) : 0;
   const b = zi % THEMES.length;
   const a = zi > 0 ? (zi - 1) % THEMES.length : b;
@@ -1555,6 +1626,11 @@ function traceLineBack(x, y, zMax) {
 }
 
 function drawGround() {
+  if (!TUN.dark) drawGroundBase();          // (deep inside a tunnel there's no ground to see)
+  if (TUN.cur) drawTunnel(TUN.cur);
+  drawTrack();
+}
+function drawGroundBase() {
   const L = PAL.L;
   const camD = VIEW_D;
   const ga = themeGrads[ZONE.a], gb = themeGrads[ZONE.b];
@@ -1660,7 +1736,9 @@ function drawGround() {
     }
   }
   ctx.globalAlpha = 1;
-
+}
+function drawTrack() {
+  const camD = VIEW_D;
   // track surface (dark, so hazards pop against it)
   ctx.beginPath();
   traceLine(-TRACK_HALF, 0, true, FAR, true);
@@ -1672,7 +1750,7 @@ function drawGround() {
   ctx.fillStyle = rgba(PAL.accent, 0.05);
   ctx.fill();
   ctx.globalCompositeOperation = 'source-over';
-  if (glossOn) drawGloss();
+  if (glossOn && !TUN.inside) drawGloss();
 
   // lane lines running down the track
   ctx.strokeStyle = rgba(PAL.grid, 0.22);
@@ -1710,6 +1788,8 @@ function drawGround() {
     ctx.fill();
   }
   ctx.globalAlpha = 1;
+
+  if (WP.on) drawGaps(themeGrads[ZONE.a].ground);
 
   // rails: a glowing band with a bright top edge
   for (const side of [-1, 1]) {
@@ -1756,7 +1836,7 @@ function drawGround() {
       ctx.globalCompositeOperation = 'lighter';
       const r = clamp(0.5 * FOCAL / z, 2, 26);
       const blink = 0.65 + 0.35 * Math.sin(G.t * 6 + pd * 0.05);
-      for (const side of [-1, 1]) glow(SPR.cyan, sx(side * (TRACK_HALF + 0.12), z), sy(0.8, z), r, r, a * blink * 0.8);
+      for (const side of [-1, 1]) glow(SPR[RAIL_SPR], sx(side * (TRACK_HALF + 0.12), z), sy(0.8, z), r, r, a * blink * 0.8);
       ctx.globalCompositeOperation = 'source-over';
     }
   }
@@ -1841,7 +1921,7 @@ function drawGloss() {
     const z = pd - camD;
     const r = clamp(0.5 * FOCAL / z, 2, 26);
     const a = fogA(z) * 0.4 * (0.65 + 0.35 * Math.sin(G.t * 6 + pd * 0.05));
-    for (const side of [-1, 1]) glow(SPR.cyan, sx(side * (TRACK_HALF - 0.05), z), sy(-0.9, z), r * 0.55, r * 2.2, a);
+    for (const side of [-1, 1]) glow(SPR[RAIL_SPR], sx(side * (TRACK_HALF - 0.05), z), sy(-0.9, z), r * 0.55, r * 2.2, a);
   }
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
@@ -1961,10 +2041,12 @@ function resetScenery() {
 function drawScenery() {
   const camD = VIEW_D;
   scnDraw.length = 0;
+  if (TUN.inside) return;                    // inside a tunnel: the walls hide the world
+  const hideFrom = TUN.cur ? TUN.cur.a - 3 : Infinity;   // approaching one: its front wall hides what's behind it
   for (const s of scenery) {
     if (!s.on) continue;
     s._z = s.d - camD;
-    if (s._z > 1.5 && s._z < FAR + 50) scnDraw.push(s);
+    if (s._z > 1.5 && s._z < FAR + 50 && s.d < hideFrom) scnDraw.push(s);
   }
   scnDraw.sort((a, b) => b._z - a._z);
   const fill = rgba(PAL.propFill, 1);
@@ -2257,10 +2339,12 @@ const PLAYER_ITEM = { kind: 'player', _z: PLAYER_Z };
 let paused = false;
 let drag = null;
 const keys = {};
-const STATS = { jumps: 0, air: 0, wallHits: 0 };   // counters for testing
+const STATS = { jumps: 0, air: 0, wallHits: 0, pat: {} };   // counters for testing
 const NONE = [];
+const NEAR_TYPES = new Set(['pylon', 'wall', 'mine', 'traffic', 'spike', 'meteor']);   // close calls count against these
 
-G.best = parseInt(storeGet('speeder.best') || '0', 10) || 0;
+G.mode = SET.mode;
+G.best = bestFor(SET.mode);
 
 // Speed lines: most hang in the air beside the track, some skim along the rails.
 function resetStreak(s, initial) {
@@ -2304,6 +2388,7 @@ function resetRun() {
   cam.x = 0;
   objs.length = 0; enemies.length = 0; shots.length = 0; eshots.length = 0;
   parts.length = 0; gates.length = 0; popups.length = 0; missiles.length = 0;
+  resetWarp();
   resetCourse();
   VIEW_D = -PLAYER_Z;
   resetScenery();
@@ -2348,6 +2433,7 @@ function moveObj(o) {
 }
 function addEnemy(type, props) {
   const e = Object.assign({ kind: 'enemy', type, t: 0, flashT: 0, dep: 1 }, props);
+  if (WP.on && WP.loop > 1 && type !== 'boss') e.hp += Math.min(3, WP.loop - 1);   // Warp Run: tougher every loop
   enemies.push(e);
   return e;
 }
@@ -2369,15 +2455,20 @@ function spawnDrone(at, lvl) {
 }
 
 function spawnPattern(at) {
-  const lvl = G.d / 1000;
+  const lvl = lvlNow();
   // Never put two barriers back to back (wall, slalom, laser fence, jump barrier):
   // lining up one gap and then instantly another on the far side felt impossible.
   const afterBarrier = BARRIERS.has(G.lastPat);
-  let name = weighted(PATTERNS.filter((p) => lvl >= p.min && !(afterBarrier && BARRIERS.has(p.name)))).name;
+  let name = weighted(WP.on ? warpPatterns(lvl, afterBarrier, at) : PATTERNS.filter((p) => lvl >= p.min && !(afterBarrier && BARRIERS.has(p.name)))).name;
   const droneCap = Math.min(3, 1 + Math.floor(lvl / 1.5));
   if ((name === 'drones' || name === 'mixed') && activeDrones() >= droneCap) name = 'mines';
   G.lastPat = name;
+  STATS.pat[name] = (STATS.pat[name] || 0) + 1;
   const half = TRACK_HALF;
+  if (WP.on) {
+    const len = spawnWarpPattern(name, at, lvl);
+    if (len >= 0) return len;
+  }
 
   if (name === 'pylons') {
     const n = Math.min(9, 3 + Math.floor(Math.random() * 3 + lvl));
@@ -2477,8 +2568,8 @@ function spawnPattern(at) {
     // track that you can only clear by taking the ramp.
     const rx = rand(-half + RAMP_W / 2 + 0.2, half - RAMP_W / 2 - 0.2);
     addRamp(rx, at);
-    const v = 32 + 58 * (1 - Math.exp(-at / 4500));   // about how fast you'll be going there
-    const flight = v * JUMP_T;
+    const v = baseSpeed(at);   // about how fast you'll be going there
+    const flight = v * jumpT();
     const end = at + RAMP_LEN;
     if (lvl >= 1.2 && Math.random() < 0.55) {
       addObj('wall', 0, end + flight * 0.42, half * 2, { h: 1.2, dep: 0.5, jump: true });
@@ -2505,7 +2596,7 @@ function choosePowers() {
     { k: 'shield', w: G.shield >= 2 ? 0 : 3 },
     { k: 'weapon', w: G.weapon >= GUN_MAX ? 0 : G.weapon >= 4 ? 2.4 : 3.2 },
     { k: 'rapid', w: 2.4 },
-    { k: 'repair', w: G.hull < MAX_HULL ? 3.5 : 0.3 },
+    { k: 'repair', w: G.hull < hullMax() ? 3.5 : 0.3 },
     { k: 'missile', w: 1.9 },
     { k: 'mult', w: G.mult > 0 ? 0.8 : 1.8 },
   ].filter((o) => o.w > 0);
@@ -2532,9 +2623,13 @@ function spawnGates(at) {
 }
 
 function runSpawner() {
+  if (WP.on && WP.phase !== 'run') return;   // boss fights and warp jumps keep the road clear
   const ahead = G.d + SPAWN_AHEAD;
   while (G.nextSpawn < ahead) {
     let at = G.nextSpawn;
+    // Warp Run: leave a clear run-up to the warp gate (or the boss) at the end of each world
+    if (WP.on && at > WP.gateD - (WP.theme === 4 ? 400 : 330)) { G.nextSpawn = Infinity; break; }
+    if (WP.on && G.nextGate > WP.gateD - 300) G.nextGate = Infinity;
     if (G.nextGate < at + 60) {
       at = Math.max(at, G.nextGate);
       spawnGates(at);
@@ -2543,16 +2638,19 @@ function runSpawner() {
       continue;
     }
     const len = spawnPattern(at);
-    const lvl = G.d / 1000;
+    const lvl = lvlNow();
     let gap = Math.max(14, 42 - lvl * 5) + rand(0, 16);
     // a little breathing room after a barrier, so the next thing never lands right on its gap
     if (BARRIERS.has(G.lastPat)) gap = Math.max(gap, BARRIER_GAP);
+    // Warp Run's later loops are faster than Classic ever gets: stretch the spacing by the same
+    // amount, so the time between hazards never drops below Classic's (hard, not impossible)
+    if (WP.on) gap *= Math.max(1, baseSpeed(at) / 90);
     G.nextSpawn = at + len + gap;
   }
 }
 
 // ---------- Combat ----------
-function scoreX() { return G.mult > 0 ? G.mx : 1; }
+function scoreX() { return (G.mult > 0 ? G.mx : 1) * (WP.on ? WP.loop : 1); }
 function addScore(n) { G.score += n * scoreX(); }
 
 function toast(text, color, sub) {
@@ -2629,10 +2727,17 @@ function killEnemy(e) {
   e.dead = true;
   G.kills++;
   addScore(e.pts);
-  const vd = e.type === 'drone' ? G.speed * 0.9 : (e.vd || 0);
+  const vd = e.type === 'drone' || e.type === 'boss' ? G.speed * 0.9 : (e.vd || 0);
   explode(e.x, e.y + 0.3, e.d, COLORS.red, true, vd);
   burst(e.x, e.y + 0.3, e.d, COLORS.orange, 14, 5, vd, 0.8);
   popup('+' + e.pts * scoreX(), e.x, e.y, e.d, COLORS.yellow);
+  if (WP.on) {
+    if (e.type === 'boss') bossDown(e);
+    else {
+      dropCell(e.x, e.y, e.d);
+      if (WP.perks.chain) chainBlast(e);
+    }
+  }
 }
 
 // jagged crack lines across the shield bubble (unit circle space), made fresh for each hit
@@ -2673,6 +2778,7 @@ function hurt() {
   }
   G.hull--;
   G.hullHit = 1;
+  WP.nm = 0; WP.nmT = 0;
   G.invuln = 1.6;
   G.slow = 1.0;
   G.flash = 0.9; G.flashColor = COLORS.red;
@@ -2725,7 +2831,7 @@ function missileTargets(maxRel) {
   }
   for (const o of objs) {
     const rel = o.d - G.d;
-    if (!o.dead && o.type === 'mine' && rel > 4 && rel < maxRel) list.push({ t: o, rel, prio: 1 });
+    if (!o.dead && (o.type === 'mine' || (o.type === 'spike' && o.grow > 0.6)) && rel > 4 && rel < maxRel) list.push({ t: o, rel, prio: 1 });
   }
   list.sort((a, b) => (a.prio - b.prio) || (a.rel - b.rel));
   return list.map((it) => it.t);
@@ -2766,12 +2872,14 @@ function wingMissile() {
   return true;
 }
 function missileHit(m, t) {
-  const vd = t.type === 'drone' ? G.speed : 0;
+  const vd = t.type === 'drone' || t.type === 'boss' ? G.speed : 0;
   if (t.kind === 'enemy') {
     t.hp -= m.dmg;
     t.flashT = 0.1;
     if (t.hp <= 0) killEnemy(t);
     else explode(m.x, m.y, m.d, COLORS.orange, false, vd);
+  } else if (t.type === 'spike') {
+    breakObj(t);
   } else {
     t.dead = true;
     addScore(t.pts);
@@ -2818,7 +2926,7 @@ function updateMissiles(dt) {
     // a short free-flight fan-out, then it locks on and turns harder and harder
     const turn = m.t < 0.18 ? 1.5 : Math.min(14, 4 + m.t * 10);
     const k = 1 - Math.exp(-dt * turn);
-    const carry = m.target && m.target.type === 'drone' ? G.speed * 0.6 : 0;   // drones fly with you
+    const carry = m.target && (m.target.type === 'drone' || m.target.type === 'boss') ? G.speed * 0.6 : 0;   // drones fly with you
     m.vx += (dx * sp - m.vx) * k;
     m.vy += (dy * sp - m.vy) * k;
     m.vd += (dd * sp + carry - m.vd) * k;
@@ -2840,6 +2948,7 @@ function updateMissiles(dt) {
 
 function applyPower(type) {
   const P = POWERS[type];
+  if (P.perk) applyPerk(type);
   if (type === 'shield') { G.shield = Math.min(2, G.shield + 1); toast('SHIELD UP', P.color); }
   if (type === 'weapon') {
     G.weapon = Math.min(GUN_MAX, G.weapon + 1);
@@ -2848,7 +2957,7 @@ function applyPower(type) {
   }
   if (type === 'rapid') { G.rapid = 12; toast('RAPID FIRE', P.color); }
   if (type === 'repair') {
-    if (G.hull < MAX_HULL) { G.hull++; toast('HULL REPAIRED', P.color); }
+    if (G.hull < hullMax()) { G.hull++; toast('HULL REPAIRED', P.color); }
     else { addScore(500); toast('+500', P.color); }
   }
   if (type === 'missile') { missileSwarm(); toast('MISSILES!', P.color); }
@@ -2868,7 +2977,8 @@ function applyPower(type) {
 
 function fire() {
   const lv = G.weapon;
-  const pierce = lv >= 5, dmg = lv >= 7 ? 2 : 1, vd = G.speed + (lv >= 8 ? 150 : 110);
+  const od = WP.on && WP.odT > 0;   // Warp Run: OVERDRIVE and the HEAVY CORE prototype add damage
+  const pierce = lv >= 5, dmg = (lv >= 7 ? 2 : 1) + (WP.on ? (WP.perks.core || 0) + (od ? 1 : 0) : 0), vd = G.speed + (lv >= 8 ? 150 : 110);
   for (const [ox, vx] of GUNS[Math.min(4, lv)]) {
     shots.push({ kind: 'shot', x: player.x + ox, d: G.d + 0.6, pd: G.d + 0.6, vx, vd, y: 0.5 + player.y * 0.8, turn: 0, dmg, pierce, hits: null });
   }
@@ -2885,7 +2995,7 @@ function shotHits(b, t) {
 function enemyFire(e, fromY) {
   const rel = e.d - G.d;
   if (rel < 10) return;
-  const lvl = G.d / 1000;
+  const lvl = lvlNow();
   const approach = e.type === 'drone' ? Math.min(34, 24 + lvl * 2) : G.speed + 18;
   const t = rel / approach;
   const vx = clamp((player.x - e.x) / t, -6, 6);
@@ -2906,6 +3016,8 @@ function update(dt) {
   if (G.fly) { G.fly.t += dt; if (G.fly.t > 0.75) G.fly = null; }
   if (G.zoneT > 0) G.zoneT -= dt;
   if (G.toastT > 0) G.toastT -= dt;
+  if (WP.exit > 0) WP.exit = Math.max(0, WP.exit - dt * 1.7);
+  if (WP.nmShow > 0) WP.nmShow -= dt;
 
   if (G.state === 'title') {
     G.speed = 34;
@@ -2913,7 +3025,7 @@ function update(dt) {
     player.tx = Math.sin(G.t * 0.7) * 2.2;
   } else if (G.state === 'play') {
     G.runT += dt;
-    const base = 32 + 58 * (1 - Math.exp(-G.d / 4500));
+    const base = baseSpeed(G.d);
     const target = base * (G.slow > 0 ? 0.6 : 1);
     G.speed += (target - G.speed) * Math.min(1, dt * (G.slow > 0 ? 6 : 1.5));
     G.d += G.speed * dt;
@@ -2935,11 +3047,15 @@ function update(dt) {
       if (drag) drag.t0 += push;
     }
 
-    const zi = Math.floor(G.d / ZONE_LEN);
-    if (zi !== G.zoneIdx) {
-      G.zoneIdx = zi;
-      G.zoneName = THEMES[zi % THEMES.length].name;
-      G.zoneT = 3;
+    if (WP.on) {
+      updateWarp(dt);
+    } else {
+      const zi = Math.floor(G.d / ZONE_LEN);
+      if (zi !== G.zoneIdx) {
+        G.zoneIdx = zi;
+        G.zoneName = THEMES[zi % THEMES.length].name;
+        G.zoneT = 3;
+      }
     }
 
     runSpawner();
@@ -2947,12 +3063,17 @@ function update(dt) {
 
     G.fireT -= dt;
     if (G.fireT <= 0) {
-      G.fireT += G.rapid > 0 ? 0.075 : 0.15;
-      fire();
+      const od = WP.on && WP.odT > 0;
+      G.fireT += od ? (G.rapid > 0 ? 0.055 : 0.075) : G.rapid > 0 ? 0.075 : 0.15;
+      if (!(WP.on && WP.phase === 'warp')) fire();
     }
-    if (G.weapon >= 6 && player.alive) {
+    if ((G.weapon >= 6 || (WP.on && WP.perks.wings)) && player.alive) {
       G.wingT -= dt;
-      if (G.wingT <= 0) G.wingT = wingMissile() ? (G.weapon >= 8 ? 0.8 : 1.6) : 0.25;
+      if (G.wingT <= 0) {
+        const fired = wingMissile();
+        if (fired && WP.on && WP.perks.wings) wingMissile();   // TWIN WINGS: a second one, at another target
+        G.wingT = fired ? (G.weapon >= 8 ? 0.8 : 1.6) : 0.25;
+      }
     }
   } else {
     // dying / over: coast to a stop
@@ -2987,7 +3108,7 @@ function update(dt) {
 
   // In the air: gravity pulls you back down; you can still steer.
   if (player.y > 0 || player.vy > 0) {
-    player.vy -= JUMP_G * dt;
+    player.vy -= jumpG() * dt;
     player.y += player.vy * dt;
     if (player.y <= 0) {
       const hard = player.vy < -4;
@@ -3011,7 +3132,7 @@ function update(dt) {
   updateScenery(dt);
   const camD = VIEW_D;
   const playing = G.state === 'play' && player.alive;
-  const lvl = G.d / 1000;
+  const lvl = lvlNow();
 
   // Speed lines
   for (const s of streaks) if (s.d - camD < 1) resetStreak(s, false);
@@ -3042,9 +3163,12 @@ function update(dt) {
   for (const o of objs) {
     o.t += dt;
     moveObj(o);
+    if (o.mv) o.d += G.speed * o.mv * dt;            // traffic drives the same way you do
+    if (o.app) o.d += (G.speed - o.app) * dt;        // boss mines drift toward you at a steady pace
     const rel = o.d - G.d;
-    if (rel < -PLAYER_Z - 2) { o.dead = true; continue; }
+    if (rel + (WP.on ? o.dep : 0) < -PLAYER_Z - 2) { o.dead = true; continue; }
     if (rel > FAR) continue;
+    if (WP.on && updateWarpObj(o, rel, dt, playing)) continue;
     if (o.type === 'ramp') {
       // Riding up the ramp lifts you; leaving the top edge launches you.
       const on = -rel;   // how far along the ramp you are
@@ -3064,11 +3188,18 @@ function update(dt) {
       }
       continue;
     }
-    // bullets hit obstacles (they pass straight through laser beams)
-    for (const b of o.type === 'laser' ? NONE : shots) {
+    // bullets hit obstacles (they pass straight through laser beams, craters and crystals still in the ground)
+    for (const b of o.type === 'laser' || o.type === 'meteor' || (o.type === 'spike' && o.grow < 0.6) ? NONE : shots) {
       if (b.dead) continue;
       if (b.d >= o.d && b.pd <= o.d + o.dep && Math.abs(b.x - o.x) < o.w / 2 + 0.08) {
-        if (o.type === 'mine') {
+        if (o.type === 'spike') {
+          if (!shotHits(b, o)) continue;
+          if (!b.pierce) b.dead = true;
+          o.hp -= b.dmg;
+          o.flashT = 0.1;
+          sfx.tick();
+          if (o.hp <= 0) { breakObj(o); break; }
+        } else if (o.type === 'mine') {
           if (!shotHits(b, o)) continue;
           if (!b.pierce) b.dead = true;
           o.hp -= b.dmg;
@@ -3098,7 +3229,19 @@ function update(dt) {
           explode(o.x, 0.6, o.d, COLORS.orange, true, 0);
         } else {
           burst(player.x, 0.6, o.d, '#ffffff', 16, 6, 0, 0.5);
+          if (o.type === 'spike') {   // crashing through a crystal shatters it (no points for that)
+            o.dead = true;
+            debris(o.x, 1.4, o.d, '#0a4a50', '#c8fff6', 7, 5, 0, 0.16, false);
+          }
         }
+      }
+    }
+    // Warp Run: slipping past something with almost no room to spare is worth points
+    if (WP.on && !o.nm && rel + o.dep / 2 < 0) {
+      o.nm = true;
+      if (playing && !o.hit && !o.dead && !o.jump && player.y < 0.3 && NEAR_TYPES.has(o.type)) {
+        const room = Math.abs(player.x - o.x) - o.w / 2 - playerHalfW();
+        if (room >= 0 && room < 0.5) nearMiss();
       }
     }
   }
@@ -3146,6 +3289,8 @@ function update(dt) {
       const rel = e.d - G.d;
       if (rel < 130 && rel > 4 && playing) e.x += clamp(player.x - e.x, -1, 1) * e.steer * dt;
       e.x = clamp(e.x, -TRACK_HALF + 0.5, TRACK_HALF - 0.5);
+    } else if (e.type === 'boss') {
+      updateBoss(e, dt, playing);
     } else if (e.type === 'turret') {
       const rel = e.d - G.d;
       if (playing && rel > 30 && rel < 115) {
@@ -3168,14 +3313,14 @@ function update(dt) {
           if (!b.pierce) b.dead = true;
           e.hp -= b.dmg;
           e.flashT = 0.08;
-          burst(b.x, e.y + 0.2, e.d, '#ffd0d8', 3, 2, e.type === 'drone' ? G.speed : 0, 0.25);
+          burst(b.x, e.y + 0.2, e.d, '#ffd0d8', 3, 2, e.type === 'drone' || e.type === 'boss' ? G.speed : 0, 0.25);
           sfx.tick();
           if (e.hp <= 0) { killEnemy(e); break; }
         }
       }
     }
     // rams and turrets can hit you
-    if (playing && !e.dead && e.type !== 'drone' && player.y < 0.9 && rel < 0.6 && rel > -0.8 && Math.abs(player.x - e.x) < e.w / 2 + playerHalfW()) {
+    if (playing && !e.dead && e.type !== 'drone' && e.type !== 'boss' && player.y < 0.9 && rel < 0.6 && rel > -0.8 && Math.abs(player.x - e.x) < e.w / 2 + playerHalfW()) {
       if (hurt()) {
         e.dead = true;
         explode(e.x, 0.5, e.d, COLORS.red, true, 0);
@@ -3261,6 +3406,7 @@ function update(dt) {
   }
 
   updateMissiles(dt);
+  if (WP.on) updateCells(dt, playing);
   compact(shots); compact(objs); compact(enemies); compact(eshots);
   compact(gates); compact(parts); compact(popups);
 
@@ -3424,10 +3570,15 @@ function drawObj(o) {
   const z = o._z;
   const a = fogA(z) * passFade(z + o.dep);
   if (a < 0.01) return;
-  if (o.type === 'pylon') reflect(SPR.pink, o.x, 1.1, z + o.dep / 2, 0.45, a * 0.4);
+  if (o.type === 'pylon') reflect(SPR[OB.spr], o.x, 1.1, z + o.dep / 2, 0.45, a * 0.4);
   else if (o.type === 'mine') reflect(SPR.orange, o.x, (o.y || 0.25) + 0.15, z, 0.4, a * 0.5);
   if (o.type === 'ramp') { drawRamp(o, z, a); return; }
   if (o.type === 'laser') { drawLaser(o, z, a); return; }
+  if (o.type === 'portal') { drawPortal(o, z, fogA(z)); return; }
+  if (o.type === 'gap') return;                 // drawn with the road (drawGaps)
+  if (o.type === 'traffic') { drawTruck(o, z, a); return; }
+  if (o.type === 'spike') { drawSpike(o, z, a); return; }
+  if (o.type === 'meteor') { drawMeteor(o, z, a); return; }
   if (o.type === 'pylon') {
     const zc = z + o.dep / 2;
     if (zc < 1.2) return;
@@ -3438,7 +3589,7 @@ function drawObj(o) {
       const L = o.osc.base - o.osc.amp, R = o.osc.base + o.osc.amp;
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha = a * 0.55;
-      ctx.strokeStyle = '#ff5fe0';
+      ctx.strokeStyle = OB.edge;
       ctx.lineWidth = clamp(0.06 * gs, 1, 4);
       ctx.beginPath(); ctx.moveTo(sx(L, zc), by); ctx.lineTo(sx(R, zc), by); ctx.stroke();
       ctx.lineWidth = clamp(0.04 * gs, 1, 3);
@@ -3451,29 +3602,29 @@ function drawObj(o) {
     }
     // warning ring pulsing on the road around its base
     ctx.globalCompositeOperation = 'lighter';
-    glow(SPR.pink, bx, by, 1.5 * gs, 0.32 * gs, a * 0.6);
+    glow(SPR[OB.spr], bx, by, 1.5 * gs, 0.32 * gs, a * 0.6);
     const ring = (G.t * 1.6 + o.t) % 1;
     ctx.globalAlpha = a * (1 - ring) * 0.8;
-    ctx.strokeStyle = '#ff5fe0';
+    ctx.strokeStyle = OB.edge;
     ctx.lineWidth = clamp(0.05 * gs, 1, 3);
     ctx.beginPath(); ctx.ellipse(bx, by, (0.7 + ring * 0.9) * gs, (0.7 + ring * 0.9) * gs * 0.16, 0, 0, Math.PI * 2); ctx.stroke();
     ctx.globalCompositeOperation = 'source-over';
     if (0.9 * gs < 7) {
       // far away: a simple glowing spike is enough
       ctx.globalAlpha = a;
-      ctx.fillStyle = '#5a1a8a';
+      ctx.fillStyle = OB.far;
       const hw = 0.34 * gs, ty = sy(o.h, zc);
       ctx.beginPath(); ctx.moveTo(bx - hw, by); ctx.lineTo(bx - hw * 0.75, sy(4.3, zc)); ctx.lineTo(bx, ty); ctx.lineTo(bx + hw * 0.75, sy(4.3, zc)); ctx.lineTo(bx + hw, by); ctx.closePath();
       ctx.fill();
-      ctx.strokeStyle = '#ff5fe0'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.strokeStyle = OB.edge; ctx.lineWidth = 1; ctx.stroke();
       ctx.globalAlpha = 1;
       return;
     }
     MT.x = o.x; MT.y = 0; MT.z = zc; MT.roll = 0; MT.pitch = 0; MT.yaw = o.t * 0.7; MT.scale = 1;
-    if (!drawMesh(PYLON_MESH, MT, a, 0.045)) return;
+    if (!drawMesh(OB.mesh, MT, a, 0.045)) return;
     // energy rings sliding up the tower (only the half facing you)
     ctx.globalCompositeOperation = 'lighter';
-    ctx.strokeStyle = '#ff7bf0';
+    ctx.strokeStyle = OB.ring;
     for (let i = 0; i < 3; i++) {
       const f = (G.t * 0.45 + i / 3 + o.t * 0.13) % 1;
       const y = 0.4 + f * 3.7, r = 0.42 - f * 0.11 + 0.03;
@@ -3489,16 +3640,16 @@ function drawObj(o) {
     }
     // beacon blinking on the tip
     const bl = Math.sin(G.t * 6 + o.t * 3) > 0 ? 1 : 0.35;
-    glow(SPR.pink, bx, sy(4.95, zc), 0.55 * gs, 0.55 * gs, a * bl);
+    glow(SPR[OB.spr], bx, sy(4.95, zc), 0.55 * gs, 0.55 * gs, a * bl);
     glow(SPR.white, bx, sy(4.95, zc), 0.18 * gs, 0.18 * gs, a * bl);
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
   } else if (o.type === 'wall') {
     ctx.globalCompositeOperation = 'lighter';
     const gs = FOCAL / Math.max(z, 1);
-    glow(SPR.pink, sx(o.x, z), sy(0, z), (o.w * 0.7 + 0.5) * gs, 0.3 * gs, a * 0.45);
+    glow(SPR[OB.spr], sx(o.x, z), sy(0, z), (o.w * 0.7 + 0.5) * gs, 0.3 * gs, a * 0.45);
     ctx.globalCompositeOperation = 'source-over';
-    const r = drawBox(o.x, 0, z, o.w, o.h, o.dep, WALL_C, a);
+    const r = drawBox(o.x, 0, z, o.w, o.h, o.dep, OB.wall, a);
     if (!r) return;
     const fw = r.nxr - r.nxl, fh = r.nyb - r.nyt;
     // which way is the way through? (arrows on the barrier point to the gap)
@@ -3522,7 +3673,7 @@ function drawObj(o) {
     } else if (fh > 4) {
       // neon chevrons sliding toward the gap
       ctx.globalCompositeOperation = 'lighter';
-      ctx.strokeStyle = 'rgba(255, 95, 224, 0.9)';
+      ctx.strokeStyle = OB.chev;
       ctx.lineWidth = Math.max(1, 0.1 * r.s);
       const step = Math.max(10, 0.9 * r.s), m = fh * 0.3;
       const off = dir ? ((G.t * 2.2) % 1) * step * dir : 0;
@@ -3542,16 +3693,16 @@ function drawObj(o) {
     ctx.restore();
     ctx.globalAlpha = a;
     // glowing top rail with running lights
-    ctx.fillStyle = '#ffd0fb';
+    ctx.fillStyle = OB.lip;
     ctx.fillRect(r.nxl, r.nyt, fw, Math.max(1, 0.06 * r.s));
-    ctx.fillStyle = '#ff5fe0';
+    ctx.fillStyle = OB.edge;
     ctx.fillRect(r.nxl, r.nyb - Math.max(1, 0.05 * r.s), fw, Math.max(1, 0.05 * r.s));
     if (r.s > 14) {
       ctx.globalCompositeOperation = 'lighter';
       const n = Math.max(2, Math.round(o.w / 1.2));
       for (let i = 0; i <= n; i++) {
         const on = ((i + Math.floor(G.t * 6)) % 3) === 0 ? 1 : 0.35;
-        glow(SPR.pink, r.nxl + fw * (i / n), r.nyt, 0.22 * r.s, 0.22 * r.s, a * on);
+        glow(SPR[OB.spr], r.nxl + fw * (i / n), r.nyt, 0.22 * r.s, 0.22 * r.s, a * on);
       }
       ctx.globalCompositeOperation = 'source-over';
     }
@@ -3611,9 +3762,10 @@ function drawEnemy(e) {
   const a = fogA(z) * passFade(z + 0.6);
   if (a < 0.01) return;
   const s = FOCAL / z;
-  reflect(SPR.red, e.x, e.type === 'drone' ? e.y : 0.35, z, e.type === 'drone' ? 0.5 : 0.45, a * (e.type === 'drone' ? 0.35 : 0.5));
+  if (e.type !== 'boss') reflect(SPR.red, e.x, e.type === 'drone' ? e.y : 0.35, z, e.type === 'drone' ? 0.5 : 0.45, a * (e.type === 'drone' ? 0.35 : 0.5));
   MESH_TINT = e.flashT > 0 ? 0.85 : 0;
   MT.yaw = 0; MT.scale = 1;
+  if (e.type === 'boss') { drawBoss(e, z, a, s); MESH_TINT = 0; return; }
   if (e.type === 'drone') {
     shadow(e.x, z, 0.55, a * 0.35);
     // red under-glow
@@ -3825,6 +3977,12 @@ function powerIcon(type, x, y, r, color, lw, c) {
       c.lineTo(-r * 0.15, -r * 0.5); c.closePath(); c.fill();
       c.restore();
     }
+  } else if (POWERS[type] && POWERS[type].perk) {
+    // prototypes: a diamond with the upgrade's initial
+    c.moveTo(0, -r * 1.05); c.lineTo(r * 0.95, 0); c.lineTo(0, r * 1.05); c.lineTo(-r * 0.95, 0); c.closePath(); c.stroke();
+    c.font = '900 ' + (r * 0.95).toFixed(1) + 'px ' + FONT;
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(POWERS[type].label[0], 0, r * 0.06);
   } else if (type === 'mult') {
     const lbl = powerLabel('mult').split(' ')[0];
     c.font = '900 ' + (r * (lbl.length > 2 ? 1.1 : 1.25)).toFixed(1) + 'px ' + FONT;
@@ -3970,7 +4128,7 @@ function drawStreaks() {
   for (let i = 0; i < n; i++) {
     const s = streaks[i];
     const z = s.d - camD;
-    if (z < 1) continue;
+    if (z < 1 || (TUN.inside && !s.rail)) continue;
     const z2 = z + G.speed * (s.rail ? 0.09 : 0.06);
     ctx.globalAlpha = base * fogA(z) * (s.rail ? 1.3 : 1);
     ctx.strokeStyle = s.rail ? railC : '#d8c8ff';
@@ -3982,6 +4140,7 @@ function drawStreaks() {
   }
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
+  if (WP.on) drawWind();
 }
 
 // Light trails from the three engines, following where the speeder has been.
@@ -4534,6 +4693,1198 @@ const TURRET_HEAD = (() => {
   return makeMesh(v, f, [0, 0.75, 0]);
 })();
 
+/* =========================================================
+   WARP RUN (v0.8)
+   A second game mode built on the same track, steering and collisions as Classic.
+   - Five worlds, each with its own rail/track colors, its own obstacle look and a
+     signature hazard. A warp gate at the end of each world jumps you to the next.
+   - After the fifth world a boss (the Warden) blocks the way. Beat it and you start
+     the next LOOP: faster, tougher, and every point is multiplied by the loop number.
+   - Enemies drop power cells that charge OVERDRIVE; close calls charge it too.
+   - Each boss you beat offers a permanent PROTOTYPE upgrade.
+   Nothing in here runs in Classic: everything hangs off WP.on.
+   ========================================================= */
+
+// ---- Obstacle looks ----
+// Pylons and walls are the same hazards in every world, but each world dresses them
+// differently. Danger colors never change: mines are orange, ramps lime, lasers and enemies red.
+function towerMesh(kind, C) {
+  const v = [], f = [];
+  if (kind === 'obelisk') {
+    // desert: a four-sided stone needle with a pyramid tip
+    const q = Math.PI / 4;
+    const b0 = ringVerts(v, 0, 0, 0, 0.72, 4, 'y', q), b1 = ringVerts(v, 0, 0.28, 0, 0.68, 4, 'y', q);
+    const s0 = ringVerts(v, 0, 0.28, 0, 0.5, 4, 'y', q), s1 = ringVerts(v, 0, 4.1, 0, 0.3, 4, 'y', q);
+    const tip = v.length / 3; v.push(0, 4.95, 0);
+    ringSides(f, b0, b1, 4, C.base, C.e1);
+    f.push([[b1, b1 + 1, b1 + 2, b1 + 3], C.base, C.e1, { o: [0, 0, 0] }]);
+    ringSides(f, s0, s1, 4, C.shaft, C.e2);
+    for (let k = 0; k < 4; k++) f.push([[s1 + k, s1 + (k + 1) % 4, tip], C.cap, C.e3, { o: [0, 4, 0] }]);
+  } else if (kind === 'spire') {
+    // sky: a thin needle wearing a floating collar
+    const q = Math.PI / 4;
+    const b0 = ringVerts(v, 0, 0, 0, 0.6, 6, 'y'), b1 = ringVerts(v, 0, 0.16, 0, 0.56, 6, 'y');
+    const s0 = ringVerts(v, 0, 0.16, 0, 0.3, 4, 'y', q), s1 = ringVerts(v, 0, 3.1, 0, 0.2, 4, 'y', q);
+    const c0 = ringVerts(v, 0, 3.1, 0, 0.52, 6, 'y'), c1 = ringVerts(v, 0, 3.4, 0, 0.52, 6, 'y');
+    const n0 = ringVerts(v, 0, 3.4, 0, 0.17, 4, 'y', q);
+    const tip = v.length / 3; v.push(0, 4.95, 0);
+    ringSides(f, b0, b1, 6, C.base, C.e1);
+    f.push([[b1, b1 + 1, b1 + 2, b1 + 3, b1 + 4, b1 + 5], C.base, C.e1, { o: [0, 0, 0] }]);
+    ringSides(f, s0, s1, 4, C.shaft, C.e2);
+    ringSides(f, c0, c1, 6, C.cap, C.e3);
+    f.push([[c1, c1 + 1, c1 + 2, c1 + 3, c1 + 4, c1 + 5], C.cap, C.e3, { o: [0, 0, 0] }]);
+    f.push([[c0, c0 + 1, c0 + 2, c0 + 3, c0 + 4, c0 + 5], C.shaft, C.e3, { o: [0, 5, 0] }]);
+    for (let k = 0; k < 4; k++) f.push([[n0 + k, n0 + (k + 1) % 4, tip], C.cap, C.e3, { o: [0, 4, 0] }]);
+  } else if (kind === 'shard') {
+    // crystal: a five-sided shard that bulges and leans, with a small one growing beside it
+    const a0 = ringVerts(v, 0, 0, 0, 0.4, 5, 'y'), a1 = ringVerts(v, 0.04, 1.5, 0, 0.6, 5, 'y', 0.3), a2 = ringVerts(v, 0.1, 3.7, 0, 0.32, 5, 'y', 0.6);
+    const tip = v.length / 3; v.push(0.16, 4.95, 0.04);
+    ringSides(f, a0, a1, 5, C.base, C.e1);
+    ringSides(f, a1, a2, 5, C.shaft, C.e2);
+    for (let k = 0; k < 5; k++) f.push([[a2 + k, a2 + (k + 1) % 5, tip], C.cap, C.e3, { o: [0.1, 3.5, 0] }]);
+    const m0 = ringVerts(v, -0.52, 0, 0.1, 0.24, 4, 'y');
+    const mt = v.length / 3; v.push(-0.78, 1.7, 0.1);
+    for (let k = 0; k < 4; k++) f.push([[m0 + k, m0 + (k + 1) % 4, mt], C.shaft, C.e3, { o: [-0.55, 0.4, 0.1] }]);
+  } else if (kind === 'slab') {
+    // cosmic: a black monolith with one lit band
+    const x = 0.44, z = 0.2, h = 4.85;
+    v.push(-x, 0, -z, x, 0, -z, x, 0, z, -x, 0, z, -x, h, -z, x, h, -z, x, h, z, -x, h, z);
+    f.push([[0, 1, 5, 4], C.shaft, C.e2], [[1, 2, 6, 5], C.base, C.e2], [[2, 3, 7, 6], C.shaft, C.e2], [[3, 0, 4, 7], C.base, C.e2],
+      [[4, 5, 6, 7], C.cap, C.e3, { o: [0, 0, 0] }]);
+    const b = v.length / 3;
+    v.push(-x, 3.3, -z - 0.01, x, 3.3, -z - 0.01, x, 3.6, -z - 0.01, -x, 3.6, -z - 0.01);
+    f.push([[b, b + 1, b + 2, b + 3], C.cap, null, { e: true, b: 3, o: [0, 3.45, 1] }]);
+  } else {
+    // city: the classic six-sided tower, in this world's colors
+    const b0 = ringVerts(v, 0, 0, 0, 0.62, 6, 'y'), b1 = ringVerts(v, 0, 0.3, 0, 0.6, 6, 'y');
+    const s0 = ringVerts(v, 0, 0.3, 0, 0.4, 6, 'y'), s1 = ringVerts(v, 0, 4.2, 0, 0.29, 6, 'y');
+    const c0 = ringVerts(v, 0, 4.2, 0, 0.42, 6, 'y'), c1 = ringVerts(v, 0, 4.42, 0, 0.42, 6, 'y');
+    const tip = v.length / 3; v.push(0, 4.95, 0);
+    ringSides(f, b0, b1, 6, C.base, C.e1);
+    f.push([[b1, b1 + 1, b1 + 2, b1 + 3, b1 + 4, b1 + 5], C.base, C.e1, { o: [0, 0, 0] }]);
+    ringSides(f, s0, s1, 6, C.shaft, C.e2);
+    ringSides(f, c0, c1, 6, C.cap, C.e3);
+    f.push([[c0, c0 + 1, c0 + 2, c0 + 3, c0 + 4, c0 + 5], C.cap, C.e3, { o: [0, 5, 0] }]);
+    for (let k = 0; k < 6; k++) f.push([[c1 + k, c1 + (k + 1) % 6, tip], C.cap, C.e3, { o: [0, 4.3, 0] }]);
+  }
+  return makeMesh(v, f, [0, 2.3, 0]);
+}
+
+const OB_CLASSIC = {
+  mesh: PYLON_MESH, spr: 'pink', edge: '#ff5fe0', far: '#5a1a8a', ring: '#ff7bf0', lip: '#ffd0fb',
+  wall: WALL_C, chev: 'rgba(255, 95, 224, 0.9)',
+};
+let OB = OB_CLASSIC;      // the obstacle look in use this frame (set in zoneMix / warpPalette)
+let RAIL_SPR = 'cyan';    // which glow the rail lamps use
+
+/* The five worlds of Warp Run (same order and backdrops as Classic's zones).
+   rail / grid / road / accent  the track's colors: this is what tells you where you are
+   spr     glow color of the rail lamps
+   curve   how bendy the road is (1 = like Classic)
+   float   >1 makes jumps longer and floatier (Cosmic Highway)
+   pat     how much more (or less) often each ordinary hazard pattern shows up here
+   sig     the world's own patterns: { name, min level, weight } */
+const SKINS = [
+  { // NEON DESERT: wide open and fast. Packs of ram bikes.
+    rail: [255, 150, 40], grid: [255, 70, 200], road: [40, 10, 30], accent: [255, 120, 60], spr: 'orange', curve: 0.6, float: 1,
+    ob: {
+      mesh: towerMesh('obelisk', { base: [92, 44, 18], shaft: [150, 78, 30], cap: [230, 150, 60], e1: '#ffd23c', e2: '#ffb347', e3: '#fff0c0' }),
+      spr: 'orange', edge: '#ffb347', far: '#9a4a14', ring: '#ffd08a', lip: '#fff0c0',
+      wall: { face: '#2a1206', side: '#4a220c', top: '#b0622a', edge: '#ffb347' }, chev: 'rgba(255, 179, 71, 0.9)',
+    },
+    pat: { pylons: 1.3, rams: 1.5, drones: 0.6, shuttle: 0.5, snake: 0.5, sweeper: 0.4, turrets: 0.8, slalom: 0.6, mixed: 0.6 },
+    sig: [{ name: 'rampack', min: 1.0, w: 8 }],
+  },
+  { // NEON CITY: tunnels and traffic you weave through.
+    rail: [41, 180, 255], grid: [150, 110, 255], road: [14, 16, 60], accent: [80, 220, 255], spr: 'cyan', curve: 0.9, float: 1,
+    ob: {
+      mesh: towerMesh('hex', { base: [16, 40, 90], shaft: [22, 70, 150], cap: [40, 150, 220], e1: '#ffd23c', e2: '#29b4ff', e3: '#c8f4ff' }),
+      spr: 'cyan', edge: '#29b4ff', far: '#1a4a9a', ring: '#8ae6ff', lip: '#c8f4ff',
+      wall: { face: '#07122c', side: '#0d2250', top: '#2a6ab0', edge: '#29b4ff' }, chev: 'rgba(60, 190, 255, 0.9)',
+    },
+    pat: { shuttle: 1.3, turrets: 1.4, slalom: 1.2, pylons: 0.5, mines: 0.4, snake: 0.3, sweeper: 0.8, drones: 0.8, rams: 0.6, jump: 0.5, mixed: 0.4 },
+    sig: [{ name: 'traffic', min: 0, w: 12 }],
+  },
+  { // SKY ISLANDS: a road in the clouds. Chasms to jump, crosswinds that push you.
+    rail: [255, 226, 150], grid: [255, 170, 230], road: [50, 18, 78], accent: [255, 200, 110], spr: 'yellow', curve: 1, float: 1,
+    ob: {
+      mesh: towerMesh('spire', { base: [120, 90, 60], shaft: [210, 190, 160], cap: [255, 220, 130], e1: '#ffd23c', e2: '#fff0c8', e3: '#ffffff' }),
+      spr: 'yellow', edge: '#ffe296', far: '#b08a4a', ring: '#fff4c0', lip: '#ffffff',
+      wall: { face: '#3a2410', side: '#5a3a18', top: '#d0a050', edge: '#ffe296' }, chev: 'rgba(255, 226, 150, 0.9)',
+    },
+    pat: { jump: 1.6, drones: 1.3, pylons: 0.8, mines: 0.6, wall: 0.5, slalom: 0.4, shuttle: 0.6, snake: 0.6, sweeper: 0.5, turrets: 0.5, rams: 0.6, mixed: 0.6 },
+    sig: [{ name: 'chasm', min: 0, w: 9 }],
+  },
+  { // CRYSTAL WASTES: an alien plain. Crystals burst out of the road; shoot them or dodge.
+    rail: [255, 60, 210], grid: [60, 230, 255], road: [4, 34, 50], accent: [110, 255, 230], spr: 'teal', curve: 1.1, float: 1,
+    ob: {
+      mesh: towerMesh('shard', { base: [12, 70, 84], shaft: [30, 150, 160], cap: [150, 255, 240], e1: '#6effe6', e2: '#6effe6', e3: '#eafffb' }),
+      spr: 'teal', edge: '#6effe6', far: '#1a7a80', ring: '#c8fff6', lip: '#eafffb',
+      wall: { face: '#04202a', side: '#0a3a48', top: '#2aa0a0', edge: '#6effe6' }, chev: 'rgba(110, 255, 230, 0.9)',
+    },
+    pat: { sweeper: 1.8, snake: 1.3, pylons: 0.2, mines: 0.6, wall: 0.7, slalom: 0.5, shuttle: 0.4, drones: 0.8, turrets: 0.8, rams: 0.6, jump: 0.6, mixed: 0.3 },
+    sig: [{ name: 'spikes', min: 0, w: 12 }],
+  },
+  { // COSMIC HIGHWAY: deep space. Meteors rain on the road, jumps float. The Warden waits at the end.
+    rail: [200, 160, 255], grid: [170, 120, 255], road: [10, 6, 34], accent: [255, 210, 60], spr: 'violet', curve: 1.15, float: 1.45,
+    ob: {
+      mesh: towerMesh('slab', { base: [14, 10, 30], shaft: [26, 18, 54], cap: [200, 160, 255], e1: '#c8a0ff', e2: '#c8a0ff', e3: '#ffffff' }),
+      spr: 'violet', edge: '#c8a0ff', far: '#4a2a9a', ring: '#e6d6ff', lip: '#ffffff',
+      wall: { face: '#0c0624', side: '#1a0e44', top: '#6a4ac0', edge: '#c8a0ff' }, chev: 'rgba(200, 160, 255, 0.9)',
+    },
+    pat: { mines: 1.3, snake: 1.2, jump: 1.4, drones: 1.3, pylons: 0.5, wall: 0.5, slalom: 0.4, shuttle: 0.6, sweeper: 0.8, turrets: 0.6, rams: 0.7, mixed: 0.5 },
+    sig: [{ name: 'meteors', min: 0, w: 12 }],
+  },
+];
+
+// ---- Run state ----
+const WP = {
+  on: false,          // true during a Warp Run
+  loop: 1,            // which lap of the five worlds (also the score multiplier)
+  sec: 0,             // worlds entered so far this run (0 = first)
+  theme: 0,           // which world you're in (0-4)
+  secStart: 0, gateD: 0, portal: null,
+  phase: 'run',       // 'run' | 'boss' | 'reward' (boss beaten, gate ahead) | 'warp' (inside a jump)
+  warpT: 0, swapped: false, exit: 0,
+  boss: null, bossKills: 0,
+  od: 0, odT: 0, odMax: OD_TIME,
+  perks: {}, aegisT: 0,
+  nm: 0, nmT: 0, nmShow: 0, nmText: '',
+  wind: 0, windWarn: 0, gusts: [], tunnels: [],
+};
+const cells = [];     // power cells dropped by enemies
+const TUN = { cur: null, inside: false, dark: false, wasIn: false };
+const TRAFFIC_CLOSE = 0.62;   // you close on traffic at this share of your speed (it drives the same way you do)
+
+function resetWarp() {
+  Object.assign(WP, {
+    on: false, loop: 1, sec: 0, theme: 0, secStart: 0, gateD: 0, portal: null, phase: 'run',
+    warpT: 0, swapped: false, exit: 0, boss: null, bossKills: 0, od: 0, odT: 0, odMax: OD_TIME,
+    aegisT: 0, nm: 0, nmT: 0, nmShow: 0, nmText: '', wind: 0, windWarn: 0,
+  });
+  WP.perks = {};
+  WP.gusts.length = 0; WP.tunnels.length = 0; cells.length = 0;
+  TUN.cur = null; TUN.inside = false; TUN.dark = false; TUN.wasIn = false;
+}
+function hullMax() { return MAX_HULL + (WP.on && WP.perks.hull ? 1 : 0); }
+function jumpT() { return JUMP_T * (WP.on ? SKINS[WP.theme].float : 1); }
+// gravity that lands the same launch after jumpT() seconds (weaker in floaty worlds)
+function jumpG() {
+  if (!WP.on || SKINS[WP.theme].float === 1) return JUMP_G;
+  const T = jumpT();
+  return 2 * (RAMP_H + JUMP_VY * T) / (T * T);
+}
+
+function copy3(out, a) { out[0] = a[0]; out[1] = a[1]; out[2] = a[2]; }
+// Warp Run colors: no blending between worlds (the warp flash covers the change).
+function warpPalette() {
+  const i = WP.theme, T = THEMES[i], S = SKINS[i];
+  ZONE.a = i; ZONE.b = i; ZONE.t = 1; ZONE.idx = WP.sec;
+  for (const k of LAYER_KEYS) PAL.L[k] = T.layers[k];
+  copy3(PAL.grid, S.grid); copy3(PAL.road, S.road); copy3(PAL.rail, S.rail); copy3(PAL.accent, S.accent);
+  copy3(PAL.haze, T.haze);
+  copy3(PAL.mtnFill0, T.mtnFill[0]); copy3(PAL.mtnFill1, T.mtnFill[1]);
+  copy3(PAL.mtnEdge0, T.mtnEdge[0]); copy3(PAL.mtnEdge1, T.mtnEdge[1]);
+  copy3(PAL.propFill, T.propFill); copy3(PAL.propEdge, T.propEdge);
+  OB = S.ob; RAIL_SPR = S.spr;
+}
+
+// ---- Worlds and warp gates ----
+function zoneCard() {
+  G.zoneIdx = WP.sec;
+  G.zoneName = THEMES[WP.theme].name;
+  G.zoneT = 3.4;
+}
+function beginSector(d0) {
+  WP.theme = WP.sec % SKINS.length;
+  WP.secStart = d0;
+  WP.gateD = d0 + W_SECTOR;
+  WP.tunnels.length = 0; WP.gusts.length = 0;
+  WP.portal = null;
+  if (WP.theme === 4) {
+    // the last world ends at the boss, not at a gate: one last supply stop on the way in
+    spawnGatePair(WP.gateD - 150, 'repair', G.shield >= 2 ? 'missile' : 'shield');
+  } else {
+    WP.portal = addObj('portal', 0, WP.gateD, 2 * TRACK_HALF, { h: 8, dep: 0.4 });
+  }
+  if (WP.theme === 1) {
+    WP.tunnels.push({ a: d0 + 500, b: d0 + 960 }, { a: d0 + 1480, b: d0 + 1960 });
+  }
+  if (WP.theme === 2) {
+    for (const off of [420, 1080, 1700]) {
+      const a = d0 + off + rand(0, 120);
+      WP.gusts.push({ d0: a, d1: a + 260, dir: Math.random() < 0.5 ? -1 : 1, str: 2.6 + 0.3 * Math.min(WP.loop, 4) });
+    }
+  }
+}
+function startWarpRun() {
+  WP.on = true;
+  WP.phase = 'run';
+  beginSector(0);
+  if (G.dragged) zoneCard();   // (first-timers get the steering hint in that spot instead)
+}
+function startWarp() {
+  if (WP.phase === 'warp') return;
+  WP.phase = 'warp'; WP.warpT = 0; WP.swapped = false;
+  G.invuln = Math.max(G.invuln, WARP_T + 0.8);
+  G.kick = 1;
+  addScore(1000);
+  toast(WP.boss === null && WP.theme === 4 ? 'LOOP ' + WP.loop + ' CLEARED' : 'WORLD CLEARED', COLORS.yellow, '+' + (1000 * scoreX()).toLocaleString());
+  play('swarm', 0.55, 0.7);
+  play('power', 0.5, 0.6);
+  vibrate([20, 30, 60]);
+}
+// Runs once, hidden inside the white flash: the old world is thrown away and the next one set up.
+function swapSector() {
+  WP.swapped = true;
+  WP.sec++;
+  const newLoop = WP.sec % SKINS.length === 0;
+  if (newLoop) WP.loop++;
+  objs.length = 0; enemies.length = 0; eshots.length = 0; gates.length = 0; missiles.length = 0; shots.length = 0;
+  WP.boss = null;
+  player.y = 0; player.vy = 0; player.ramp = null; G.air = 0;
+  WP.wind = 0;
+  // flat, empty road to come out onto
+  resetScenery();
+  hills.length = 0;
+  const out = G.d + G.speed * (WARP_T - 0.3);   // about where you'll leave the jump
+  hillEnd = out + 220;
+  beginSector(out);
+  G.nextSpawn = out + 130;
+  G.nextGate = out + 430;
+  G.lastPat = '';
+}
+function endWarp() {
+  WP.phase = 'run';
+  WP.exit = 1;
+  G.kick = 1;
+  G.shake = Math.max(G.shake, 0.3);
+  zoneCard();
+  if (WP.theme === 0 && WP.loop > 1) {
+    toast('LOOP ' + WP.loop, COLORS.yellow, 'score x' + WP.loop + ' · faster · tougher');
+    sfx.fanfare();
+    track('warp/loop/' + Math.min(WP.loop, 8), 'Warp Run: reached loop ' + Math.min(WP.loop, 8));
+  }
+  play('boom2', 0.5, 1.5);
+}
+// how white the screen is right now (0-1)
+function warpWhite() {
+  if (WP.phase !== 'warp') return WP.exit;
+  const t = WP.warpT;
+  if (t < 0.3) { const u = t / 0.3; return u * u * (3 - 2 * u); }
+  if (t < 0.8) return 1 - (t - 0.3) / 0.5;
+  if (t > WARP_T - 0.3) return clamp((t - (WARP_T - 0.3)) / 0.3, 0, 1);
+  return 0;
+}
+
+// ---- Overdrive, power cells, close calls ----
+function chargeOD(n) { WP.od = Math.min(OD_NEED, WP.od + n); }
+function startOverdrive() {
+  WP.od = 0;
+  WP.odMax = OD_TIME + (WP.perks.magnet ? 4 : 0);
+  WP.odT = WP.odMax;
+  toast('OVERDRIVE!', '#ff5fe0', 'double fire · +1 damage');
+  G.flash = Math.max(G.flash, 0.5); G.flashColor = '#ff5fe0';
+  G.pulse = 1; G.pulseColor = '#ff5fe0'; G.kick = 1;
+  sfx.power();
+  play('swarm', 0.4, 1.4);
+  vibrate([20, 30, 20]);
+}
+function dropCell(x, y, d) {
+  if (cells.length >= 24) return;
+  cells.push({ kind: 'cell', x: clamp(x, -TRACK_HALF + 0.6, TRACK_HALF - 0.6), y: Math.max(0.6, y), d, t: rand(0, 6), _z: 0 });
+}
+function updateCells(dt, playing) {
+  const mag = !!WP.perks.magnet;
+  for (const c of cells) {
+    c.t += dt;
+    c.d += (G.speed - 34) * dt;               // drifts toward you, slowly enough to line up
+    c.y += (0.6 - c.y) * (1 - Math.exp(-dt * 3));
+    const rel = c.d - G.d, dx = player.x - c.x;
+    if (mag) c.x += dx * (1 - Math.exp(-dt * 4));
+    else if (rel < 26 && Math.abs(dx) < 1.9) c.x += clamp(dx, -1, 1) * 5 * dt;
+    if (playing && rel < 0.9 && rel > -1.2 && Math.abs(player.x - c.x) < 0.95 && player.y < 2.2) {
+      c.dead = true;
+      chargeOD(1);
+      addScore(25);
+      burst(c.x, 0.6, G.d + 0.5, '#6dff7a', 8, 3, G.speed, 0.35);
+      play('ui', 0.45, 1.5 + WP.od * 0.06, 0.03);
+      continue;
+    }
+    if (rel < -3) c.dead = true;
+  }
+  compact(cells);
+}
+// You slipped past something with almost no room to spare.
+function nearMiss() {
+  WP.nm = WP.nmT > 0 ? WP.nm + 1 : 1;
+  WP.nmT = 2.6;
+  const pts = 40 * Math.min(WP.nm, 10);
+  addScore(pts);
+  chargeOD(0.34);
+  WP.nmText = (WP.nm > 1 ? 'CLOSE x' + WP.nm : 'CLOSE') + '  +' + pts * scoreX();
+  WP.nmShow = 0.9;
+  play('ui', 0.32, 1.1 + Math.min(WP.nm, 10) * 0.07, 0.04);
+  vibrate(8);
+}
+
+// ---- Prototypes (permanent upgrades from bosses) ----
+function spawnGatePair(at, left, right) {
+  const pair = { resolved: false, gates: [] };
+  const off = 2.6;
+  [[-off, left], [off, right]].forEach(([x, type]) => {
+    const g = { kind: 'gate', x, d: at, w: 3.0, h: 2.6, type, pair, alpha: 1, taken: false, missed: false };
+    pair.gates.push(g);
+    gates.push(g);
+  });
+}
+function choosePerks() {
+  const all = ['p_core', 'p_wings', 'p_hull', 'p_aegis', 'p_magnet', 'p_chain'];
+  // HEAVY CORE stacks; everything else you can only own once
+  const open = all.filter((k) => k === 'p_core' || !WP.perks[POWERS[k].perk]);
+  const a = pick(open);
+  const rest = open.filter((k) => k !== a);
+  return [a, rest.length ? pick(rest) : 'repair'];
+}
+function applyPerk(type) {
+  const P = POWERS[type], k = P.perk;
+  WP.perks[k] = (WP.perks[k] || 0) + 1;
+  if (k === 'hull') G.hull = hullMax();
+  if (k === 'aegis') { G.shield = Math.min(2, G.shield + 1); WP.aegisT = 0; }
+  if (k === 'wings') G.wingT = Math.min(G.wingT, 0.4);
+  toast(P.label, P.color, P.sub);
+}
+
+// ---- The Warden (boss) ----
+const BOSS_SEQ = ['volley', 'mines', 'beams', 'volley', 'beams', 'mines'];
+const LANE_W = 2 * TRACK_HALF / 5;
+function startBoss() {
+  WP.phase = 'boss';
+  for (const o of objs) if (o.d > G.d + 40) o.dead = true;
+  for (const e of enemies) if (e.d > G.d + 60) e.dead = true;
+  // Its health follows your firepower, so the fight is always a real one: about 16 seconds of
+  // shots on target with a single gun, about 8 with everything maxed. Each loop adds a third.
+  const hp = Math.round(BOSS_TOUGH * Math.pow(gunDps(), 0.75) * (1 + 0.35 * (WP.loop - 1)));
+  WP.boss = addEnemy('boss', {
+    x: 0, tx: 0, y: 1.9, rel: 230, d: G.d + 230, mode: 'enter', hp, hp0: hp, pts: BOSS_PTS, w: 3.8,
+    atkT: 1.4, seq: 0, beam: null, vol: 0, volT: 0, retT: 0,
+  });
+  toast('THE WARDEN', COLORS.red, 'line up to shoot it · dodge the rest');
+  play('swarm', 0.7, 0.55);
+  vibrate([40, 60, 40]);
+}
+// roughly how much damage a second your guns do when every shot lands
+function gunDps() {
+  const lv = G.weapon;
+  let dps = GUNS[Math.min(4, lv)].length * ((lv >= 7 ? 2 : 1) + (WP.perks.core || 0)) / 0.15;
+  if (lv >= 6 || WP.perks.wings) dps += 2 * (WP.perks.wings ? 2 : 1) / (lv >= 8 ? 0.8 : 1.6);
+  return dps;
+}
+function bossShot(e, tx) {
+  const approach = 30 + 2 * Math.min(WP.loop, 5);
+  const t = e.rel / approach;
+  eshots.push({ kind: 'eshot', x: e.x, y: 1.1, d: e.d - 1.2, vx: clamp((tx - e.x) / t, -7, 7), vy: (0.45 - 1.1) / t, vd: G.speed - approach, t: 0 });
+  e.flashT = 0.12;
+  sfx.zap();
+}
+function bossAttack(e, dt) {
+  const L = WP.loop, rage = e.hp < e.hp0 * 0.4;
+  const pause = Math.max(0.6, 1.5 - 0.2 * (L - 1)) * (rage ? 0.7 : 1);
+  if (e.beam) {
+    const B = e.beam;
+    B.t += dt;
+    if (B.t >= B.warn && B.t < B.warn + B.fire) {
+      if (!B.live) { B.live = true; play('zap', 0.6, 0.6); G.shake = Math.max(G.shake, 0.3); }
+      const lane = clamp(Math.floor((player.x + TRACK_HALF) / LANE_W), 0, 4);
+      if (B.lanes[lane] && player.y < 1.4) hurt();
+    }
+    if (B.t >= B.warn + B.fire) { e.beam = null; e.atkT = pause; }
+    return;
+  }
+  if (e.vol > 0) {
+    e.volT -= dt;
+    if (e.volT <= 0) {
+      bossShot(e, player.x + player.vx * 0.25 + rand(-0.6, 0.6));
+      e.vol--;
+      e.volT = 0.2;
+      if (!e.vol) e.atkT = pause;
+    }
+    return;
+  }
+  e.atkT -= dt;
+  if (e.atkT > 0) return;
+  const kind = BOSS_SEQ[e.seq++ % BOSS_SEQ.length];
+  if (kind === 'volley') {
+    e.vol = 3 + Math.min(3, L - 1) + (rage ? 1 : 0);
+    e.volT = 0;
+  } else if (kind === 'mines') {
+    // a wall of drifting mines with a lane or two left open: find the gap, or shoot one
+    const open = [(Math.random() * 5) | 0];
+    if (L === 1 && !rage) open.push((open[0] + 2 + ((Math.random() * 2) | 0)) % 5);
+    for (let i = 0; i < 5; i++) {
+      if (open.includes(i)) continue;
+      const cx = -TRACK_HALF + LANE_W * (i + 0.5);
+      for (const ox of [-0.55, 0.55]) {
+        const m = addMine(cx + ox, e.d - 1.5);
+        m.app = 34 + 2 * Math.min(L, 5);
+      }
+    }
+    play('launch', 0.5, 0.7);
+    e.atkT = pause + 0.8;
+  } else {
+    // lane beams: the lit lanes are about to be scorched, yours always among them
+    const n = Math.min(4, 2 + (L >= 2 ? 1 : 0) + (rage ? 1 : 0));
+    const lanes = [false, false, false, false, false];
+    const mine = clamp(Math.floor((player.x + TRACK_HALF) / LANE_W), 0, 4);
+    lanes[mine] = true;
+    let left = n - 1, guard = 0;
+    while (left > 0 && guard++ < 40) {
+      const i = (Math.random() * 5) | 0;
+      if (!lanes[i]) { lanes[i] = true; left--; }
+    }
+    e.beam = { lanes, t: 0, warn: Math.max(0.7, 1.05 - 0.07 * (L - 1)), fire: 0.5, live: false };
+    play('ui', 0.5, 0.5);
+  }
+}
+function updateBoss(e, dt, playing) {
+  if (e.mode === 'enter') {
+    e.rel += (41 - e.rel) * (1 - Math.exp(-dt * 1.7));
+    if (e.rel < 46) e.mode = 'fight';
+  } else {
+    e.rel += (40 + Math.sin(e.t * 0.9) * 4 - e.rel) * dt * 1.5;
+    // it drifts across the track, loosely following you: to hit it you have to chase it
+    e.retT -= dt;
+    if (e.retT <= 0) { e.tx = clamp(player.x * 0.6 + rand(-3, 3), -3.6, 3.6); e.retT = rand(1.6, 2.6); }
+    e.x += (e.tx - e.x) * (1 - Math.exp(-dt * (0.9 + 0.12 * Math.min(WP.loop, 6))));
+    if (playing) bossAttack(e, dt);
+  }
+  e.y = 1.9 + Math.sin(e.t * 1.7) * 0.12;
+  e.d = G.d + e.rel;
+}
+function bossDown(e) {
+  WP.boss = null;
+  WP.bossKills++;
+  WP.phase = 'reward';
+  for (const s of eshots) s.dead = true;
+  for (const o of objs) if (o.app) o.dead = true;
+  const vd = G.speed * 0.9;
+  for (let i = 0; i < 6; i++) {
+    const ox = rand(-1.6, 1.6), oy = rand(0.8, 2.2);
+    flashAt(e.x + ox, oy, e.d + rand(-1, 1), i % 2 ? SPR.yellow : SPR.white, rand(2.5, 4.5), rand(0.4, 0.9), vd);
+    burst(e.x + ox, oy, e.d, i % 2 ? COLORS.yellow : COLORS.red, 16, 8, vd, 1.1);
+  }
+  shockRing(e.x, 1.2, e.d, COLORS.yellow, 9, 0.9, vd);
+  shockRing(e.x, 1.2, e.d, '#ffffff', 5, 0.6, vd);
+  debris(e.x, 1.4, e.d, '#5a0f22', COLORS.red, 12, 7, vd, 0.3, true);
+  for (let i = 0; i < 6; i++) dropCell(e.x + rand(-2.4, 2.4), 1.5, e.d + rand(-3, 10));
+  G.slowmo = 0.8; G.flash = 1; G.flashColor = '#ffffff'; G.shake = 1;
+  toast('WARDEN DOWN', COLORS.yellow, 'pick a prototype');
+  sfx.bigBoom(); sfx.fanfare();
+  vibrate([60, 40, 60, 40, 160]);
+  // the reward, then the gate to the next loop
+  const [a, b] = choosePerks();
+  spawnGatePair(G.d + 380, a, b);
+  WP.gateD = G.d + 680;
+  WP.portal = addObj('portal', 0, WP.gateD, 2 * TRACK_HALF, { h: 8, dep: 0.4 });
+  track('warp/boss/' + Math.min(WP.loop, 8), 'Warp Run: beat the loop ' + Math.min(WP.loop, 8) + ' boss');
+}
+// CHAIN BLAST: a kill damages whatever is close by
+function chainBlast(e) {
+  shockRing(e.x, e.y + 0.3, e.d, COLORS.yellow, 4.2, 0.4, e.type === 'drone' ? G.speed * 0.9 : 0);
+  for (const o of enemies) {
+    if (o.dead || o === e || o.type === 'boss' || o.mode === 'wait') continue;
+    if (Math.abs(o.x - e.x) < 3.4 && Math.abs(o.d - e.d) < 16) {
+      o.hp -= 2; o.flashT = 0.1;
+      if (o.hp <= 0) killEnemy(o);
+    }
+  }
+  for (const o of objs) {
+    if (o.dead || (o.type !== 'mine' && o.type !== 'spike')) continue;
+    if (Math.abs(o.x - e.x) < 3.4 && Math.abs(o.d - e.d) < 16) breakObj(o);
+  }
+}
+// pop a mine or shatter a crystal, with points
+function breakObj(o) {
+  if (o.dead) return;
+  o.dead = true;
+  addScore(o.pts);
+  if (o.type === 'spike') {
+    flashAt(o.x, 1.2, o.d, SPR.teal, 2.2, 0.3, 0);
+    burst(o.x, 1.2, o.d, '#6effe6', 16, 6, 0, 0.6);
+    debris(o.x, 1.4, o.d, '#0a4a50', '#c8fff6', 7, 5, 0, 0.16, false);
+    sfx.pop();
+    popup('+' + o.pts * scoreX(), o.x, 1.4, o.d, '#6effe6');
+  } else {
+    explode(o.x, 0.6, o.d, COLORS.orange, false, 0);
+    popup('+' + o.pts * scoreX(), o.x, 0.6, o.d, COLORS.orange);
+  }
+}
+
+// ---- Per-frame bookkeeping ----
+function updateWarp(dt) {
+  if (WP.odT > 0) WP.odT = Math.max(0, WP.odT - dt);
+  else if (WP.od >= OD_NEED) startOverdrive();
+  if (WP.nmT > 0) { WP.nmT -= dt; if (WP.nmT <= 0) WP.nm = 0; }
+  if (WP.perks.aegis && G.shield < 2) {
+    WP.aegisT += dt;
+    if (WP.aegisT >= 20) { WP.aegisT = 0; G.shield++; toast('SHIELD REGROWN', COLORS.cyan); sfx.shield(); }
+  }
+  // crosswind (Sky Islands): warned first, then it pushes
+  let to = 0;
+  WP.windWarn = 0;
+  for (const g of WP.gusts) {
+    if (G.d > g.d0 - 120 && G.d < g.d1) {
+      WP.windWarn = g.dir;
+      if (G.d >= g.d0) to = g.dir * g.str;
+    }
+  }
+  WP.wind += (to - WP.wind) * (1 - Math.exp(-dt * 2.5));
+  if (player.alive && Math.abs(WP.wind) > 0.01) {
+    const push = WP.wind * dt;
+    player.tx += push;
+    if (drag) drag.t0 += push;
+  }
+  if (WP.phase === 'run' && WP.theme === 4 && G.d >= WP.gateD - 40) startBoss();
+  if (WP.phase === 'warp') {
+    WP.warpT += dt;
+    if (!WP.swapped && WP.warpT >= 0.3) swapSector();
+    if (WP.warpT >= WARP_T) endWarp();
+  }
+}
+// Warp Run's own obstacle types. Returns true when the obstacle needs no further handling.
+function updateWarpObj(o, rel, dt, playing) {
+  if (o.type === 'portal') {
+    if (playing && rel <= 0 && WP.phase !== 'warp') { startWarp(); o.dead = true; }
+    return true;
+  }
+  if (o.type === 'gap') {
+    if (playing && rel < 0 && rel + o.dep > 0) {
+      if (player.y > 0.15) {
+        if (!o.hit) { o.hit = true; G.air += 2; STATS.air++; }
+      } else if (player.vy <= 0) {
+        // dropped into the chasm: it costs a hit and kicks you back up
+        if (G.invuln <= 0) hurt();
+        if (player.alive) { player.y = 0.2; player.vy = 7.5; }
+      }
+    }
+    return true;
+  }
+  if (o.type === 'meteor' && !o.live) {
+    if (rel <= 70) {
+      o.live = true;
+      if (rel > -2) {
+        explode(o.x, 0.4, o.d, COLORS.orange, true, 0);
+        shockRing(o.x, 0.05, o.d, '#ffd08a', 3.6, 0.5, 0);
+      }
+    }
+    return true;
+  }
+  if (o.type === 'spike') o.grow = clamp((165 - rel) / 45, 0, 1);
+  return false;
+}
+function warpPatterns(lvl, afterBarrier, at) {
+  const S = SKINS[WP.theme], out = [];
+  for (const p of PATTERNS) {
+    if (lvl < p.min || (afterBarrier && BARRIERS.has(p.name))) continue;
+    out.push({ name: p.name, w: p.w * (S.pat[p.name] || 1) });
+  }
+  for (const p of S.sig) {
+    if (lvl < p.min || (afterBarrier && BARRIERS.has(p.name))) continue;
+    // traffic needs a long clear run-up: not too close to the end of the world
+    if (p.name === 'traffic' && G.d + (at + 170 - G.d) / TRAFFIC_CLOSE > WP.gateD - 260) continue;
+    out.push(p);
+  }
+  return out;
+}
+// Warp Run's own hazard patterns. Returns the length used, or -1 if the name isn't one of them.
+function spawnWarpPattern(name, at, lvl) {
+  const half = TRACK_HALF;
+  if (name === 'rampack') {
+    // a V of ram bikes, point first. They hold formation instead of hunting you.
+    const n = lvl > 6 ? 7 : lvl > 3 ? 5 : 3;
+    const cx = rand(-half + 2.4, half - 2.4);
+    for (let i = 0; i < n; i++) {
+      const k = Math.ceil(i / 2), side = i % 2 ? -1 : 1;
+      addEnemy('ram', { x: clamp(cx + side * k * 1.5, -half + 0.6, half - 0.6), d: at + k * 9, y: 0.42, vd: -18, hp: 2, pts: 150, w: 0.8, steer: 0.5 });
+    }
+    return 40;
+  }
+  if (name === 'traffic') {
+    // hover-trucks going your way, slower than you: weave through them
+    const lanes = [-3.75, -1.25, 1.25, 3.75];
+    const rows = 4 + Math.min(4, Math.floor(lvl / 2));
+    let d = at;
+    for (let r = 0; r < rows; r++) {
+      const a = (Math.random() * 4) | 0;
+      addTruck(lanes[a], d);
+      if (lvl > 1.5 && Math.random() < 0.55) addTruck(lanes[(a + 1 + ((Math.random() * 3) | 0)) % 4], d + rand(-2, 2));
+      d += rand(15, 22);
+    }
+    // you catch traffic up slowly, so it needs a longer clear stretch than its own length
+    return (d - G.d) / TRAFFIC_CLOSE - (at - G.d);
+  }
+  if (name === 'chasm') {
+    // the road is gone: a full-width ramp throws you across
+    const flight = baseSpeed(at) * jumpT();
+    addObj('ramp', 0, at, 2 * half, { h: RAMP_H, dep: RAMP_LEN });
+    addObj('gap', 0, at + RAMP_LEN + 1.5, 2 * half, { h: 0, dep: flight * 0.6 });
+    return RAMP_LEN + flight + 14;
+  }
+  if (name === 'spikes') {
+    // crystals that burst out of the road as you get near. 3 shots shatter one.
+    const rows = 3 + Math.min(3, Math.floor(lvl / 2));
+    let d = at;
+    for (let r = 0; r < rows; r++) {
+      const n = 2 + (Math.random() < 0.5 ? 1 : 0) + (lvl > 6 ? 1 : 0);
+      const used = [];
+      for (let i = 0; i < n; i++) {
+        let x = 0, tries = 0;
+        do { x = rand(-half + 0.7, half - 0.7); tries++; } while (tries < 8 && used.some((u) => Math.abs(u - x) < 1.5));
+        used.push(x);
+        addObj('spike', x, d + rand(-1.5, 1.5), 1.0, { h: 3.4, dep: 0.9, hp: 3, pts: 100, grow: 0 });
+      }
+      d += rand(16, 24);
+    }
+    return d - at;
+  }
+  if (name === 'meteors') {
+    // each target ring on the road is where a meteor is about to land
+    const n = 4 + Math.min(4, Math.floor(lvl / 2));
+    let d = at;
+    for (let i = 0; i < n; i++) {
+      addObj('meteor', rand(-half + 0.9, half - 0.9), d, 1.5, { h: 0.6, dep: 1.2, live: false, lean: rand(-1, 1) });
+      d += rand(11, 17);
+    }
+    return d - at;
+  }
+  return -1;
+}
+function addTruck(x, d) {
+  return addObj('traffic', x, d, 1.7, { h: 1.5, dep: 4.4, mv: 1 - TRAFFIC_CLOSE });
+}
+
+// ---- Drawing: tunnels (Neon City) ----
+const TUN_W = TRACK_HALF + 1.3, TUN_H = 6.4, TUN_PTS = 10;
+function tunnelNow() {
+  if (!WP.on || WP.phase === 'warp') return null;
+  for (const t of WP.tunnels) if (t.b > VIEW_D + 1.2 && t.a < VIEW_D + FAR) return t;
+  return null;
+}
+// an arch across the track at depth z: left foot, over the top, right foot
+function archPath(z, w, h, y0) {
+  for (let k = 0; k <= TUN_PTS; k++) {
+    const th = Math.PI * (1 - k / TUN_PTS);
+    const px = sx(Math.cos(th) * w, z), py = sy((y0 || 0) + Math.sin(th) * h, z);
+    if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+}
+function drawTunnel(t) {
+  const zA = t.a - VIEW_D, zB = t.b - VIEW_D;
+  const inside = zA < 1.2;
+  const zN = Math.max(1.2, zA), zF = Math.min(zB, FAR);
+  const railC = rgba(PAL.rail, 1);
+  if (inside) {
+    // the walls: everything except the way out
+    ctx.beginPath();
+    ctx.rect(-OS * 2, -OS * 2, W + OS * 4, H + OS * 4);
+    if (zB < FAR) { archPath(zB, TUN_W, TUN_H); ctx.closePath(); }
+    ctx.fillStyle = '#05030f';
+    ctx.fill('evenodd');
+    if (zB < FAR) {
+      // daylight spilling in from the far end
+      ctx.globalCompositeOperation = 'lighter';
+      const s = FOCAL / zB;
+      glow(SPR.white, sx(0, zB), sy(TUN_H * 0.45, zB), TUN_W * 2.2 * s, TUN_H * 1.5 * s, 0.35);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+    }
+  } else {
+    // from outside: a dark slab across the world with the tunnel mouth cut into it
+    const xl = sx(-70, zA), xr = sx(70, zA), yt = sy(17, zA), yb = sy(-30, zA);
+    ctx.fillStyle = '#080516';
+    ctx.fillRect(xl, yt, xr - xl, yb - yt);
+    ctx.fillStyle = rgba(PAL.rail, 0.8);
+    ctx.fillRect(xl, yt, xr - xl, Math.max(1, 0.12 * FOCAL / zA));
+    ctx.beginPath(); archPath(zA, TUN_W, TUN_H); ctx.closePath();
+    ctx.fillStyle = '#020108';
+    ctx.fill();
+    ctx.strokeStyle = railC;
+    ctx.lineWidth = clamp(0.3 * FOCAL / zA, 1.5, 12);
+    ctx.globalAlpha = fogA(zA);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  // ribs with a lamp at the top, far to near
+  ctx.globalCompositeOperation = 'lighter';
+  const gap = 12;
+  const first = Math.ceil((VIEW_D + zN) / gap) * gap;
+  for (let ld = Math.floor((VIEW_D + zF) / gap) * gap; ld >= first; ld -= gap) {
+    const z = ld - VIEW_D;
+    const s = FOCAL / z, a = fogA(z);
+    if (a < 0.02) continue;
+    ctx.globalAlpha = a * 0.55;
+    ctx.strokeStyle = railC;
+    ctx.lineWidth = clamp(0.14 * s, 1, 7);
+    ctx.beginPath(); archPath(z, TUN_W - 0.1, TUN_H - 0.1); ctx.stroke();
+    const r = clamp(0.9 * s, 2, 60);
+    glow(SPR.white, sx(0, z), sy(TUN_H - 0.15, z), r * 1.6, r * 0.5, a * 0.8);
+  }
+  if (inside) {
+    // light strips running down both walls
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = rgba(PAL.accent, 1);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    traceLine(-(TUN_W - 0.25), 2.3, true, zF, true);
+    traceLine(TUN_W - 0.25, 2.3, true, zF, true);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// ---- Drawing: hyperspace (inside a warp jump) ----
+function drawHyper() {
+  const S = SKINS[WP.theme];
+  ctx.fillStyle = '#03010a';
+  ctx.fillRect(-OS * 2, -OS * 2, W + OS * 4, H + OS * 4);
+  ctx.globalCompositeOperation = 'lighter';
+  const R = 8.5, yc = 2.2, gap = 10;
+  const fast = G.d * 3;                       // the rings race past much faster than the road did
+  const phase = fast % gap, base = Math.floor(fast / gap);
+  const railC = rgba(S.rail, 1), accC = rgba(S.accent, 1);
+  // the light at the far end
+  glow(SPR.white, sx(0, FAR), sy(yc, FAR), W * 0.22, W * 0.22, 0.9);
+  glow(SPR[S.spr], sx(0, FAR), sy(yc, FAR), W * 0.7, W * 0.7, 0.7);
+  for (let k = 24; k >= 1; k--) {
+    const z = k * gap - phase;
+    if (z < 1.3) continue;
+    const s = FOCAL / z;
+    ctx.globalAlpha = fogA(z) * clamp(z / 14, 0, 1) * 0.85;
+    ctx.strokeStyle = (k + base) % 2 ? railC : accC;
+    ctx.lineWidth = clamp(0.24 * s, 1, 18);
+    ctx.beginPath(); ctx.ellipse(sx(0, z), sy(yc, z), R * s, R * s, 0, 0, 6.2832); ctx.stroke();
+  }
+  ctx.strokeStyle = '#e8e0ff';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < 34; i++) {
+    const ang = i * 2.39996;
+    const z = FAR - ((i * 37.1 + fast * 1.3) % (FAR - 6));
+    if (z < 1.5) continue;
+    const z2 = z + 22 + (i % 5) * 6;
+    const x = Math.cos(ang) * R * 0.9, y = yc + Math.sin(ang) * R * 0.9;
+    ctx.moveTo(sx(x, z), sy(y, z));
+    ctx.lineTo(sx(x, z2), sy(y, z2));
+  }
+  ctx.globalAlpha = 0.5;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// ---- Drawing: Warp Run obstacles ----
+// The warp gate: a huge swirling disc you can't see through, in the next world's colors.
+function drawPortal(o, z, a) {
+  if (z < 1.05) return;
+  const s = FOCAL / z;
+  const cx = sx(0, z), cy = sy(3.0, z), rx = 6.6 * s, ry = 5.3 * s;
+  const N = SKINS[(WP.sec + 1) % SKINS.length];
+  ctx.globalAlpha = a;
+  ctx.fillStyle = '#080312';
+  ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.2832); ctx.fill();
+  ctx.globalCompositeOperation = 'lighter';
+  glow(SPR[N.spr], cx, cy, rx * 1.5, ry * 1.5, a * 0.85);
+  glow(SPR.white, cx, cy, rx * 0.75, ry * 0.75, a * (0.5 + 0.15 * Math.sin(G.t * 5)));
+  const railC = rgba(N.rail, 1);
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 6; i++) {
+    const r = 0.26 + i * 0.13;
+    const a0 = G.t * (2.6 - i * 0.3) * (i % 2 ? -1 : 1) + i * 1.3;
+    ctx.globalAlpha = a * 0.8;
+    ctx.strokeStyle = i % 2 ? railC : '#ffffff';
+    ctx.lineWidth = clamp(0.16 * s, 1, 10);
+    ctx.beginPath(); ctx.ellipse(cx, cy, rx * r, ry * r, 0, a0, a0 + 2.3); ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+  ctx.globalAlpha = a;
+  ctx.strokeStyle = railC;
+  ctx.lineWidth = clamp(0.5 * s, 2, 30);
+  ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.2832); ctx.stroke();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = clamp(0.12 * s, 1, 8);
+  ctx.stroke();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+}
+const TRUCK_C = { face: '#0a1230', side: '#12204c', top: '#24448e', edge: '#29b4ff' };
+function drawTruck(o, z, a) {
+  const zz = Math.max(z, 1);
+  shadow(o.x, zz + 0.6, 1.0, a * 0.45);
+  const hov = 0.28 + Math.sin(o.t * 4) * 0.03;
+  TRUCK_C.edge = OB.edge;
+  const r = drawBox(o.x, hov, z, o.w, o.h - hov, o.dep, TRUCK_C, a);
+  if (!r) return;
+  // tail lights and a hazard strip, so its back end reads at a glance
+  const fw = r.nxr - r.nxl, fh = r.nyb - r.nyt;
+  ctx.globalAlpha = a;
+  ctx.fillStyle = '#ffd23c';
+  ctx.fillRect(r.nxl + fw * 0.12, r.nyt + fh * 0.62, fw * 0.76, Math.max(1, fh * 0.07));
+  ctx.globalCompositeOperation = 'lighter';
+  const lr = clamp(0.22 * r.s, 1.5, 30);
+  const blink = 0.7 + 0.3 * Math.sin(o.t * 9);
+  glow(SPR.yellow, r.nxl + fw * 0.14, r.nyt + fh * 0.3, lr, lr, a * blink);
+  glow(SPR.yellow, r.nxr - fw * 0.14, r.nyt + fh * 0.3, lr, lr, a * blink);
+  glow(SPR[OB.spr], (r.nxl + r.nxr) / 2, r.nyb + fh * 0.12, fw * 0.7, fh * 0.2, a * 0.6);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+}
+function drawSpike(o, z, a) {
+  if (z < 1.1) return;
+  const s = FOCAL / z, g = o.grow || 0;
+  const bx = sx(o.x, z), by = sy(0, z);
+  // the glowing crack it grows from (this is the warning)
+  ctx.globalCompositeOperation = 'lighter';
+  const pulse = 0.6 + 0.4 * Math.sin(G.t * 8 + o.t);
+  glow(SPR.teal, bx, by, (0.9 + g * 0.5) * s, 0.2 * s, a * (g < 1 ? pulse : 0.6));
+  ctx.globalAlpha = a * 0.8;
+  ctx.strokeStyle = '#c8fff6';
+  ctx.lineWidth = clamp(0.03 * s, 1, 2.5);
+  ctx.beginPath();
+  ctx.moveTo(bx - 0.7 * s, by + 0.03 * s); ctx.lineTo(bx - 0.15 * s, by - 0.03 * s); ctx.lineTo(bx + 0.3 * s, by + 0.04 * s); ctx.lineTo(bx + 0.75 * s, by - 0.02 * s);
+  ctx.stroke();
+  ctx.globalCompositeOperation = 'source-over';
+  if (g <= 0.02) { ctx.globalAlpha = 1; return; }
+  const hot = o.flashT > 0;
+  const h = o.h * g * s;
+  ctx.globalAlpha = a;
+  // side shards, then the main one in two facets
+  const shard = (ox, w, hh, lean, c1, c2) => {
+    const x0 = bx + ox * s, tipX = x0 + lean * s, tipY = by - hh;
+    ctx.fillStyle = hot ? '#ffffff' : c1;
+    ctx.beginPath(); ctx.moveTo(x0 - w * s, by); ctx.lineTo(x0 - w * 0.55 * s + lean * 0.5 * s, by - hh * 0.55); ctx.lineTo(tipX, tipY); ctx.lineTo(x0, by); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = hot ? '#eafffb' : c2;
+    ctx.beginPath(); ctx.moveTo(x0, by); ctx.lineTo(tipX, tipY); ctx.lineTo(x0 + w * 0.6 * s + lean * 0.5 * s, by - hh * 0.6); ctx.lineTo(x0 + w * s, by); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#c8fff6';
+    ctx.lineWidth = clamp(0.03 * s, 0.8, 2.5);
+    ctx.beginPath(); ctx.moveTo(x0 - w * s, by); ctx.lineTo(x0 - w * 0.55 * s + lean * 0.5 * s, by - hh * 0.55); ctx.lineTo(tipX, tipY); ctx.lineTo(x0 + w * 0.6 * s + lean * 0.5 * s, by - hh * 0.6); ctx.lineTo(x0 + w * s, by);
+    ctx.moveTo(tipX, tipY); ctx.lineTo(x0, by);
+    ctx.stroke();
+  };
+  shard(-0.34, 0.2, h * 0.45, -0.22, '#0e6a70', '#18a0a0');
+  shard(0.36, 0.18, h * 0.38, 0.2, '#0e6a70', '#18a0a0');
+  shard(0, 0.42, h, 0.06, '#12888c', '#3fd8cc');
+  ctx.globalCompositeOperation = 'lighter';
+  glow(SPR.teal, bx + 0.06 * s, by - h, 0.4 * s, 0.4 * s, a * 0.7);
+  ctx.globalCompositeOperation = 'source-over';
+  o.flashT = Math.max(0, (o.flashT || 0) - 1 / 60);
+  ctx.globalAlpha = 1;
+}
+function drawMeteor(o, z, a) {
+  if (z < 1.1) return;
+  const s = FOCAL / z;
+  const bx = sx(o.x, z), by = sy(0, z);
+  ctx.globalCompositeOperation = 'lighter';
+  if (!o.live) {
+    // target ring on the road: it tightens as the meteor comes down
+    const rel = z - VIEW_Z;
+    const f = clamp((rel - 70) / 130, 0, 1);          // 1 = far away, 0 = impact
+    const blink = 0.55 + 0.45 * Math.sin(G.t * (10 + (1 - f) * 16));
+    glow(SPR.orange, bx, by, 1.5 * s, 0.3 * s, a * 0.5 * blink);
+    ctx.strokeStyle = '#ffb347';
+    ctx.lineWidth = clamp(0.06 * s, 1, 4);
+    ctx.globalAlpha = a * blink;
+    ctx.beginPath(); ctx.ellipse(bx, by, 0.8 * s, 0.8 * s * 0.17, 0, 0, 6.2832); ctx.stroke();
+    ctx.globalAlpha = a * 0.7;
+    ctx.beginPath(); ctx.ellipse(bx, by, (0.8 + f * 1.6) * s, (0.8 + f * 1.6) * s * 0.17, 0, 0, 6.2832); ctx.stroke();
+    // the meteor itself, streaking down at a slant
+    const my = f * 34, mx = o.x + f * 9 * (o.lean || 0);
+    const px = sx(mx, z), py = sy(my + 0.5, z);
+    const tx = sx(mx + 2.2 * (o.lean || 0), z), ty = sy(my + 9, z);
+    ctx.globalAlpha = a * 0.6;
+    ctx.strokeStyle = '#ff9d2e';
+    ctx.lineWidth = clamp(0.5 * s, 1.5, 20);
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(tx, ty); ctx.stroke();
+    ctx.lineCap = 'butt';
+    const r = clamp(0.7 * s, 3, 60);
+    glow(SPR.orange, px, py, r * 2, r * 2, a);
+    glow(SPR.white, px, py, r * 0.7, r * 0.7, a);
+  } else {
+    // a burning crater: don't drive through it
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = a;
+    ctx.fillStyle = '#120608';
+    ctx.beginPath(); ctx.ellipse(bx, by, 0.85 * s, 0.85 * s * 0.2, 0, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = '#ff9d2e';
+    ctx.lineWidth = clamp(0.07 * s, 1, 5);
+    ctx.stroke();
+    ctx.globalCompositeOperation = 'lighter';
+    const fl = 0.7 + 0.3 * Math.sin(o.t * 23);
+    glow(SPR.orange, bx, sy(0.35, z), 0.95 * s, 0.75 * s * fl, a * 0.9);
+    glow(SPR.yellow, bx, sy(0.25, z), 0.45 * s, 0.45 * s * fl, a * 0.9);
+    for (let i = 0; i < 3; i++) {
+      const ph = (o.t * 1.6 + i / 3) % 1;
+      glow(SPR.orange, bx + Math.sin(i * 2.1 + o.t * 3) * 0.3 * s, sy(0.3 + ph * 1.3, z), 0.22 * s * (1 - ph), 0.3 * s * (1 - ph), a * (1 - ph));
+    }
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+}
+// chasms: the deck is missing, so paint what's underneath back in (the rails carry on as light bridges)
+function drawGaps(groundFill) {
+  for (const o of objs) {
+    if (o.type !== 'gap') continue;
+    const z1 = Math.max(1.05, o.d - VIEW_D), z2 = Math.min(FAR, o.d + o.dep - VIEW_D);
+    if (z2 <= z1 + 0.2) continue;
+    const dy = HZ - HORIZON, x = TRACK_HALF - 0.02;
+    ctx.save();
+    ctx.translate(0, dy);
+    ctx.beginPath();
+    let first = true;
+    for (let z = z1; ; z = Math.min(z2, z + 6)) {
+      const px = sx(-x, z), py = sy(0, z) - dy;
+      if (first) { ctx.moveTo(px, py); first = false; } else ctx.lineTo(px, py);
+      if (z >= z2) break;
+    }
+    for (let z = z2; ; z = Math.max(z1, z - 6)) {
+      ctx.lineTo(sx(x, z), sy(0, z) - dy);
+      if (z <= z1) break;
+    }
+    ctx.closePath();
+    ctx.fillStyle = groundFill;
+    ctx.fill();
+    // open air and cloud tops far below, so it reads as a hole and not as a dark patch of road
+    ctx.fillStyle = rgba(PAL.haze, 0.42);
+    ctx.fill();
+    ctx.clip();
+    const yA = sy(0, z2) - dy, yB = sy(0, z1) - dy;
+    ctx.fillStyle = 'rgba(255, 240, 250, 0.2)';
+    for (let i = 0; i < 5; i++) {
+      const f = ((i + 0.5) / 5 + G.d * 0.004) % 1;
+      const y = yA + (yB - yA) * f * f;
+      ctx.fillRect(-OS, y, W + OS * 2, Math.max(1.5, (yB - yA) * 0.05 * (0.4 + f)));
+    }
+    // shadow under the near lip: the deck has thickness
+    ctx.fillStyle = 'rgba(8, 0, 20, 0.5)';
+    ctx.fillRect(-OS, yB - Math.max(2, (yB - yA) * 0.08), W + OS * 2, Math.max(2, (yB - yA) * 0.08) + 2);
+    ctx.restore();
+    // glowing lips at both broken edges
+    ctx.globalCompositeOperation = 'lighter';
+    for (const z of [z1, z2]) {
+      if (z <= 1.06 || z >= FAR - 0.1) continue;
+      const s = FOCAL / z;
+      ctx.globalAlpha = fogA(z);
+      ctx.strokeStyle = RAMP_C;
+      ctx.lineWidth = clamp(0.12 * s, 1.5, 8);
+      ctx.beginPath(); ctx.moveTo(sx(-x, z), sy(0, z)); ctx.lineTo(sx(x, z), sy(0, z)); ctx.stroke();
+      glow(SPR.yellow, sx(0, z), sy(0, z), x * 1.2 * s, 0.3 * s, fogA(z) * 0.4);
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+}
+function drawCell(c) {
+  const z = c._z;
+  if (z < 1.05) return;
+  const s = FOCAL / z, a = fogA(z);
+  const px = sx(c.x, z), py = sy(c.y + Math.sin(c.t * 5) * 0.08, z);
+  const r = clamp(0.24 * s, 2.5, 40);
+  shadow(c.x, z, 0.2, a * 0.35);
+  ctx.globalCompositeOperation = 'lighter';
+  glow(SPR.teal, px, py, r * 2.6, r * 2.6, a * 0.8);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = a;
+  const w = r * Math.abs(Math.cos(c.t * 3)) * 0.75 + r * 0.25;
+  ctx.fillStyle = '#6dff7a';
+  ctx.beginPath(); ctx.moveTo(px, py - r); ctx.lineTo(px + w, py); ctx.lineTo(px, py + r); ctx.lineTo(px - w, py); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#eaffea';
+  ctx.lineWidth = clamp(0.03 * s, 1, 2.5);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+// sideways streaks while the wind blows (or is about to)
+function drawWind() {
+  const str = Math.max(Math.abs(WP.wind) / 3, WP.windWarn ? 0.35 : 0);
+  if (str < 0.05) return;
+  const dir = WP.windWarn || Math.sign(WP.wind) || 1;
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = '#fff0fb';
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = Math.min(0.5, 0.42 * str);
+  ctx.beginPath();
+  for (let i = 0; i < 18; i++) {
+    const len = 50 + (i * 37) % 110;
+    const x = wrap(i * 97.3 + G.t * dir * (700 + (i % 5) * 120), W + 300) - 150;
+    const y = H * 0.12 + ((i * 53.7) % (H * 0.8));
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - dir * len, y + 4);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// ---- The Warden's model and drawing ----
+const BOSS_MESH = (() => {
+  const v = [], f = [];
+  const GOLD = '#ffd23c';
+  // a wide wedge hull, nose toward you
+  const out = [[-1.6, -0.25], [-0.9, -0.85], [0.9, -0.85], [1.6, -0.25], [1.45, 0.6], [-1.45, 0.6]];
+  for (const [x, z] of out) v.push(x, 0.42, z);
+  for (const [x, z] of out) v.push(x * 0.92, -0.22, z * 0.92);
+  const o = { o: [0, 0.1, 0] };
+  f.push([[0, 1, 2, 3, 4, 5], [110, 20, 46], GOLD, o]);
+  for (let k = 0; k < 6; k++) {
+    const k2 = (k + 1) % 6;
+    f.push([[k, k2, 6 + k2, 6 + k], k === 1 ? [140, 26, 56] : EN_DARK, EN_EDGE, o]);
+  }
+  // bridge on the deck
+  const b0 = ringVerts(v, 0, 0.42, 0.05, 0.5, 4, 'y', Math.PI / 4), b1 = ringVerts(v, 0, 0.74, 0.1, 0.3, 4, 'y', Math.PI / 4);
+  ringSides(f, b0, b1, 4, [150, 30, 60], GOLD, { o: [0, 0.5, 0.08], b: 1 });
+  f.push([[b1, b1 + 1, b1 + 2, b1 + 3], [255, 120, 140], '#ffd0d8', { e: true, b: 2, o: [0, 0, 0] }]);
+  // cannon pods slung at both ends
+  for (const side of [-1, 1]) {
+    const cx = side * 1.85, cy = 0.05;
+    const rear = ringVerts(v, cx, cy, 0.5, 0.3, 6, 'z', Math.PI / 6), front = ringVerts(v, cx, cy, -0.95, 0.26, 6, 'z', Math.PI / 6);
+    const po = { o: [cx, cy, -0.2] };
+    ringSides(f, rear, front, 6, EN_MID, EN_EDGE, po);
+    f.push([[front, front + 1, front + 2, front + 3, front + 4, front + 5], EN_HOT, '#ffd0d8', { e: true, b: 2, o: [cx, cy, 0] }]);
+    // fin
+    const t = v.length / 3;
+    v.push(side * 1.0, 0.42, 0.0, side * 1.0, 0.42, 0.55, side * 1.25, 1.15, 0.7, side * 1.2, 1.05, 0.35);
+    f.push([[t, t + 1, t + 2, t + 3], [120, 22, 50], GOLD, { d: true, b: 1 }]);
+  }
+  // the core hanging under the nose: this is what your shots are hitting
+  const c0 = ringVerts(v, 0, -0.48, -0.5, 0.36, 4, 'y');
+  const ct = v.length / 3; v.push(0, -0.2, -0.5);
+  const cb = v.length / 3; v.push(0, -0.95, -0.5);
+  for (let k = 0; k < 4; k++) {
+    f.push([[c0 + k, c0 + (k + 1) % 4, ct], [255, 150, 60], '#fff2c0', { e: true, b: 3, o: [0, -0.5, -0.5] }]);
+    f.push([[c0 + k, c0 + (k + 1) % 4, cb], [255, 90, 60], '#fff2c0', { e: true, b: 3, o: [0, -0.5, -0.5] }]);
+  }
+  return makeMesh(v, f, [0, 0.1, 0]);
+})();
+function drawBoss(e, z, a, s) {
+  // lane beams first, so the ship and everything nearer draws over them
+  if (e.beam) {
+    const B = e.beam, live = B.t >= B.warn;
+    const blink = 0.5 + 0.5 * Math.sin(G.t * (live ? 60 : 14 + B.t * 14));
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 5; i++) {
+      if (!B.lanes[i]) continue;
+      const x1 = -TRACK_HALF + LANE_W * i + 0.06, x2 = x1 + LANE_W - 0.12;
+      ctx.beginPath();
+      traceLine(x1, 0.03, true, z, true);
+      traceLineBack(x2, 0.03, z);
+      ctx.closePath();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = live ? 'rgba(255, 110, 130, ' + (0.5 + 0.2 * blink).toFixed(2) + ')' : 'rgba(255, 43, 78, ' + (0.1 + 0.14 * blink).toFixed(2) + ')';
+      ctx.fill();
+      ctx.strokeStyle = live ? '#ffffff' : '#ff2b4e';
+      ctx.lineWidth = live ? 2.5 : 1.2;
+      ctx.globalAlpha = live ? 0.9 : 0.5 + 0.4 * blink;
+      ctx.stroke();
+      if (live) glow(SPR.red, sx((x1 + x2) / 2, z), sy(0.6, z), LANE_W * 0.9 * s, 1.4 * s, 0.9);
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  shadow(e.x, z, 2.8, a * 0.4);
+  ctx.globalCompositeOperation = 'lighter';
+  glow(SPR.red, sx(e.x, z), sy(0.05, z), 4.6 * s, 0.8 * s, a * 0.45);
+  ctx.globalCompositeOperation = 'source-over';
+  MT.x = e.x; MT.y = e.y; MT.z = z;
+  MT.roll = -clamp((e.tx - e.x) * 0.06, -0.25, 0.25); MT.pitch = -0.2; MT.yaw = 0; MT.scale = 1.5;
+  const ok = drawMesh(BOSS_MESH, MT, a, 0.02);
+  MESH_TINT = 0;
+  if (!ok) { MT.scale = 1; return; }
+  ctx.globalCompositeOperation = 'lighter';
+  // the core burns brighter as an attack winds up and as its health drops
+  const hurtF = 1 - e.hp / e.hp0;
+  const pulse = 0.65 + 0.35 * Math.sin(e.t * (6 + hurtF * 14));
+  let p = shipPoint(MT, 0, -0.5, -0.5);
+  glow(SPR.orange, sx(p[0], p[2]), sy(p[1], p[2]), 1.5 * s, 1.5 * s, a * pulse);
+  glow(SPR.white, sx(p[0], p[2]), sy(p[1], p[2]), 0.45 * s, 0.45 * s, a * (e.flashT > 0 ? 1 : 0.6));
+  for (const side of [-1, 1]) {
+    p = shipPoint(MT, side * 1.85, 0.05, -0.97);
+    const charge = e.beam ? clamp(e.beam.t / e.beam.warn, 0, 1) : e.vol > 0 ? 1 : 0.35;
+    glow(SPR.red, sx(p[0], p[2]), sy(p[1], p[2]), (0.4 + 0.6 * charge) * s, (0.4 + 0.6 * charge) * s, a * (0.5 + 0.5 * charge));
+  }
+  MT.scale = 1;
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// ---- HUD pieces that only Warp Run shows ----
+function drawWarpHUD(top, left, py, perkX) {
+  // where you are: loop number and five world pips (the last one is the boss world)
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'top';
+  ctx.font = '800 9px ' + FONT;
+  ctx.fillStyle = COLORS.yellow;
+  ctx.fillText('LOOP ' + WP.loop + (WP.loop > 1 ? '  x' + WP.loop : ''), W - 16, top + 78);
+  for (let i = 0; i < 5; i++) {
+    const x = W - 16 - (4 - i) * 11 - 7, y = top + 92;
+    const c = rgba(SKINS[i].rail, 1);
+    ctx.fillStyle = i < WP.theme ? c : i === WP.theme ? '#ffffff' : 'rgba(255, 255, 255, 0.2)';
+    if (i === 4) {
+      ctx.beginPath(); ctx.moveTo(x + 3.5, y - 1); ctx.lineTo(x + 8, y + 3.5); ctx.lineTo(x + 3.5, y + 8); ctx.lineTo(x - 1, y + 3.5); ctx.closePath(); ctx.fill();
+    } else {
+      ctx.fillRect(x, y, 7, 7);
+    }
+    if (i === WP.theme) { ctx.strokeStyle = c; ctx.lineWidth = 1.5; ctx.strokeRect(x - 1.5, y - 1.5, 10, 10); }
+  }
+  // prototypes you own: one small pip each, after the gun bars
+  let px = perkX;
+  for (const k in POWERS) {
+    const P = POWERS[k];
+    if (!P.perk || !WP.perks[P.perk]) continue;
+    for (let n = 0; n < Math.min(3, WP.perks[P.perk]); n++) {
+      ctx.fillStyle = P.color;
+      ctx.beginPath(); ctx.moveTo(px + 4, py - 5); ctx.lineTo(px + 8, py); ctx.lineTo(px + 4, py + 5); ctx.lineTo(px, py); ctx.closePath(); ctx.fill();
+      px += 10;
+    }
+  }
+  // the boss's health
+  const B = WP.boss;
+  if (B && !B.dead) {
+    const bw = Math.min(W - 32, 420), bx = CX - bw / 2, by = top + 112;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font = '800 10px ' + FONT;
+    ctx.fillStyle = 'rgba(6, 1, 18, 0.6)';
+    ctx.fillRect(bx - 4, by - 16, bw + 8, 28);
+    ctx.fillStyle = COLORS.red;
+    ctx.fillText('THE WARDEN', bx, by - 8);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+    ctx.fillRect(bx, by, bw, 7);
+    const f = clamp(B.hp / B.hp0, 0, 1);
+    ctx.fillStyle = f < 0.4 ? COLORS.orange : COLORS.red;
+    ctx.fillRect(bx, by, bw * f, 7);
+    if (B.flashT > 0) { ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.fillRect(bx, by, bw * f, 7); }
+  }
+}
+// OVERDRIVE meter, first on the timers row
+function odChip(x, y) {
+  const on = WP.odT > 0;
+  const color = on ? '#ff5fe0' : WP.od >= OD_NEED - 1 ? COLORS.yellow : '#6dff7a';
+  ctx.font = '800 10px ' + FONT;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  const label = on ? 'OVERDRIVE' : 'CELLS';
+  ctx.globalAlpha = on ? 0.75 + 0.25 * Math.sin(G.t * 12) : 1;
+  ctx.fillStyle = color;
+  ctx.fillText(label, x, y);
+  ctx.globalAlpha = 1;
+  const lw = ctx.measureText(label).width;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.fillRect(x + lw + 6, y - 2, 46, 4);
+  ctx.fillStyle = color;
+  ctx.fillRect(x + lw + 6, y - 2, 46 * (on ? WP.odT / WP.odMax : WP.od / OD_NEED), 4);
+  return lw + 62;
+}
+
 const drawList = [];
 function drawWorld() {
   const camD = VIEW_D;
@@ -4556,6 +5907,7 @@ function drawWorld() {
   for (const s of eshots) { s._z = s.d - camD; if (s._z > 1 && s._z < FAR) drawList.push(s); }
   for (const m of missiles) { m._z = m.d - camD; if (m._z > 1 && m._z < FAR) drawList.push(m); }
   for (const p of parts) { p._z = p.d - camD; if (p._z > 0.8 && p._z < FAR) drawList.push(p); }
+  for (const c of cells) { c._z = c.d - camD; if (c._z > 1 && c._z < FAR) drawList.push(c); }
   if (player.alive) drawList.push(PLAYER_ITEM);
   // ramps sort by their far (top) edge, so you're drawn on top of a ramp you're riding
   drawList.sort((a, b) => (b.type === 'ramp' ? b._z + b.dep : b._z) - (a.type === 'ramp' ? a._z + a.dep : a._z));
@@ -4568,6 +5920,7 @@ function drawWorld() {
       case 'eshot': drawEShot(it); break;
       case 'missile': drawMissile(it); break;
       case 'part': drawPart(it); break;
+      case 'cell': drawCell(it); break;
       case 'player': drawPlayer(); break;
     }
   }
@@ -4619,6 +5972,16 @@ function drawHUD() {
     ctx.fillRect(0, 0, W, H);
     ctx.globalAlpha = 1;
   }
+  if (WP.on) {
+    // warp jumps (and coming out of a tunnel) wash the screen white
+    const wh = warpWhite();
+    if (wh > 0.01) {
+      ctx.globalAlpha = Math.min(1, wh);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalAlpha = 1;
+    }
+  }
   if (G.state !== 'play' && G.state !== 'dying') return;
 
   const top = SAFE_TOP + 12;
@@ -4642,17 +6005,18 @@ function drawHUD() {
   ctx.fillStyle = '#ffffff';
   ctx.fillText(scoreText, left, top);
   const sw = ctx.measureText(scoreText).width;
-  if (G.mult > 0) {
-    // score multiplier badge: grows and pulses as it stacks
-    const big = G.mx >= 4;
+  if (G.mult > 0 || scoreX() > 1) {
+    // score multiplier badge: grows and pulses as it stacks (Warp Run: the loop multiplies it too)
+    const mxAll = scoreX();
+    const big = mxAll >= 4;
     const pulse = big ? 1 + 0.08 * Math.sin(G.t * 10) : 1;
     ctx.save();
     ctx.translate(left + sw + 10, top + 12);
     ctx.scale(pulse, pulse);
     ctx.font = '900 ' + (big ? 18 : 14) + 'px ' + FONT;
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = G.mx >= 8 ? COLORS.yellow : POWERS.mult.color;
-    ctx.fillText('x' + G.mx, 0, 0);
+    ctx.fillStyle = mxAll >= 8 || G.mult <= 0 ? COLORS.yellow : POWERS.mult.color;
+    ctx.fillText('x' + mxAll, 0, 0);
     ctx.restore();
     ctx.textBaseline = 'top';
   }
@@ -4670,7 +6034,7 @@ function drawHUD() {
   // hull + shield pips
   let x = left + 8;
   const py = top + 54;
-  for (let i = 0; i < MAX_HULL; i++) {
+  for (let i = 0, hm = hullMax(); i < hm; i++) {
     hex(x, py, 7, i < G.hull, COLORS.pink);
     if (i === G.hull && G.hullHit > 0) {
       const k = 1 - G.hullHit;
@@ -4703,6 +6067,12 @@ function drawHUD() {
   // timers
   let tx = left;
   const ty = py + 20;
+  if (WP.on) {
+    drawWarpHUD(top, left, py, gx + GUN_MAX * 6 + 12);
+    tx += odChip(tx, ty);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+  }
   if (G.rapid > 0) tx += timerChip(tx, ty, 'RAPID', POWERS.rapid.color, G.rapid / 12);
   if (G.mult > 0) tx += timerChip(tx, ty, G.mx + 'X', POWERS.mult.color, G.mult / MULT_TIME);
 
@@ -4723,7 +6093,7 @@ function drawHUD() {
     const out = clamp(G.zoneT / 0.6, 0, 1);
     const open = 1 - Math.pow(1 - clamp(T / 0.45, 0, 1), 3);
     const nameIn = clamp((T - 0.12) / 0.4, 0, 1);
-    const th = THEMES[G.zoneIdx % THEMES.length];
+    const th = (WP.on ? SKINS : THEMES)[G.zoneIdx % THEMES.length];
     const acc = 'rgb(' + th.accent.join(',') + ')', rail = 'rgb(' + th.rail.join(',') + ')';
     const zy = SHIP_Y + clamp((H - SHIP_Y) * 0.7, 100, 270);
     ctx.textAlign = 'center';
@@ -4746,7 +6116,7 @@ function drawHUD() {
     ctx.globalAlpha = out * nameIn;
     ctx.font = '700 10px ' + FONT;
     ctx.fillStyle = rail;
-    ctx.fillText('Z O N E   ' + (G.zoneIdx + 1), CX, zy - 17);
+    ctx.fillText(WP.on ? 'L O O P  ' + WP.loop + '   ·   W O R L D  ' + (WP.theme + 1) + ' / 5' : 'Z O N E   ' + (G.zoneIdx + 1), CX, zy - 17);
     const sc = 1 + (1 - nameIn) * 0.35;
     ctx.save();
     ctx.translate(CX, zy + 4);
@@ -4814,6 +6184,29 @@ function drawHUD() {
     ctx.textBaseline = 'middle';
     const w = ctx.measureText(label).width + 22;
     plate(label, RAMP_C, CX - w / 2, w, 1);
+  } else if (WP.on && G.state === 'play') {
+    // Warp Run notices: wind about to blow, a warp gate coming up
+    let label = '', color = '#ffffff';
+    if (WP.windWarn) { label = WP.windWarn < 0 ? '◀◀ WIND' : 'WIND ▶▶'; color = '#ffe296'; }
+    else if (WP.portal && !WP.portal.dead && WP.portal.d - G.d < 210 && WP.phase !== 'warp') { label = '▲ WARP GATE'; color = COLORS.yellow; }
+    if (label) {
+      ctx.font = '800 13px ' + FONT;
+      ctx.textBaseline = 'middle';
+      const w = ctx.measureText(label).width + 22;
+      plate(label, color, CX - w / 2, w, 1);
+    }
+  }
+  // close-call callout, right under the speeder
+  if (WP.on && WP.nmShow > 0) {
+    ctx.globalAlpha = clamp(WP.nmShow / 0.3, 0, 1);
+    ctx.font = '800 12px ' + FONT;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.fillText(WP.nmText, sx(player.x, VIEW_Z) + 1, SHIP_Y + 19 + (0.9 - WP.nmShow) * 10);
+    ctx.fillStyle = WP.nm >= 5 ? COLORS.yellow : COLORS.cyan;
+    ctx.fillText(WP.nmText, sx(player.x, VIEW_Z), SHIP_Y + 18 + (0.9 - WP.nmShow) * 10);
+    ctx.globalAlpha = 1;
   }
 
   // toast (power-up taken, new best, ...)
@@ -4908,11 +6301,24 @@ function render() {
     const m = G.shake * 7;
     ctx.translate(rand(-m, m), rand(-m, m));
   }
-  drawSky();
-  drawGround();
-  drawScenery();
-  drawStreaks();
-  drawWorld();
+  if (WP.on && WP.phase === 'warp' && WP.swapped) {
+    // inside a warp jump: no world at all, just the tube and the speeder
+    TUN.cur = null; TUN.inside = false; TUN.dark = false;
+    drawHyper();
+    drawWorld();
+  } else {
+    // tunnels (Warp Run's Neon City): work out once per frame what they hide
+    const t = TUN.cur = tunnelNow();
+    TUN.inside = !!t && t.a - VIEW_D < 1.2;
+    TUN.dark = TUN.inside && t.b - VIEW_D >= FAR;
+    if (TUN.wasIn && !TUN.inside && WP.phase !== 'warp') WP.exit = Math.max(WP.exit, 0.4);   // out into the light
+    TUN.wasIn = TUN.inside;
+    if (!TUN.dark) drawSky();
+    drawGround();
+    drawScenery();
+    drawStreaks();
+    drawWorld();
+  }
   ctx.restore();
   drawHUD();
 }
@@ -5065,7 +6471,7 @@ function audioEngine() {
   const t = c.currentTime;
   const racing = (G.state === 'play') && !paused;
   // how far into the run, 0 at the start -> 1 at top speed (the same curve the speed follows)
-  const heat = G.state === 'play' || G.state === 'dying' ? 1 - Math.exp(-G.d / 4500) : 0;
+  const heat = G.state === 'play' || G.state === 'dying' ? Math.min(1, (1 - Math.exp(-G.d / 4500)) * (WP.on ? 1 + 0.06 * (WP.loop - 1) : 1)) : 0;
 
   if (AU.engSrc) {
     const on = racing && SET.sound && SET.engine;
@@ -5082,6 +6488,8 @@ function audioEngine() {
       // starts chill and a little muffled, opens up and speeds up as the road gets faster
       rate = 1 + (MUSIC_RATE_MAX - 1) * heat;
       cut = 1600 * Math.pow(18000 / 1600, Math.min(1, heat / 0.45));
+      if (WP.on && WP.phase === 'warp') { cut = 500; rate *= 1.06; }   // the jump swallows the music, then it bursts back
+      else if (TUN.inside) cut = Math.min(cut, 2600);                   // tunnels muffle it a little
       if (paused) { cut = 450; vol *= 0.55; rate = 1; }
     } else if (G.state === 'dying' || G.state === 'over') {
       // "tape stop" when you crash, then the music drifts back in, muffled
@@ -5125,7 +6533,7 @@ function openPanel(id) {
   show(id);
   ui = id;
   if (id === 'settings') fillSettings();
-  if (id === 'board') loadBoard(boardTab);
+  if (id === 'board') { boardMode = inRun() ? G.mode : SET.mode; loadBoard(boardTab); }
   if (id === 'help') { fillHelpIcons(); $('help').scrollTop = 0; }
 }
 
@@ -5279,19 +6687,19 @@ $('settingsDone').addEventListener('click', () => {
 });
 
 // ---------- Leaderboard: this device ----------
-function localBoard() {
+function localBoard(mode) {
   try {
-    const rows = JSON.parse(storeGet('speeder.local') || '[]');
+    const rows = JSON.parse(storeGet(modeKey('local', mode)) || '[]');
     return Array.isArray(rows) ? rows : [];
   } catch (e) {
     return [];
   }
 }
 function addLocalRun(run) {
-  const rows = localBoard();
-  rows.push({ name: SET.name || 'YOU', score: run.score, dist: run.dist, t: Date.now() });
+  const rows = localBoard(run.mode);
+  rows.push({ name: SET.name || 'YOU', score: run.score, dist: run.dist, loop: run.loop, t: Date.now() });
   rows.sort((a, b) => b.score - a.score);
-  storeSet('speeder.local', JSON.stringify(rows.slice(0, 10)));
+  storeSet(modeKey('local', run.mode), JSON.stringify(rows.slice(0, 10)));
 }
 
 // ---------- Leaderboard: world (Firebase, loaded only when needed) ----------
@@ -5329,7 +6737,7 @@ function playerId() {
   }
   return id;
 }
-function onlineBest() { return parseInt(storeGet('speeder.onlineBest') || '0', 10) || 0; }
+function onlineBest(mode) { return parseInt(storeGet(modeKey('onlineBest', mode)) || '0', 10) || 0; }
 function readJSON(key, fallback) {
   try { const v = JSON.parse(storeGet(key) || 'null'); return v == null ? fallback : v; } catch (e) { return fallback; }
 }
@@ -5345,12 +6753,12 @@ function isMine(id) {
 function newRunId() {
   return playerId() + '_' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
 }
-function myRuns() { return readJSON('speeder.myRuns', []); }
+function myRuns(mode) { return readJSON(modeKey('myRuns', mode), []); }
 function rememberRun(run) {
-  const list = myRuns().filter((r) => r.id !== run.id);
-  list.push({ id: run.id, score: run.score, dist: run.dist, kills: run.kills });
+  const list = myRuns(run.mode).filter((r) => r.id !== run.id);
+  list.push({ id: run.id, score: run.score, dist: run.dist, kills: run.kills, loop: run.loop });
   list.sort((x, y) => y.score - x.score);
-  storeSet('speeder.myRuns', JSON.stringify(list.slice(0, 40)));
+  storeSet(modeKey('myRuns', run.mode), JSON.stringify(list.slice(0, 40)));
 }
 function pendingRuns() {
   const list = readJSON('speeder.pendingRuns', []);
@@ -5363,26 +6771,35 @@ function pendingRuns() {
   }
   return Array.isArray(list) ? list : [];
 }
-function setPending(list) { storeSet('speeder.pendingRuns', JSON.stringify(list.slice(-10))); }
+function setPending(list) {
+  // Classic keeps its last 10 waiting runs, as before. Warp Run keeps its 5 best, so a long
+  // wait for its board to be switched on can never push Classic scores out of the queue.
+  const classic = list.filter((r) => r.mode !== 'warp').slice(-10);
+  const warp = list.filter((r) => r.mode === 'warp').sort((a, b) => b.score - a.score).slice(0, 5);
+  storeSet('speeder.pendingRuns', JSON.stringify(classic.concat(warp)));
+}
 
 async function writeRun(run) {
   const F = await firebase();
   const { doc, setDoc, serverTimestamp } = F.fs;
-  await withTimeout(setDoc(doc(F.db, SCORES, run.id), {
+  const warp = run.mode === 'warp';
+  const data = {
     name: SET.name,
     score: run.score,
     dist: run.dist,
     kills: run.kills,
     v: VERSION,
     ts: serverTimestamp(),
-  }), 9000);
+  };
+  if (warp) data.loop = run.loop || 1;   // Warp Run entries also say which loop you reached
+  await withTimeout(setDoc(doc(F.db, warp ? SCORES_WARP : SCORES, run.id), data), 9000);
   rememberRun(run);
-  if (run.score > onlineBest()) storeSet('speeder.onlineBest', String(run.score));
+  if (run.score > onlineBest(run.mode)) storeSet(modeKey('onlineBest', run.mode), String(run.score));
   // keep the remembered top list in step, so the next run's ladder is right
-  const top = cachedTop().filter((r) => r.id !== run.id);
-  top.push({ id: run.id, name: SET.name, score: run.score, dist: run.dist });
+  const top = cachedTop(run.mode).filter((r) => r.id !== run.id);
+  top.push({ id: run.id, name: SET.name, score: run.score, dist: run.dist, loop: run.loop });
   top.sort((x, y) => y.score - x.score);
-  storeSet('speeder.worldTop', JSON.stringify(top.slice(0, BOARD_N)));
+  storeSet(modeKey('worldTop', run.mode), JSON.stringify(top.slice(0, BOARD_N)));
   setPending(pendingRuns().filter((r) => r.id !== run.id));
 }
 
@@ -5394,35 +6811,42 @@ async function writeRun(run) {
 const TOP_AGE_START = 3 * 60 * 1000;    // opening the game
 const TOP_AGE_BOARD = 60 * 1000;        // opening the leaderboard screen
 const TOP_AGE_RUN = 10 * 60 * 1000;     // after a run that clearly can't make the board
-function topAge() { return Date.now() - (parseInt(storeGet('speeder.worldTopAt') || '0', 10) || 0); }
-async function fetchTop(maxAge) {
-  if (maxAge && topAge() < maxAge) {
-    const c = cachedTop();
+function topAge(mode) { return Date.now() - (parseInt(storeGet(modeKey('worldTopAt', mode)) || '0', 10) || 0); }
+async function fetchTop(maxAge, mode) {
+  if (maxAge && topAge(mode) < maxAge) {
+    const c = cachedTop(mode);
     if (c.length) return c;
   }
   const F = await firebase();
   const { collection, query, orderBy, limit, getDocs } = F.fs;
-  const snap = await withTimeout(getDocs(query(collection(F.db, SCORES), orderBy('score', 'desc'), limit(BOARD_N))), 9000);
+  const snap = await withTimeout(getDocs(query(collection(F.db, mode === 'warp' ? SCORES_WARP : SCORES), orderBy('score', 'desc'), limit(BOARD_N))), 9000);
   const rows = snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
-  storeSet('speeder.worldTop', JSON.stringify(rows.map((r) => ({ id: r.id, name: cleanName(r.name), score: Number(r.score) || 0, dist: Number(r.dist) || 0 }))));
-  storeSet('speeder.worldTopAt', String(Date.now()));
+  storeSet(modeKey('worldTop', mode), JSON.stringify(rows.map((r) => ({ id: r.id, name: cleanName(r.name), score: Number(r.score) || 0, dist: Number(r.dist) || 0, loop: Number(r.loop) || 0 }))));
+  storeSet(modeKey('worldTopAt', mode), String(Date.now()));
+  if (mode === 'warp' && !boardLive('warp')) {
+    storeSet('speeder.w.live', '1');           // the Warp Run board's database rules are in place:
+    retryPending().catch(() => {});            // send up the scores that were waiting for it
+  }
   track('board-download');
   return rows;
 }
-function cachedTop() { const t = readJSON('speeder.worldTop', []); return Array.isArray(t) ? t : []; }
+function cachedTop(mode) { const t = readJSON(modeKey('worldTop', mode), []); return Array.isArray(t) ? t : []; }
+// Warp Run's world board needs its own database rules (a one-time job). Until the first
+// successful download we treat it as "not switched on yet" and keep scores waiting.
+function boardLive(mode) { return mode !== 'warp' || storeGet('speeder.w.live') === '1'; }
 // Could this score land in the top list? If the remembered list is full and the score
 // is below its last entry, there's no need to download the list again.
-function mightRank(score) {
-  const t = cachedTop();
+function mightRank(score, mode) {
+  const t = cachedTop(mode);
   return t.length < BOARD_N || score >= (Number(t[t.length - 1].score) || 0);
 }
 
-async function worldRank(score) {
+async function worldRank(score, mode) {
   try {
     const F = await firebase();
     const { collection, query, where, getCount } = F.fs;
     if (!getCount) return 0;
-    const snap = await withTimeout(getCount(query(collection(F.db, SCORES), where('score', '>', score))), 9000);
+    const snap = await withTimeout(getCount(query(collection(F.db, mode === 'warp' ? SCORES_WARP : SCORES), where('score', '>', score))), 9000);
     return snap.data().count + 1;
   } catch (e) {
     return 0;
@@ -5433,11 +6857,15 @@ async function worldRank(score) {
 async function retryPending() {
   if (!SET.name) return;
   for (const run of pendingRuns()) {
+    if (!boardLive(run.mode)) continue;       // Warp Run's board isn't switched on yet: keep it waiting, don't even try
     try {
       await writeRun(run);
     } catch (e) {
-      // turned down by the database rules: retrying won't help, so let it go
-      if (e && e.code === 'permission-denied') { setPending(pendingRuns().filter((r) => r.id !== run.id)); continue; }
+      if (e && e.code === 'permission-denied') {
+        // turned down by the database rules: retrying won't help, so let it go
+        setPending(pendingRuns().filter((r) => r.id !== run.id));
+        continue;
+      }
       return;   // still offline
     }
   }
@@ -5446,15 +6874,17 @@ async function retryPending() {
 // Changing your name re-saves your board entries under the new name.
 async function renameOnline() {
   if (!SET.name) return;
-  const runs = myRuns().slice(0, 25);
+  const runs = myRuns('classic').slice(0, 25);
   const legacy = readJSON('speeder.onlineRun', null);   // the single entry from before v0.5
   if (legacy && legacy.score > 0) runs.push(Object.assign({}, legacy, { id: playerId() }));
+  for (const r of myRuns('warp').slice(0, 25)) runs.push(Object.assign({}, r, { mode: 'warp' }));
   for (const run of runs) {
     try { await writeRun(run); } catch (e) { return; /* will be corrected on the next upload */ }
   }
 }
 
 let boardTab = 'world';
+let boardMode = SET.mode;     // which mode's leaderboard is on screen
 let boardReq = 0;
 
 function renderRows(rows, mine, highlightId) {
@@ -5476,7 +6906,7 @@ function renderRows(rows, mine, highlightId) {
     sc.textContent = (Number(r.score) || 0).toLocaleString();
     if (r.dist) {
       const small = document.createElement('small');
-      small.textContent = (Number(r.dist) / 1000).toFixed(2) + ' km';
+      small.textContent = (r.loop ? 'Loop ' + r.loop + ' · ' : '') + (Number(r.dist) / 1000).toFixed(2) + ' km';
       sc.appendChild(small);
     }
     li.append(rank, nm, sc);
@@ -5489,33 +6919,40 @@ function renderRows(rows, mine, highlightId) {
 async function loadBoard(tab) {
   boardTab = tab;
   const req = ++boardReq;
+  const mode = boardMode, mname = MODES[mode];
+  $('boardWarp').setAttribute('aria-selected', String(mode === 'warp'));
+  $('boardClassic').setAttribute('aria-selected', String(mode === 'classic'));
   $('tabWorld').setAttribute('aria-selected', String(tab === 'world'));
   $('tabLocal').setAttribute('aria-selected', String(tab === 'local'));
   const status = $('boardStatus');
   if (tab === 'local') {
-    const rows = localBoard();
+    const rows = localBoard(mode);
     renderRows(rows, false);
-    status.textContent = rows.length ? 'Your 10 best runs on this device.' : 'No runs yet. Go ride!';
+    status.textContent = rows.length ? 'Your 10 best ' + mname + ' runs on this device.' : 'No ' + mname + ' runs yet. Go ride!';
     return;
   }
   $('boardList').textContent = '';
-  status.textContent = 'Loading the world leaderboard…';
+  status.textContent = 'Loading the ' + mname + ' world leaderboard…';
   try {
     await retryPending();
-    const rows = await fetchTop(TOP_AGE_BOARD);
+    const rows = await fetchTop(TOP_AGE_BOARD, mode);
     if (req !== boardReq) return;
-    renderRows(rows, true, lastRun && lastRun.id);
+    renderRows(rows, true, lastRun && lastRun.mode === mode && lastRun.id);
     const mineN = rows.filter((r) => isMine(r.id)).length;
     if (!rows.length) status.textContent = 'No scores yet. Be the first!';
     else if (!SET.name) status.textContent = 'Top ' + rows.length + ' runs in the world. Finish a run to add your name.';
     else status.textContent = 'Top ' + rows.length + ' runs in the world.' + (mineN ? ' You hold ' + mineN + (mineN === 1 ? ' spot.' : ' spots.') : '');
   } catch (e) {
     if (req !== boardReq) return;
-    renderRows(localBoard(), false);
-    status.textContent = 'Can’t reach the world leaderboard right now, so this shows your runs on this device.';
+    renderRows(localBoard(mode), false);
+    status.textContent = !boardLive(mode) && e && e.code === 'permission-denied'
+      ? 'The Warp Run world board isn’t switched on yet, so this shows your runs on this device. Your scores are kept and will upload once it is.'
+      : 'Can’t reach the world leaderboard right now, so this shows your runs on this device.';
   }
 }
 
+$('boardWarp').addEventListener('click', () => { boardMode = 'warp'; loadBoard(boardTab); });
+$('boardClassic').addEventListener('click', () => { boardMode = 'classic'; loadBoard(boardTab); });
 $('tabWorld').addEventListener('click', () => loadBoard('world'));
 $('tabLocal').addEventListener('click', () => loadBoard('local'));
 $('boardBack').addEventListener('click', closePanel);
@@ -5531,9 +6968,12 @@ let CHALLENGE = readJSON('speeder.challenge', null);
     if (c > 0 && c < 100000000) {
       track('challenge-link', 'Opened a challenge link');
       const n = cleanName(q.get('n')) || 'A FRIEND';
+      const m = q.get('m') === 'w' ? 'warp' : 'classic';   // which mode the score was set in
       if (!(SET.name && n === SET.name)) {
-        CHALLENGE = { score: c, name: n };
+        CHALLENGE = { score: c, name: n, mode: m };
         storeSet('speeder.challenge', JSON.stringify(CHALLENGE));
+        // open the game in that mode, so you're chasing the right kind of score
+        SET.mode = m; saveSettings(); G.mode = m; G.best = bestFor(m);
       }
     }
     if (q.has('c') && history.replaceState) history.replaceState(null, '', location.pathname);
@@ -5546,12 +6986,12 @@ function shareUrl() {
 // ---------- The ladder: who you're about to pass during a run ----------
 function buildLadder() {
   const L = [];
-  const top = cachedTop();
+  const top = cachedTop(G.mode);
   top.forEach((r, i) => {
     if (r.score > 0 && !isMine(r.id)) L.push({ score: r.score, label: '#' + (i + 1) + ' ' + (r.name || '???'), color: i === 0 ? COLORS.yellow : '#cbb7ff', kind: i === 0 ? 'record' : 'world' });
   });
   if (G.best > 0) L.push({ score: G.best, label: 'YOUR BEST', color: COLORS.yellow, kind: 'best' });
-  if (CHALLENGE) L.push({ score: CHALLENGE.score, label: 'BEAT ' + CHALLENGE.name, color: COLORS.pink, kind: 'challenge' });
+  if (CHALLENGE && (CHALLENGE.mode || 'classic') === G.mode) L.push({ score: CHALLENGE.score, label: 'BEAT ' + CHALLENGE.name, color: COLORS.pink, kind: 'challenge' });
   L.sort((x, y) => x.score - y.score);
   G.ladder = L;
   // start at the first score you haven't passed yet (this also runs mid-run when fresh scores arrive)
@@ -5583,22 +7023,38 @@ function updateLadder(dt) {
 
 // ---------- Screens ----------
 function updateTitleBest() {
-  $('titleBest').textContent = G.best > 0 ? 'BEST  ' + G.best.toLocaleString() : '';
+  $('modeWarp').classList.toggle('sel', SET.mode === 'warp');
+  $('modeClassic').classList.toggle('sel', SET.mode === 'classic');
+  G.best = bestFor(SET.mode);
+  $('titleBest').textContent = G.best > 0 ? MODES[SET.mode] + ' BEST  ' + G.best.toLocaleString() : '';
   const ch = $('titleChallenge');
   if (CHALLENGE) {
-    ch.textContent = CHALLENGE.name + ' challenged you: beat ' + CHALLENGE.score.toLocaleString();
+    ch.textContent = CHALLENGE.name + ' challenged you: beat ' + CHALLENGE.score.toLocaleString() + ' in ' + MODES[CHALLENGE.mode || 'classic'];
     ch.classList.remove('hidden');
   } else {
     ch.classList.add('hidden');
   }
 }
 
+// Pick the game mode (title screen buttons, or "play the other mode" after a run).
+function setMode(mode) {
+  if (!MODES[mode] || mode === SET.mode) return;
+  SET.mode = mode;
+  saveSettings();
+  track('mode/' + mode, 'Picked mode: ' + MODES[mode]);
+  updateTitleBest();
+  fetchTop(TOP_AGE_START, mode).catch(() => {});   // so the "next to beat" ladder is ready for this mode
+}
 function startGame() {
   clearPanels();
   stopConfetti();
   resetRun();
-  buildLadder();
+  G.mode = SET.mode;
+  G.best = bestFor(G.mode);
   G.state = 'play';
+  if (G.mode === 'warp') startWarpRun();
+  track('play/' + G.mode, 'Run started: ' + MODES[G.mode]);
+  buildLadder();
   paused = false;
   resumeT = 0;
   hide('countdown');
@@ -5640,14 +7096,22 @@ function showOver() {
   hide('pauseBtn');
   const score = Math.floor(G.score);
   const prevBest = G.best;
-  const run = { id: newRunId(), score, dist: Math.round(G.d * UNIT_M), kills: G.kills, rank: 0, isBest: score > prevBest && score > 0 };
+  const warp = G.mode === 'warp';
+  const run = { id: newRunId(), mode: G.mode, score, dist: Math.round(G.d * UNIT_M), kills: G.kills, rank: 0, isBest: score > prevBest && score > 0 };
+  if (warp) { run.loop = WP.loop; run.world = WP.theme + 1; run.bosses = WP.bossKills; }
   {
     // analytics: one event per run, grouped by how far it got
     const km = run.dist / 1000;
-    const b = km < 0.5 ? '0-0.5' : km < 1 ? '0.5-1' : km < 2 ? '1-2' : km < 4 ? '2-4' : km < 7 ? '4-7' : km < 12 ? '7-12' : '12+';
-    track('run/' + b + 'km', 'Run ended at ' + b + ' km');
+    if (warp) {
+      const b = km < 1 ? '0-1' : km < 3.4 ? '1-3' : km < 7 ? '3-7' : km < 17 ? '7-17' : km < 34 ? '17-34' : '34+';
+      track('warp/run/' + b + 'km', 'Warp Run ended at ' + b + ' km');
+      track('warp/reached/L' + Math.min(run.loop, 8) + '-W' + run.world, 'Warp Run ended in loop ' + Math.min(run.loop, 8) + ', world ' + run.world);
+    } else {
+      const b = km < 0.5 ? '0-0.5' : km < 1 ? '0.5-1' : km < 2 ? '1-2' : km < 4 ? '2-4' : km < 7 ? '4-7' : km < 12 ? '7-12' : '12+';
+      track('run/' + b + 'km', 'Run ended at ' + b + ' km');
+    }
   }
-  if (CHALLENGE && score > CHALLENGE.score) {
+  if (CHALLENGE && (CHALLENGE.mode || 'classic') === G.mode && score > CHALLENGE.score) {
     run.beatChallenge = CHALLENGE.name;
     CHALLENGE = null;
     storeSet('speeder.challenge', '');
@@ -5656,7 +7120,7 @@ function showOver() {
   lastRun = run;
   if (run.isBest) {
     G.best = score;
-    storeSet('speeder.best', String(score));
+    storeSet(modeKey('best', G.mode), String(score));
   }
   addLocalRun(run);
   $('finalScore').textContent = score.toLocaleString();
@@ -5665,9 +7129,12 @@ function showOver() {
   $('wrecked').classList.remove('small');
   const dist = (run.dist / 1000).toFixed(2);
   $('stats').innerHTML =
+    (warp ? 'Reached <b>Loop ' + run.loop + ' · ' + THEMES[WP.theme].name + '</b><br>' : '') +
     'Distance <b>' + dist + ' km</b><br>' +
-    'Enemies destroyed <b>' + G.kills + '</b><br>' +
+    'Enemies destroyed <b>' + G.kills + '</b>' + (warp && run.bosses ? ' · Bosses <b>' + run.bosses + '</b>' : '') + '<br>' +
     'Best <b>' + G.best.toLocaleString() + '</b>';
+  $('overMode').textContent = MODES[G.mode];
+  $('overModeBtn').textContent = 'Play ' + MODES[warp ? 'classic' : 'warp'] + ' instead';
 
   const status = $('saveStatus');
   status.textContent = '';
@@ -5691,7 +7158,8 @@ async function checkRun(run, statusEl) {
   if (run.score <= 0) return;
   say('Checking the world leaderboard…');
   let rows = null;
-  try { await retryPending(); rows = await fetchTop(mightRank(run.score) ? 0 : TOP_AGE_RUN); } catch (e) { rows = null; }
+  let off = false;   // true when Warp Run's world board hasn't been switched on yet
+  try { await retryPending(); rows = await fetchTop(mightRank(run.score, run.mode) ? 0 : TOP_AGE_RUN, run.mode); } catch (e) { rows = null; off = !boardLive(run.mode) && !!e && e.code === 'permission-denied'; }
   if (lastRun !== run) return;
   if (rows) {
     const above = rows.filter((r) => r.id !== run.id && (Number(r.score) || 0) >= run.score).length;
@@ -5700,10 +7168,11 @@ async function checkRun(run, statusEl) {
   }
   celebrate(run);
   makeShareCard(run);
-  const qualifies = run.rank > 0 || run.score > onlineBest();
+  const qualifies = run.rank > 0 || run.score > onlineBest(run.mode);
   if (!rows) {
     if (SET.name && qualifies) setPending(pendingRuns().concat([run]));
-    say('Couldn’t reach the world leaderboard. Your score is kept on this device' + (SET.name ? ' and will upload when you’re back online.' : '.'));
+    if (off) say('The Warp Run world board isn’t switched on yet. Your score is kept on this device' + (SET.name ? ' and will upload once it is.' : '.'));
+    else say('Couldn’t reach the world leaderboard. Your score is kept on this device' + (SET.name ? ' and will upload when you’re back online.' : '.'));
     return;
   }
   if (!SET.name) {
@@ -5711,7 +7180,7 @@ async function checkRun(run, statusEl) {
     return;
   }
   if (!qualifies) {
-    const r = await worldRank(run.score);
+    const r = await worldRank(run.score, run.mode);
     say(r ? 'That’s #' + r.toLocaleString() + ' in the world. Top ' + BOARD_N + ' needs ' + (Number(rows[rows.length - 1].score) + 1).toLocaleString() + '.' : '');
     return;
   }
@@ -5720,7 +7189,7 @@ async function checkRun(run, statusEl) {
     await writeRun(run);
     if (run.rank) say('Saved as ' + SET.name + '. You’re #' + run.rank + ' in the world!');
     else {
-      const r = await worldRank(run.score);
+      const r = await worldRank(run.score, run.mode);
       say('Saved as ' + SET.name + (r ? '. That’s #' + r.toLocaleString() + ' in the world.' : '.'));
     }
   } catch (e) {
@@ -5743,8 +7212,10 @@ function saveNameAndScore() {
   SET.name = name;
   saveSettings();
   // earlier runs on this device were saved as "YOU" before you had a name
-  const rows = localBoard().map((r) => (r.name === 'YOU' ? Object.assign(r, { name }) : r));
-  storeSet('speeder.local', JSON.stringify(rows));
+  for (const m of ['classic', 'warp']) {
+    const rows = localBoard(m).map((r) => (r.name === 'YOU' ? Object.assign(r, { name }) : r));
+    if (rows.length) storeSet(modeKey('local', m), JSON.stringify(rows));
+  }
   $('nameInput').blur();
   $('nameBox').classList.add('hidden');
   if (lastRun) { makeShareCard(lastRun); checkRun(lastRun, $('saveStatus')); }
@@ -5753,12 +7224,14 @@ function saveNameAndScore() {
 // ---------- Sharing ----------
 function shareText(run) {
   const sc = run.score.toLocaleString();
-  if (run.rank === 1) return 'I just set the WORLD RECORD on SPEEDER: ' + sc + ' points! Come beat me:';
-  if (run.rank) return 'I’m #' + run.rank + ' in the world on SPEEDER with ' + sc + ' points. Can you beat me?';
+  const game = run.mode === 'warp' ? 'SPEEDER Warp Run' : 'SPEEDER';
+  if (run.rank === 1) return 'I just set the WORLD RECORD on ' + game + ': ' + sc + ' points! Come beat me:';
+  if (run.rank) return 'I’m #' + run.rank + ' in the world on ' + game + ' with ' + sc + ' points. Can you beat me?';
+  if (run.mode === 'warp') return 'I scored ' + sc + ' on ' + game + ' (reached loop ' + run.loop + '). Can you beat me?';
   return 'I scored ' + sc + ' on SPEEDER (' + (run.dist / 1000).toFixed(1) + ' km). Can you beat me?';
 }
 function challengeUrl(run) {
-  return shareUrl() + '?c=' + run.score + (SET.name ? '&n=' + encodeURIComponent(SET.name) : '');
+  return shareUrl() + '?c=' + run.score + (SET.name ? '&n=' + encodeURIComponent(SET.name) : '') + (run.mode === 'warp' ? '&m=w' : '');
 }
 
 // A picture of your score, made on the spot, to send along with the link.
@@ -5818,7 +7291,7 @@ function makeShareCard(run) {
     g.shadowBlur = 0;
     g.font = '500 44px ' + FONT;
     g.fillStyle = '#cbb7ff';
-    g.fillText((run.dist / 1000).toFixed(2) + ' KM  ·  ' + run.kills + ' DESTROYED', W2 / 2, 630);
+    g.fillText((run.mode === 'warp' ? 'WARP RUN  ·  LOOP ' + run.loop + '  ·  ' : '') + (run.dist / 1000).toFixed(2) + ' KM  ·  ' + run.kills + ' DESTROYED', W2 / 2, 630);
     // call to action
     g.fillStyle = 'rgba(11, 4, 32, 0.78)'; g.fillRect(0, 1090, W2, 260);
     g.font = '800 64px ' + FONT;
@@ -5926,6 +7399,9 @@ $('nameInput').addEventListener('keydown', (e) => {
 });
 $('shareBtn').addEventListener('click', shareRun);
 $('againBtn').addEventListener('click', () => { audioInit(); startGame(); });
+$('overModeBtn').addEventListener('click', () => { audioInit(); setMode(G.mode === 'warp' ? 'classic' : 'warp'); startGame(); });
+$('modeWarp').addEventListener('click', (e) => { e.stopPropagation(); audioInit(); setMode('warp'); });
+$('modeClassic').addEventListener('click', (e) => { e.stopPropagation(); audioInit(); setMode('classic'); });
 $('overBoardBtn').addEventListener('click', () => openPanel('board'));
 $('overSettingsBtn').addEventListener('click', () => openPanel('settings'));
 $('titleBoardBtn').addEventListener('click', () => openPanel('board'));
@@ -6190,12 +7666,12 @@ if (document.fonts && document.fonts.load) {
   document.fonts.load('800 20px Orbitron').catch(() => {});
 }
 setTimeout(() => {
-  retryPending().then(() => fetchTop(TOP_AGE_START)).then(() => { if (G.state === 'play') buildLadder(); }).catch(() => {});
+  retryPending().then(() => fetchTop(TOP_AGE_START, SET.mode)).then(() => { if (G.state === 'play') buildLadder(); }).catch(() => {});
 }, 1500);
 requestAnimationFrame(frame);
 
 // handy for testing in the browser console
-window.SPEEDER = { explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
+window.SPEEDER = { step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, WP, SKINS, cells, setMode, startBoss, startWarp, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
 </script>
 </body>
 </html>

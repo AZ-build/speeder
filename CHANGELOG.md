@@ -4,6 +4,86 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.8.0] — 2026-11-09
+
+### Session 11 — Two modes: Classic, and the new Warp Run
+
+Adrian reached 138 km and found it "the same old thing": he barely noticed the zones change.
+What was going on: the five zones were only 1.4 km each (about 16 seconds at top speed, with a
+4-second cross-fade), they repeated every 7 km, and speed, hazard patterns and guns had all
+topped out within the first ~10 km. He'd seen each zone about 20 times. He asked for worlds
+with their own feel (track and obstacles, not just scenery), real transitions, a boss, loops
+that also score, better guns and new ways to get upgrades, without hurting frame rate, with
+the existing game kept as "Classic", and analytics to see which mode people play.
+
+- **Two modes, picked on the title screen.** CLASSIC is the v0.7.7 game, untouched (same
+  hazards, speeds, scores and leaderboard). WARP RUN is new and is the default selection.
+  Each mode has its own best score, "This device" list and world leaderboard; the
+  leaderboard screen has a Warp Run / Classic switch, and game over offers "Play X instead".
+  The choice is saved in `speeder.settings` (`mode`).
+- **Five worlds, 3.4 km each** (`W_SECTOR` 2400 units, was 1400 for a zone), each with its own
+  rail, grid and road colors, its own look for pylons and walls, and its own hazard (`SKINS`):
+  - **Neon Desert**: orange rails, stone obelisks, wide gentle bends, **ram packs** (an
+    arrowhead of ram bikes that hold formation).
+  - **Neon City**: blue rails, **tunnels** (two per visit, with ribs and lamps strobing past)
+    and **traffic**: hover-trucks going your way at about 40% of your speed. Can't be shot.
+  - **Sky Islands**: gold rails, **chasms** (the road is missing; a full-width ramp throws you
+    across) and **crosswinds** (warned under the speeder, then they push you sideways).
+  - **Crystal Wastes**: pink rails on a teal road, **crystals** that burst out of a glowing
+    crack as you approach. 3 hits to shatter (+100), or dodge.
+  - **Cosmic Highway**: violet rails on a near-black road, black monoliths, **meteors** (a
+    target ring, then a burning crater) and **floaty jumps** (45% longer in the air).
+  - Danger colors never change between worlds: mines orange, ramps lime, lasers and enemies red.
+- **Warp gates.** Each world ends at a big swirling gate in the next world's colors. Fly in:
+  the screen whites out, you spend about a second and a half in a tube of light (no hazards,
+  can't be hurt), and you come out in the next world with a title card. The swap happens
+  inside the flash, so nothing blends or pops. World cleared: +1,000.
+- **The Warden (boss)** at the end of the fifth world, on a straight so shots fly true. It
+  drifts across the track (line up to hit it) and cycles three warned attacks: an aimed
+  volley, a wall of drifting mines with open lanes, and lane beams (lit lanes get scorched).
+  Health bar at the top. Its health follows your firepower (`BOSS_TOUGH`, `gunDps()`): about
+  16 seconds of on-target fire with one gun, about 8 fully maxed, a third more each loop.
+  One guaranteed REPAIR / SHIELD gate pair before it. Beating it: +5,000, six power cells,
+  and a prototype.
+- **Loops.** After the boss the five worlds start again as LOOP 2, 3, ... Every point is
+  multiplied by the loop number. Each loop: top speed +50 km/h (453 → 655 km/h by loop 5,
+  `W_SPEED_STEP` / `W_SPEED_MAX`), harder patterns (`W_LVL_STEP`), enemies +1 hit (max +3),
+  a faster, angrier boss. Spacing between hazards stretches with speed, so the time between
+  them never drops below Classic's hardest.
+- **Power cells and OVERDRIVE.** Destroyed enemies drop a green cell that drifts toward you;
+  drive through it. 8 cells (`OD_NEED`) fire OVERDRIVE for 8 seconds: double fire rate, +1 damage.
+- **Close calls.** Passing a pylon, wall, mine, truck, crystal or crater with under half a
+  unit to spare scores +40, chaining up to +400, and adds a third of a cell.
+- **Prototypes.** After each boss a pair of gates offers two permanent upgrades: HEAVY CORE
+  (+1 damage, stackable), TWIN WINGS, HULL +1, AEGIS (shield regrows), MAGNET, CHAIN BLAST.
+  This is how guns keep growing past level 8.
+- **Analytics** (GoatCounter): `play/warp` and `play/classic` (one per run started),
+  `mode/<mode>` (someone switched), `warp/run/<distance>`, `warp/reached/L<loop>-W<world>`
+  (where each Warp run ended), `warp/loop/<n>`, `warp/boss/<n>`. Classic's existing
+  `run/<distance>` events are unchanged, so old numbers still compare.
+- **Sharing.** Warp Run challenge links carry `&m=w`, open the game in Warp Run, and only
+  count as beaten in that mode. Old links are Classic.
+- **How to play** has a Warp Run section.
+- **Frame rate.** Measured in headless Chrome at iPhone size, average draw time per frame:
+  Classic 20-24 ms, Warp Run 15-22 ms in the same test (tunnels and the boss fight are the
+  cheapest scenes, because the sky and scenery aren't drawn). Not a phone measurement, but
+  the comparison says Warp Run costs no more than Classic. New effects are a few dozen
+  lines or arcs each; nothing new allocates per frame.
+- **Tested** with an automated driver: five full loops (26 worlds, 5 bosses, 75,000+ frames)
+  with no errors, plus Classic for the same length. **Not yet played by a human**: difficulty
+  numbers are a first pass.
+
+**One-time job for Adrian:** the Warp Run world leaderboard needs its own database rule.
+Paste `firestore-rules-warp.txt` into the Firebase rules (README, "Adding the Warp Run
+leaderboard"). Until then Warp Run scores are kept on the device and upload afterwards
+(your 5 best).
+
+Knobs: `W_SECTOR`, `W_SPEED_STEP`, `W_SPEED_MAX`, `W_LVL_STEP`, `WARP_T`, `OD_NEED`, `OD_TIME`,
+`BOSS_TOUGH`, `BOSS_PTS`, `SKINS` (colors, `curve`, `float`, `pat` weights, `sig` patterns),
+`TRAFFIC_CLOSE`, `BOSS_SEQ`, `SETTINGS_DEFAULT.mode` (which mode new players start on).
+
+---
+
 ## [v0.7.7] — 2026-11-08
 
 - **Foldables steer like phones.** Adrian's friend on an unfolded Android fold had to lift his
