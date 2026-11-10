@@ -28,6 +28,11 @@ Claude then uploads the files, turns on GitHub Pages, and checks that the game i
 
 ## Step 2 — Let the leaderboard save scores (Firebase rules, 3 minutes)
 
+> **Already set up, and just want to check or redo the rules?** `firestore-rules-FULL.txt` is the
+> whole rules page exactly as it should look in Firebase today (ORBit + Speeder Classic + Warp Run).
+> Select everything in the Firebase rules editor, paste that file over it, and click **Publish**.
+> The steps below are the piece-by-piece history.
+
 The world leaderboard lives in your **ORBit** Firebase project, in its own list called
 `speeder_scores`. Until you add the rule below, the board may load but scores won't save.
 

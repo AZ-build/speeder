@@ -16,7 +16,8 @@ actually working on right now?
 - [x] Adrian updated the Firebase rules to the v0.5 version
 - [ ] **Adrian:** collect friends' feedback (Share & challenge, moving obstacles, missiles, banking)
 - [x] v0.8.0: Classic and Warp Run modes; five worlds with their own hazards; warp gates; the Warden boss; loops; power cells, OVERDRIVE, close calls, prototypes; mode analytics
-- [ ] **Adrian:** paste `firestore-rules-warp.txt` into the Firebase rules (README, "Adding the Warp Run leaderboard")
+- [x] **Adrian:** Warp Run leaderboard rules published (2026-11-10); `firestore-rules-FULL.txt` is the whole page
+- [ ] Confirm a Warp Run score saves to the world board from a real run
 - [ ] **Adrian:** play Warp Run and note what feels too easy, too hard or unclear
 
 ---

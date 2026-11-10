@@ -142,6 +142,7 @@ Speeder/
 ├── README.md              ← how to play it locally and publish it
 ├── firestore-rules-speeder.txt ← the database rules block for the Classic leaderboard
 ├── firestore-rules-warp.txt ← the database rules block for the Warp Run leaderboard
+├── firestore-rules-FULL.txt ← the whole Firebase rules page as published (ORBit + Classic + Warp Run); keep it in step whenever a block changes
 ├── PROJECT_CONTEXT.md / CHANGELOG.md / BACKLOG.md / TODO.md
 ```
 
@@ -269,8 +270,11 @@ See `CHANGELOG.md` for a full session-by-session history.
   power cells and OVERDRIVE, close-call bonuses, and prototype upgrades after each boss.
 - It was tested by an automated driver only (five loops, no errors). **No human has played
   it yet**, so every difficulty number is a first guess.
-- **Adrian still needs to paste `firestore-rules-warp.txt` into the Firebase rules** for the
-  Warp Run world leaderboard (README has the steps). Until then scores wait on the device.
+- Adrian published the Warp Run leaderboard rules on 2026-11-10 (the whole page now matches
+  `firestore-rules-FULL.txt`; the old v0.2 Speeder block was dropped as redundant). Reading
+  the Warp board works; the first saved score still needs confirming from a real run.
+- Adrian's PC copy of the project (`E:\Claude Projects\Speeder`) is a plain copy, not linked
+  to GitHub. It was refreshed to v0.8.0 on 2026-11-10; refresh it again after future updates.
 - Analytics now show `play/warp` vs `play/classic`, and where Warp runs end.
 
 **Earlier (after v0.7.7, 2026-11-08):**

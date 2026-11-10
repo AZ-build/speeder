@@ -78,6 +78,9 @@ Paste `firestore-rules-warp.txt` into the Firebase rules (README, "Adding the Wa
 leaderboard"). Until then Warp Run scores are kept on the device and upload afterwards
 (your 5 best).
 
+**Later the same day:** Adrian published the rules. Added `firestore-rules-FULL.txt`, the whole
+Firebase rules page as it should look (he had pasted from an out-of-date folder on his PC).
+
 Knobs: `W_SECTOR`, `W_SPEED_STEP`, `W_SPEED_MAX`, `W_LVL_STEP`, `WARP_T`, `OD_NEED`, `OD_TIME`,
 `BOSS_TOUGH`, `BOSS_PTS`, `SKINS` (colors, `curve`, `float`, `pat` weights, `sig` patterns),
 `TRAFFIC_CLOSE`, `BOSS_SEQ`, `SETTINGS_DEFAULT.mode` (which mode new players start on).
