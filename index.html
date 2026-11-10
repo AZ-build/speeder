@@ -703,12 +703,15 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.9.1';
+const VERSION = '0.9.2';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
 // between each, a boss at the end of every loop, and loops that get faster and score more.
 const MODES = { warp: 'WARP RUN', classic: 'CLASSIC' };
+const MODE_NAMES = { warp: 'Warp Run', classic: 'Classic' };   // the same, for use inside a sentence
+// There are two world leaderboards, one per mode: anything that says "in the world" or
+// "world record" also says which mode it means (game over, save message, share text, share picture).
 const W_SECTOR = 2400;      // Warp Run: the shortest a world can be (world units; about 3.4 km on the HUD)
 const W_WORLD_T = 40;       // Warp Run: seconds a world lasts. Faster loops get longer worlds, so they never fly by
 const W_SPEED_STEP = 10;    // Warp Run: top speed gained per loop (world units a second; 1 = about 5 km/h)
@@ -7724,8 +7727,8 @@ async function loadBoard(tab) {
     renderRows(rows, true, lastRun && lastRun.mode === mode && lastRun.id);
     const mineN = rows.filter((r) => isMine(r.id)).length;
     if (!rows.length) status.textContent = 'No scores yet. Be the first!';
-    else if (!SET.name) status.textContent = 'Top ' + rows.length + ' runs in the world. Finish a run to add your name.';
-    else status.textContent = 'Top ' + rows.length + ' runs in the world.' + (mineN ? ' You hold ' + mineN + (mineN === 1 ? ' spot.' : ' spots.') : '');
+    else if (!SET.name) status.textContent = 'Top ' + rows.length + ' ' + mname + ' runs in the world. Finish a run to add your name.';
+    else status.textContent = 'Top ' + rows.length + ' ' + mname + ' runs in the world.' + (mineN ? ' You hold ' + mineN + (mineN === 1 ? ' spot.' : ' spots.') : '');
   } catch (e) {
     if (req !== boardReq) return;
     renderRows(localBoard(mode), false);
@@ -7795,7 +7798,7 @@ function updateLadder(dt) {
     const r = L[G.rung++];
     if (r.kind === 'best') { toast('NEW BEST!', COLORS.yellow, 'keep going!'); sfx.fanfare(); vibrate([30, 40, 30]); }
     else if (r.kind === 'challenge') { toast('YOU BEAT ' + CHALLENGE.name + '!', COLORS.pink, 'challenge complete'); sfx.fanfare(); vibrate([30, 40, 30]); }
-    else if (r.kind === 'record') { toast('WORLD #1 PACE!', COLORS.yellow, 'record in sight'); sfx.fanfare(); vibrate([30, 40, 30]); }
+    else if (r.kind === 'record') { toast('WORLD #1 PACE!', COLORS.yellow, MODES[G.mode] + ' record in sight'); sfx.fanfare(); vibrate([30, 40, 30]); }
     else {
       sfx.pass();
       G.passT = 1.4;
@@ -7853,11 +7856,12 @@ function celebrate(run) {
   const el = $('celebrate');
   const rank = run.rank;
   let title = '', sub = '', cls = '', level = 0;
-  if (rank === 1) { title = 'NEW WORLD RECORD!'; cls = 'gold'; level = 3; }
-  else if (rank && rank <= 3) { title = '#' + rank + ' IN THE WORLD!'; cls = 'gold'; level = 2; }
-  else if (rank && rank <= BOARD_N) { title = '#' + rank + ' IN THE WORLD!'; cls = 'cyan'; level = 2; }
+  const mode = MODES[run.mode || 'classic'];
+  if (rank === 1) { title = mode + ' WORLD RECORD!'; cls = 'gold'; level = 3; }
+  else if (rank && rank <= 3) { title = '#' + rank + ' IN ' + mode + '!'; cls = 'gold'; level = 2; }
+  else if (rank && rank <= BOARD_N) { title = '#' + rank + ' IN ' + mode + '!'; cls = 'cyan'; level = 2; }
   else if (run.isBest) { title = 'NEW PERSONAL BEST!'; cls = 'yellow'; level = 1; }
-  if (title && run.isBest && level >= 2) sub = 'and a new personal best';
+  if (level >= 2) sub = [rank === 1 ? '' : mode + ' world leaderboard', run.isBest ? 'and a new personal best' : ''].filter(Boolean).join(' · ');
   if (run.beatChallenge) sub = (sub ? sub + ' · ' : '') + 'you beat ' + run.beatChallenge + '!';
   if (!title && run.beatChallenge) { title = 'CHALLENGE BEATEN!'; cls = 'pink'; level = 1; sub = 'you beat ' + run.beatChallenge + '!'; }
   $('wrecked').classList.toggle('small', level > 0);
@@ -7960,21 +7964,21 @@ async function checkRun(run, statusEl) {
     return;
   }
   if (!SET.name) {
-    say(run.rank ? 'Add your name to claim spot #' + run.rank + '!' : 'Add your name to join the world leaderboard.');
+    say(run.rank ? 'Add your name to claim spot #' + run.rank + ' on the ' + MODE_NAMES[run.mode] + ' leaderboard!' : 'Add your name to join the ' + MODE_NAMES[run.mode] + ' world leaderboard.');
     return;
   }
   if (!qualifies) {
     const r = await worldRank(run.score, run.mode);
-    say(r ? 'That’s #' + r.toLocaleString() + ' in the world. Top ' + BOARD_N + ' needs ' + (Number(rows[rows.length - 1].score) + 1).toLocaleString() + '.' : '');
+    say(r ? 'That’s #' + r.toLocaleString() + ' in the world for ' + MODE_NAMES[run.mode] + '. Top ' + BOARD_N + ' needs ' + (Number(rows[rows.length - 1].score) + 1).toLocaleString() + '.' : '');
     return;
   }
-  say('Saving to the world leaderboard…');
+  say('Saving to the ' + MODE_NAMES[run.mode] + ' world leaderboard…');
   try {
     await writeRun(run);
-    if (run.rank) say('Saved as ' + SET.name + '. You’re #' + run.rank + ' in the world!');
+    if (run.rank) say('Saved as ' + SET.name + '. You’re #' + run.rank + ' in the world for ' + MODE_NAMES[run.mode] + '!');
     else {
       const r = await worldRank(run.score, run.mode);
-      say('Saved as ' + SET.name + (r ? '. That’s #' + r.toLocaleString() + ' in the world.' : '.'));
+      say('Saved as ' + SET.name + (r ? '. That’s #' + r.toLocaleString() + ' in the world for ' + MODE_NAMES[run.mode] + '.' : '.'));
     }
   } catch (e) {
     if (e && e.code === 'permission-denied') {
@@ -8008,11 +8012,11 @@ function saveNameAndScore() {
 // ---------- Sharing ----------
 function shareText(run) {
   const sc = run.score.toLocaleString();
-  const game = run.mode === 'warp' ? 'SPEEDER Warp Run' : 'SPEEDER';
-  if (run.rank === 1) return 'I just set the WORLD RECORD on ' + game + ': ' + sc + ' points! Come beat me:';
-  if (run.rank) return 'I’m #' + run.rank + ' in the world on ' + game + ' with ' + sc + ' points. Can you beat me?';
-  if (run.mode === 'warp') return 'I scored ' + sc + ' on ' + game + ' (reached loop ' + run.loop + '). Can you beat me?';
-  return 'I scored ' + sc + ' on SPEEDER (' + (run.dist / 1000).toFixed(1) + ' km). Can you beat me?';
+  const mode = MODE_NAMES[run.mode] || 'Classic';
+  if (run.rank === 1) return 'I just set the ' + mode + ' WORLD RECORD on SPEEDER: ' + sc + ' points! Come beat me:';
+  if (run.rank) return 'I’m #' + run.rank + ' in the world in SPEEDER’s ' + mode + ' mode with ' + sc + ' points. Can you beat me?';
+  if (run.mode === 'warp') return 'I scored ' + sc + ' in SPEEDER’s Warp Run (reached loop ' + run.loop + '). Can you beat me?';
+  return 'I scored ' + sc + ' in SPEEDER’s Classic mode (' + (run.dist / 1000).toFixed(1) + ' km). Can you beat me?';
 }
 function challengeUrl(run) {
   return shareUrl() + '?c=' + run.score + (SET.name ? '&n=' + encodeURIComponent(SET.name) : '') + (run.mode === 'warp' ? '&m=w' : '');
@@ -8054,11 +8058,14 @@ function makeShareCard(run) {
     g.shadowBlur = 0;
     // headline
     let head = '', hc = '#29f3ff';
-    if (run.rank === 1) { head = 'NEW WORLD RECORD'; hc = '#ffd23c'; }
-    else if (run.rank) { head = '#' + run.rank + ' IN THE WORLD'; hc = run.rank <= 3 ? '#ffd23c' : '#29f3ff'; }
+    const mname = MODES[run.mode] || 'CLASSIC';
+    if (run.rank === 1) { head = mname + ' WORLD RECORD'; hc = '#ffd23c'; }
+    else if (run.rank) { head = '#' + run.rank + ' IN THE WORLD · ' + mname; hc = run.rank <= 3 ? '#ffd23c' : '#29f3ff'; }
     else if (run.isBest) { head = 'NEW PERSONAL BEST'; hc = '#ffd23c'; }
     if (head) {
       g.font = '800 64px ' + FONT;
+      const hw0 = g.measureText(head).width;
+      if (hw0 > W2 - 180) g.font = '800 ' + Math.floor(64 * (W2 - 180) / hw0) + 'px ' + FONT;   // (the mode makes it longer: shrink to fit)
       const hw = g.measureText(head).width + 80;
       g.fillStyle = 'rgba(11, 4, 32, 0.8)'; g.fillRect(W2 / 2 - hw / 2, 270, hw, 104);
       g.strokeStyle = hc; g.lineWidth = 5; g.strokeRect(W2 / 2 - hw / 2, 270, hw, 104);
@@ -8075,7 +8082,10 @@ function makeShareCard(run) {
     g.shadowBlur = 0;
     g.font = '500 44px ' + FONT;
     g.fillStyle = '#cbb7ff';
-    g.fillText((run.mode === 'warp' ? 'WARP RUN  ·  LOOP ' + run.loop + '  ·  ' : '') + (run.dist / 1000).toFixed(2) + ' KM  ·  ' + run.kills + ' DESTROYED', W2 / 2, 630);
+    const stats = (run.mode === 'warp' ? 'WARP RUN  ·  LOOP ' + run.loop + '  ·  ' : 'CLASSIC  ·  ') + (run.dist / 1000).toFixed(2) + ' KM  ·  ' + run.kills + ' DESTROYED';
+    const stw = g.measureText(stats).width;
+    if (stw > W2 - 80) g.font = '500 ' + Math.floor(44 * (W2 - 80) / stw) + 'px ' + FONT;
+    g.fillText(stats, W2 / 2, 630);
     // call to action
     g.fillStyle = 'rgba(11, 4, 32, 0.78)'; g.fillRect(0, 1090, W2, 260);
     g.font = '800 64px ' + FONT;

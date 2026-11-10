@@ -4,6 +4,25 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.9.2] — 2026-11-10
+
+### Session 12c — Rank messages name the mode
+
+Adrian: the game-over screen and the share still said "number one in the world", but there
+are now two world leaderboards.
+
+- Everything that claims a world rank now says which mode it is for:
+  - Game over: "WARP RUN WORLD RECORD!" / "CLASSIC WORLD RECORD!", and "#3 IN WARP RUN!" with
+    "WARP RUN world leaderboard" under it.
+  - The save message: "You're #3 in the world for Warp Run!"
+  - Share text: "I just set the Warp Run WORLD RECORD on SPEEDER: ..." and "I'm #3 in the
+    world in SPEEDER's Classic mode ..." (Classic used to say just "SPEEDER").
+  - Share picture: "WARP RUN WORLD RECORD", "#3 IN THE WORLD · CLASSIC"; the stats line now
+    names Classic too.
+  - The leaderboard panel's count line and the in-run "WORLD #1 PACE!" message.
+
+---
+
 ## [v0.9.1] — 2026-11-10
 
 ### Session 12b — iPhone screen fit
