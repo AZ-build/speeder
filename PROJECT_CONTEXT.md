@@ -22,7 +22,7 @@ endless run, kept exactly as it was in v0.7.7.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.9.2 |
+| **Current Version** | v0.9.3 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-10 |
@@ -164,7 +164,7 @@ Speeder/
 `CAM_H` / `PLAYER_Z` camera height and distance behind the speeder (now worked out per screen in `fitView()`) ·
 `SHIP_AT` where the speeder sits on screen · `SHIP_SCALE` / `SHIP_TILT` speeder size and tilt ·
 `SHIP` / `PYLON_MESH` the 3D models (lists of corner points and faces) ·
-`DRIFT` how hard turns push you outward · `kMaxAt()` how sharp bends get with distance ·
+`DRIFT` how hard turns push you outward, `DRIFT_MAX` / `W_DRIFT_MAX` the most they can push in Classic / Warp Run · `kMaxAt()` how sharp bends get with distance ·
 `planCourse()` the bend and hill generator · `THEMES` zone colors, sky layers, props and hills ·
 `ZONE_LEN` zone length · `RAMP_*` / `JUMP_T` / `JUMP_G` ramp size and jump feel · `QUALS` what each graphics level turns on ·
 `FAR` draw distance · `FPS_PLAY` / `FPS_IDLE` / `FPS_PAUSED` frame-rate caps · `QUALS[].px` pixel budget · `GLOSS_MAX_AREA` biggest screen that gets reflections · `TRACK_HALF` track half-width · `PATTERNS` which hazards appear and
@@ -176,7 +176,7 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 `GC_CODE` analytics on/off (GoatCounter site code, now `speeder`; dashboard https://speeder.goatcounter.com) · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
 `choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
 
-**Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
+**Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `BOSS_SNIPE` how often it fires single shots under its other attacks · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
 
 ### Testing hooks
 
@@ -243,6 +243,8 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Collisions (v0.9) | Checked against the whole stretch travelled in a frame | At 655 km/h a laser fence only registered 59% of the time (the road moved further in a frame than the fence is deep). Fixed in both modes. |
 | Rail riding (v0.9) | Rail overheats after ~3 s, throws you off with no damage, locks both rails for 5 s | Adrian: you could wall-ride a whole zone. Limiting it keeps the edge trick for tight gaps (his v0.6.1 idea) without punishing a brush with the rail. Warp Run only, so Classic stays as it was. |
 | Boss (v0.9) | Three stages with new attacks, more health, harder to keep in your sights | Adrian found the v0.8 boss too easy. More variety and pressure rather than only a bigger health bar. |
+| Boss (v0.9.3) | Constant aimed shots under every attack; beams, mine walls and fences come in linked pairs or chains | Early feedback: still too easy. A test driver took 0 hits from v0.9.0's boss; attacks that each need one small move never overlapped. |
+| Bend push (v0.9.3) | Capped at 0.5 units/s in Warp Run (was 2) | At Warp Run speeds it reached the cap in most bends and felt like the speeder steering itself. Classic unchanged. |
 | Board resets (v0.9) | `W_BOARD_MIN_V`: the Warp board only shows runs from that version on | The game will keep changing; old scores shouldn't be unbeatable. Needs no Firebase work (the rules don't allow deletes). |
 | Loops and score (v0.8) | Score x loop number; +50 km/h and tougher patterns per loop | Makes score mostly about how far you get, which Adrian wanted, without touching Classic's board. |
 | Late-loop fairness (v0.8) | Hazard spacing stretches with speed | Speed is the new difficulty; the time between hazards never drops below Classic's hardest. "Challenging, not impossible." |
@@ -296,6 +298,10 @@ See `CHANGELOG.md` for a full session-by-session history.
   unverified on a real iPhone**: ask Adrian whether the dark strip along the bottom is gone.
 - v0.9.2 (same day): every message that claims a world rank (game over, save message, share
   text, share picture) now names the mode, because there are two world leaderboards.
+- v0.9.3 (same day): the push bends give you is capped at 0.5 units/s in Warp Run
+  (`W_DRIFT_MAX`; Adrian felt it as the speeder moving without his thumb), and the Warden is
+  harder again after early feedback (constant aimed shots, chained lane beams, double mine
+  walls, offset laser fences, more health).
 - v0.9 was tested by automated drivers and screenshots only. **No human has played it yet**:
   the boss, the 40-second worlds and the rail limit are first guesses.
 - The Warp board is reset by version (`W_BOARD_MIN_V = '0.9.0'`). Adrian's two v0.8 test

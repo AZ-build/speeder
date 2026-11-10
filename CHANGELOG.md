@@ -4,6 +4,40 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.9.3] — 2026-11-10
+
+### Session 12d — Bend push capped, boss tougher again
+
+Adrian felt "a slight pull back to the middle... a movement that is not coming from my
+thumb". The only thing that does that with nothing on screen is the push bends give you
+toward the outside (since v0.3). It grows with the square of your speed and was capped at
+2 units a second, which Warp Run reaches from late loop 1. He asked to cap or remove it.
+Early feedback also says the boss should be harder still.
+
+- **Bend push capped in Warp Run** at 0.5 units a second, a quarter of before
+  (`W_DRIFT_MAX`; set it to 0 to remove the push completely). Classic keeps the old cap
+  (`DRIFT_MAX`).
+- **The Warden, harder again.** Measured with a test driver that reacts 0.3 s late: 0 hits a
+  fight against v0.9.0's boss, about 1.3 now (0.3 for a driver reacting in 0.2 s, so it is
+  still fair). Real players will take more than the test driver does.
+  - It never stops shooting: single aimed shots keep coming under its other attacks
+    (`BOSS_SNIPE`: every 1.5 / 1.1 / 0.8 s by stage).
+  - Shots are about 20% faster. Pauses between attacks are shorter (`BOSS_PACE`).
+  - Lane beams: four lanes from the second stage, and they chain: two sets in a row in the
+    second stage, three in the last, each with a shorter warning (`bossBeam`).
+  - Mine walls: from the second stage a second wall follows with its gap one lane over.
+  - Laser fences: narrower gap (2.7), a pair from the second stage, and the second one's gap
+    is a step to one side instead of lined up.
+  - Bursts are five shots wide in the last stage; one more ram bike, and they close faster
+    and turn harder.
+  - About 25% more health (`BOSS_TOUGH` 42) and it weaves faster. A fight lasts around 35-40
+    seconds for the test driver with mid-level guns.
+
+**Not played by a human yet.** If it's now too much, the first knobs to turn back are
+`BOSS_SNIPE` and the number of beam sets (`bossBeam(e, st + 1)`).
+
+---
+
 ## [v0.9.2] — 2026-11-10
 
 ### Session 12c — Rank messages name the mode

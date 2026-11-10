@@ -620,7 +620,7 @@
     <h3>Warp Run</h3>
     <p class="hnote">The new mode. Pick it on the title screen. Classic is still there, untouched, with its own leaderboard.</p>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="12" y="12" width="20" height="24" fill="#1a1050" stroke="#fff" stroke-width="1.5"/><path d="M12 30 L20 22 M32 30 L24 22 M12 24 h20" stroke="#29b4ff" stroke-width="1.5" fill="none"/><path d="M6 36 V8 H38 V36 M6 12 H38" fill="none" stroke="#ffd23c" stroke-width="3" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Five worlds and world gates</div><div>Each world has its own colors, its own look for pylons and walls, and its own hazard. A world lasts about 40 seconds, however fast you&rsquo;re going. At the end stands a <b>world gate</b>: you can see the next world through it. Fly through and that world builds itself around you, with a couple of seconds of clear road before the action starts again.</div><div class="hlim">World cleared: +1,000</div></div></div>
-<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 26 l6 -8 h16 l6 8 l-3 6 h-22 z" fill="#3d0a18" stroke="#ff2b4e" stroke-width="2" stroke-linejoin="round"/><path d="M22 32 l4 5 -4 5 -4 -5 z" fill="#ff9d2e" stroke="#fff2c0" stroke-width="1"/><path d="M12 18 v-7 M32 18 v-7" stroke="#ffd23c" stroke-width="2"/></svg><div class="htxt"><div class="hname">The Warden</div><div>The boss at the end of the fifth world. It weaves across the track, so <b>line up under it</b> to hit it. The fight has <b>three stages</b>, one for each third of its health (the notches on its health bar). First: aimed shots, walls of mines with a gap, lanes that light up red before they are scorched, and laser fences sent down the road. Then it adds three-way bursts and ram bikes. In the last stage it does everything faster.</div><div class="hlim">+5,000 and a prototype</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 26 l6 -8 h16 l6 8 l-3 6 h-22 z" fill="#3d0a18" stroke="#ff2b4e" stroke-width="2" stroke-linejoin="round"/><path d="M22 32 l4 5 -4 5 -4 -5 z" fill="#ff9d2e" stroke="#fff2c0" stroke-width="1"/><path d="M12 18 v-7 M32 18 v-7" stroke="#ffd23c" stroke-width="2"/></svg><div class="htxt"><div class="hname">The Warden</div><div>The boss at the end of the fifth world. It weaves across the track, so <b>line up under it</b> to hit it. The fight has <b>three stages</b>, one for each third of its health (the notches on its health bar). It never stops firing single aimed shots, so keep moving. On top of that, first: volleys, walls of mines with a gap, lanes that light up red before they are scorched, and laser fences sent down the road. Then it adds three-way bursts, ram bikes, a second mine wall and a second set of lanes straight after the first. In the last stage the bursts are five wide, the lanes come three sets in a row, and everything is faster.</div><div class="hlim">+5,000 and a prototype</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M30 14 a11 11 0 1 0 3 10" stroke="#ffd23c" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M26 6 l6 8 -10 2 z" fill="#ffd23c"/><text x="22" y="27" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="11" fill="#fff">x2</text></svg><div class="htxt"><div class="hname">Loops</div><div>Beat the boss and the five worlds start again, faster and tougher. <b>Every point is multiplied by the loop number</b>: x2 in loop 2, x3 in loop 3, and so on.</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 8 l9 14 -9 14 -9 -14 z" fill="#6dff7a" stroke="#eaffea" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Power cells and Overdrive</div><div>Destroyed enemies drop a green cell. It stays on the road where the enemy went down, so steer over it to collect it. Fill the CELLS bar and your guns go into <b>OVERDRIVE</b>: double fire rate and +1 damage.</div><div class="hlim">8 cells · lasts 8 seconds</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M17 38 L19 10 L22 4 L25 10 L27 38 Z" fill="#2c0d52" stroke="#29f3ff" stroke-width="2" stroke-linejoin="round"/><path d="M31 30 q6 -8 0 -16" stroke="#29f3ff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M35 33 q8 -11 0 -22" stroke="#29f3ff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/></svg><div class="htxt"><div class="hname">Close calls</div><div>Slip past a pylon, wall, mine, truck or crystal with almost no room to spare and you score a bonus. Chain them for more. Close calls also charge Overdrive.</div><div class="hlim">+40, growing to +400 in a chain</div></div></div>
@@ -703,7 +703,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.9.2';
+const VERSION = '0.9.3';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -723,7 +723,7 @@ const RAIL_COOL_T = 5;      // Warp Run: seconds both rails stay locked after an
 const RAIL_X = 4.5;         // Warp Run: this close to the edge counts as riding the rail (the rail is at about 5.05)
 const OD_NEED = 8;          // power cells needed to fire OVERDRIVE
 const OD_TIME = 8;          // seconds OVERDRIVE lasts
-const BOSS_TOUGH = 34;      // how tough the Warden is (its health also grows with your guns and with each loop)
+const BOSS_TOUGH = 42;      // how tough the Warden is (its health also grows with your guns and with each loop)
 const BOSS_PTS = 5000;      // points for beating it (times the loop multiplier)
 
 // Online leaderboard: Speeder keeps its own list ("speeder_scores") inside the
@@ -1060,6 +1060,8 @@ let PITCH = 0;       // camera tilt from climbing/descending
 let HEADING = 0;     // how far the road has turned since the start (radians), scrolls the sky
 let CAM_LIFT = 0;    // the camera rises a little when you jump
 const DRIFT = 0.06;  // how strongly turns push the speeder outward
+const DRIFT_MAX = 2;       // Classic: the most a bend can push you (track units a second; the track is 11 wide)
+const W_DRIFT_MAX = 0.5;   // Warp Run: a quarter of that. At its speeds the full push felt like the speeder steering itself. 0 = no push
 const curves = [];   // { d0, len, k }   k = curvature (+ bends right)
 const hills = [];    // { d0, len, amp } amp = how high the track lifts off the ground
 let curveEnd = 0, hillEnd = 0, planHeading = 0;
@@ -3573,7 +3575,8 @@ function update(dt) {
     // Turns gently push you toward the outside, like a real car. It builds
     // up smoothly with the bend, so you can feel it coming and steer against it.
     if (player.alive) {
-      const push = clamp(-curvAt(G.d) * G.speed * G.speed * DRIFT, -2, 2) * dt;
+      const dmax = WP.on ? W_DRIFT_MAX : DRIFT_MAX;
+      const push = clamp(-curvAt(G.d) * G.speed * G.speed * DRIFT, -dmax, dmax) * dt;
       player.tx += push;
       if (drag) drag.t0 += push;
     }
@@ -5680,7 +5683,8 @@ const BOSS_SEQ = [
   ['fan', 'rams', 'beams', 'fence', 'mines'],
   ['fan', 'beams', 'rams', 'mines', 'fence', 'beams'],
 ];
-const BOSS_PACE = [1, 0.85, 0.65];   // how long it rests between attacks in each stage (share of the base pause)
+const BOSS_PACE = [1, 0.8, 0.55];    // how long it rests between attacks in each stage (share of the base pause)
+const BOSS_SNIPE = [1.5, 1.1, 0.8];  // seconds between the single aimed shots it keeps firing underneath its other attacks
 const LANE_W = 2 * TRACK_HALF / 5;
 function startBoss() {
   WP.phase = 'boss';
@@ -5691,7 +5695,7 @@ function startBoss() {
   const hp = Math.round(BOSS_TOUGH * Math.pow(gunDps(), 0.8) * (1 + 0.3 * (WP.loop - 1)));
   WP.boss = addEnemy('boss', {
     x: 0, tx: 0, y: 1.9, rel: 230, d: G.d + 230, mode: 'enter', hp, hp0: hp, pts: BOSS_PTS, w: 3.0,
-    atkT: 1.2, seq: 0, stage: 0, beam: null, vol: 0, volT: 0, fan: false, retT: 0, sparkT: 0,
+    atkT: 1.2, seq: 0, stage: 0, beam: null, vol: 0, volT: 0, fan: false, retT: 0, sparkT: 0, snipeT: 2.2,
   });
   toast('THE WARDEN', COLORS.red, 'line up to shoot it · dodge the rest');
   play('swarm', 0.7, 0.55);
@@ -5705,7 +5709,7 @@ function gunDps() {
   return dps;
 }
 function bossShot(e, tx) {
-  const approach = 30 + 2 * Math.min(WP.loop, 5);
+  const approach = 37 + 2 * Math.min(WP.loop, 5);
   const t = e.rel / approach;
   eshots.push({ kind: 'eshot', x: e.x, y: 1.1, d: e.d - 1.2, vx: clamp((tx - e.x) / t, -7, 7), vy: (0.45 - 1.1) / t, vd: G.speed - approach, t: 0 });
   e.flashT = 0.12;
@@ -5714,7 +5718,16 @@ function bossShot(e, tx) {
 function playerLane() { return clamp(Math.floor((player.x + TRACK_HALF) / LANE_W), 0, 4); }
 function bossAttack(e, dt) {
   const L = WP.loop, st = e.stage;
-  const pause = Math.max(0.5, 1.25 - 0.15 * (L - 1)) * BOSS_PACE[st];
+  const pause = Math.max(0.4, 1.0 - 0.12 * (L - 1)) * BOSS_PACE[st];
+  // It never stops shooting: single aimed shots keep coming underneath whatever else it is
+  // doing, so there is no safe spot to sit in (not during a volley, which is already shots).
+  if (!e.vol) {
+    e.snipeT -= dt;
+    if (e.snipeT <= 0) {
+      e.snipeT = BOSS_SNIPE[st] * rand(0.85, 1.15);
+      bossShot(e, player.x + player.vx * 0.3);
+    }
+  }
   if (e.beam) {
     const B = e.beam;
     B.t += dt;
@@ -5722,7 +5735,11 @@ function bossAttack(e, dt) {
       if (!B.live) { B.live = true; play('zap', 0.6, 0.6); G.shake = Math.max(G.shake, 0.3); }
       if (B.lanes[playerLane()] && player.y < 1.4) hurt();
     }
-    if (B.t >= B.warn + B.fire) { e.beam = null; e.atkT = pause; }
+    if (B.t >= B.warn + B.fire) {
+      // later stages: another set of lanes lights up the moment this one has fired
+      if (B.again) { e.beam = bossBeam(e, B.again - 1, true); play('ui', 0.5, 0.6); }
+      else { e.beam = null; e.atkT = pause; }
+    }
     return;
   }
   if (e.vol > 0) {
@@ -5730,7 +5747,12 @@ function bossAttack(e, dt) {
     if (e.volT <= 0) {
       const tx = player.x + player.vx * 0.25 + rand(-0.6, 0.6);
       bossShot(e, tx);
-      if (e.fan) { bossShot(e, tx - 1.7); bossShot(e, tx + 1.7); }   // a three-way burst: a small sidestep isn't enough
+      if (e.fan) {
+        // a spread of shots either side of the aimed one: a small sidestep isn't enough,
+        // you have to slot into a gap (three shots wide, five in the last stage)
+        bossShot(e, tx - 1.7); bossShot(e, tx + 1.7);
+        if (st === 2) { bossShot(e, tx - 3.4); bossShot(e, tx + 3.4); }
+      }
       e.vol--;
       e.volT = e.fan ? 0.45 : 0.2;
       if (!e.vol) e.atkT = pause;
@@ -5743,65 +5765,84 @@ function bossAttack(e, dt) {
   const kind = seq[e.seq++ % seq.length];
   if (kind === 'volley') {
     e.fan = false;
-    e.vol = 3 + Math.min(3, L - 1);
+    e.vol = 4 + Math.min(3, L - 1);
     e.volT = 0;
   } else if (kind === 'fan') {
     e.fan = true;
-    e.vol = 2 + Math.min(2, L - 1) + (st === 2 ? 1 : 0);
+    e.vol = 3 + Math.min(2, L - 1) + (st === 2 ? 1 : 0);
     e.volT = 0;
   } else if (kind === 'mines') {
     // a wall of drifting mines with a lane or two left open: find the gap, or shoot one
     const open = [(Math.random() * 5) | 0];
     if (L === 1 && st === 0) open.push((open[0] + 2 + ((Math.random() * 2) | 0)) % 5);
-    for (let i = 0; i < 5; i++) {
-      if (open.includes(i)) continue;
-      const cx = -TRACK_HALF + LANE_W * (i + 0.5);
-      for (const ox of [-0.55, 0.55]) {
-        const m = addMine(cx + ox, e.d - 1.5);
-        m.app = 34 + 2 * Math.min(L, 5);
+    else if (Math.abs(open[0] - playerLane()) > 2) open[0] = clamp(playerLane() + (open[0] > playerLane() ? 2 : -2), 0, 4);   // (never more than two lanes from you)
+    // from the second stage a second wall follows close behind, its gap one lane over
+    const walls = st >= 1 ? 2 : 1;
+    for (let wk = 0; wk < walls; wk++) {
+      if (wk > 0) { const o0 = open[0]; open.length = 0; open.push(o0 === 0 ? 1 : o0 === 4 ? 3 : o0 + (Math.random() < 0.5 ? -1 : 1)); }
+      for (let i = 0; i < 5; i++) {
+        if (open.includes(i)) continue;
+        const cx = -TRACK_HALF + LANE_W * (i + 0.5);
+        for (const ox of [-0.55, 0.55]) {
+          const m = addMine(cx + ox, e.d - 1.5 + wk * 22);
+          m.app = 36 + 2 * Math.min(L, 5);
+        }
       }
     }
     play('launch', 0.5, 0.7);
-    e.atkT = pause + 0.8;
+    e.atkT = pause + 0.8 + (walls - 1) * 0.5;
   } else if (kind === 'fence') {
     // a laser fence sent down the road at you, its gap never far from where you are
-    const gapW = 3.0, app = 26 + 2 * Math.min(L, 5);
+    const gapW = 2.7, app = 29 + 2 * Math.min(L, 5);
     const lim = TRACK_HALF - gapW / 2 - 0.4;
-    const first = addLaserFence(e.d - 2, gapW, 1.2, 1.0);
-    first.base = clamp(player.x + rand(-3, 3), -(lim - 1.2), lim - 1.2);
-    first.amp = 1.2;
+    const first = addLaserFence(e.d - 2, gapW, 1.4, 1.1);
+    first.base = clamp(player.x + rand(-3.2, 3.2), -(lim - 1.4), lim - 1.4);
+    first.amp = 1.4;
     let n = 2;
-    if (L >= 2 || st === 2) { addLaserFence(e.d + 12, gapW, 1.2, 1.0, first, 14 / app); n = 4; }
+    if (L >= 2 || st >= 1) {
+      // the second one's gap is a step to one side, so there are two moves to make
+      const second = addLaserFence(e.d + 14, gapW, 1.4, 1.1, first, 16 / app);
+      const off = rand(1.3, 2.1) * (first.base > 0 ? -1 : 1);
+      second.base = clamp(first.base + off, -(lim - 1.4), lim - 1.4);
+      n = 4;
+    }
     for (let i = objs.length - n; i < objs.length; i++) { objs[i].app = app; moveObj(objs[i]); }
     play('launch', 0.5, 0.5);
     e.atkT = pause + 1.0;
   } else if (kind === 'rams') {
     // it drops a line of ram bikes that come for you (they're worth points and power cells)
-    const n = 2 + Math.min(2, L - 1) + (st === 2 ? 1 : 0);
+    const n = 3 + Math.min(2, L - 1) + (st === 2 ? 1 : 0);
     for (let i = 0; i < n; i++) {
       const x = clamp(e.x + (i - (n - 1) / 2) * 2.4, -TRACK_HALF + 0.8, TRACK_HALF - 0.8);
-      addEnemy('ram', { x, d: e.d - 2 + i * 6, y: 0.42, app: 30, vd: 0, hp: 2, pts: 150, w: 0.8, steer: 1.6 });
+      addEnemy('ram', { x, d: e.d - 2 + i * 6, y: 0.42, app: 34, vd: 0, hp: 2, pts: 150, w: 0.8, steer: 2.2 });
     }
     play('launch', 0.55, 0.9);
     e.atkT = pause + 0.9;
   } else {
-    // lane beams: the lit lanes are about to be scorched, yours always among them.
-    // A safe lane is always close by: next door when four lanes light up, at most two away otherwise.
-    const n = Math.min(4, 3 + (L >= 2 && st >= 1 ? 1 : 0) + (st === 2 ? 1 : 0));
-    const lanes = [true, true, true, true, true];
-    const mine = playerLane();
-    const reach = n >= 4 && L < 3 ? 1 : 2;
-    const near = [];
-    for (let i = 0; i < 5; i++) if (i !== mine && Math.abs(i - mine) <= reach) near.push(i);
-    lanes[pick(near)] = false;
-    let left = 4 - n, guard = 0;
-    while (left > 0 && guard++ < 40) {
-      const i = (Math.random() * 5) | 0;
-      if (i !== mine && lanes[i]) { lanes[i] = false; left--; }
-    }
-    e.beam = { lanes, t: 0, warn: Math.max(0.6, 0.95 - 0.06 * (L - 1)) * (st === 2 ? 0.88 : 1), fire: 0.5, live: false };
+    e.beam = bossBeam(e, st + 1);     // one set of lanes in the first stage, two in a row in the second, three in the last
     play('ui', 0.5, 0.5);
   }
+}
+// Lane beams: the lit lanes are about to be scorched, yours always among them. Three lanes
+// in the first stage, four after that. A safe lane is always close by: next door when four
+// light up (two away from loop 3), at most two away otherwise. `rounds` > 1 chains another
+// set straight after this one fires (with a slightly shorter warning).
+function bossBeam(e, rounds, chained) {
+  const L = WP.loop, st = e.stage;
+  const n = st >= 1 ? 4 : 3;
+  const lanes = [true, true, true, true, true];
+  const mine = playerLane();
+  const reach = n >= 4 && L < 3 ? 1 : 2;
+  const near = [];
+  for (let i = 0; i < 5; i++) if (i !== mine && Math.abs(i - mine) <= reach) near.push(i);
+  lanes[pick(near)] = false;
+  let left = 4 - n, guard = 0;
+  while (left > 0 && guard++ < 40) {
+    const i = (Math.random() * 5) | 0;
+    if (i !== mine && lanes[i]) { lanes[i] = false; left--; }
+  }
+  const warn = Math.max(0.55, 0.85 - 0.05 * (L - 1)) * (st === 2 ? 0.9 : 1) * (chained ? 0.85 : 1);
+  return { lanes, t: 0, warn, fire: 0.45, live: false, again: rounds > 1 ? rounds : 0 };
 }
 // It has lost a third of its health: a jolt, a breather, and then the next stage.
 function bossStageUp(e) {
@@ -5832,10 +5873,10 @@ function updateBoss(e, dt, playing) {
     // chase it, and it gets quicker and less predictable with each stage.
     e.retT -= dt;
     if (e.retT <= 0) {
-      e.tx = clamp(player.x * 0.35 + rand(-4, 4), -4, 4);
-      e.retT = rand(1.1, 1.9) * (e.stage === 2 ? 0.75 : 1);
+      e.tx = clamp(player.x * 0.3 + rand(-4.2, 4.2), -4.2, 4.2);
+      e.retT = rand(0.9, 1.6) * (e.stage === 2 ? 0.7 : 1);
     }
-    e.x += (e.tx - e.x) * (1 - Math.exp(-dt * (1.2 + 0.25 * e.stage + 0.15 * Math.min(WP.loop, 6))));
+    e.x += (e.tx - e.x) * (1 - Math.exp(-dt * (1.4 + 0.3 * e.stage + 0.15 * Math.min(WP.loop, 6))));
     if (playing) bossAttack(e, dt);
     if (e.stage > 0) {
       // it trails sparks once it's hurt
