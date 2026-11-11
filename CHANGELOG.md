@@ -4,6 +4,20 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.9.4] — 2026-11-10
+
+### Session 12e — Leaderboards show the top 50
+
+- Both world leaderboards (Classic and Warp Run) now keep the **top 50 runs** instead of 25
+  (`BOARD_N`). A run uploads if it makes the top 50 or is your best, and the ladder, rank
+  messages and "Top 50 needs ..." line all follow. The How to play page says 50.
+- No database rules change was needed. Runs that were outside the old top 25 but were not a
+  player's best were never uploaded, so places 26-50 fill in as people play.
+- Cost: each leaderboard download now reads 50 scores (Warp Run reads 100, to skip old-version
+  runs) instead of 25/50. Downloads are still reused for 1-10 minutes (`TOP_AGE_*`).
+
+---
+
 ## [v0.9.3] — 2026-11-10
 
 ### Session 12d — Bend push capped, boss tougher again

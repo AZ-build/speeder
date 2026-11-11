@@ -28,7 +28,7 @@ on right now. Add anything here so it doesn't get lost.
 - [ ] **Synthwave music track** (generated in code, or a licensed loop).
 - [ ] **Daily challenge seed**: everyone gets the same course that day.
 - [ ] **More settings**: left-handed HUD, colorblind-friendly enemy colors. (Screen shake toggle done in v0.3.)
-- [ ] **Leaderboard extras**: weekly board, rude-name filter. (Rank outside the top 25 shows on the game-over screen since v0.2.)
+- [ ] **Leaderboard extras**: weekly board, rude-name filter. (Rank outside the top 50 shows on the game-over screen since v0.2.)
 - [ ] **Run recap on the share card**: best moment, max multiplier, missiles kills.
 - [ ] **Score ladder tuning**: should passing every player chime, or only top 10?
 - [ ] **Stronger anti-cheat**: Firebase App Check, or a small server that replays and checks runs.
