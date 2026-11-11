@@ -4,6 +4,27 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.9.5] — 2026-11-10
+
+### Session 12f — No bend push, smoother speed-ups (Warp Run)
+
+Adrian: the speeder is too hard to control in high loops, it has to be fine control. And
+the speed jump at the start of each loop is too sudden.
+
+- **Bend push removed in Warp Run** (`W_DRIFT_MAX = 0`, was 0.5). The speeder only moves when
+  your thumb does. Bends still matter: bullets fly straight, so they still drift outward in a
+  bend. Sky Islands' crosswind still pushes you (it's a hazard and is announced). Classic keeps
+  its push (`DRIFT_MAX`).
+- **Speed rises a little through every world** instead of all at once at a new loop
+  (`warpTop()`). Loop 1 is unchanged (settles at 90, about 450 km/h). From loop 2 the +50 km/h
+  a loop is spread over its five worlds, about +10 km/h per world, rising smoothly inside each
+  one, so there is no jump at the gates either. Each loop finishes at the speed the whole loop
+  used to run at, so every loop is a little slower on average than before; the 655 km/h cap is
+  now reached at the end of loop 5 instead of its start.
+- How to play: Loops now says each world is a little faster than the last.
+
+---
+
 ## [v0.9.4] — 2026-11-10
 
 ### Session 12e — Leaderboards show the top 50

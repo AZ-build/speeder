@@ -621,7 +621,7 @@
     <p class="hnote">The new mode. Pick it on the title screen. Classic is still there, untouched, with its own leaderboard.</p>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="12" y="12" width="20" height="24" fill="#1a1050" stroke="#fff" stroke-width="1.5"/><path d="M12 30 L20 22 M32 30 L24 22 M12 24 h20" stroke="#29b4ff" stroke-width="1.5" fill="none"/><path d="M6 36 V8 H38 V36 M6 12 H38" fill="none" stroke="#ffd23c" stroke-width="3" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Five worlds and world gates</div><div>Each world has its own colors, its own look for pylons and walls, and its own hazard. A world lasts about 40 seconds, however fast you&rsquo;re going. At the end stands a <b>world gate</b>: you can see the next world through it. Fly through and that world builds itself around you, with a couple of seconds of clear road before the action starts again.</div><div class="hlim">World cleared: +1,000</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 26 l6 -8 h16 l6 8 l-3 6 h-22 z" fill="#3d0a18" stroke="#ff2b4e" stroke-width="2" stroke-linejoin="round"/><path d="M22 32 l4 5 -4 5 -4 -5 z" fill="#ff9d2e" stroke="#fff2c0" stroke-width="1"/><path d="M12 18 v-7 M32 18 v-7" stroke="#ffd23c" stroke-width="2"/></svg><div class="htxt"><div class="hname">The Warden</div><div>The boss at the end of the fifth world. It weaves across the track, so <b>line up under it</b> to hit it. The fight has <b>three stages</b>, one for each third of its health (the notches on its health bar). It never stops firing single aimed shots, so keep moving. On top of that, first: volleys, walls of mines with a gap, lanes that light up red before they are scorched, and laser fences sent down the road. Then it adds three-way bursts, ram bikes, a second mine wall and a second set of lanes straight after the first. In the last stage the bursts are five wide, the lanes come three sets in a row, and everything is faster.</div><div class="hlim">+5,000 and a prototype</div></div></div>
-<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M30 14 a11 11 0 1 0 3 10" stroke="#ffd23c" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M26 6 l6 8 -10 2 z" fill="#ffd23c"/><text x="22" y="27" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="11" fill="#fff">x2</text></svg><div class="htxt"><div class="hname">Loops</div><div>Beat the boss and the five worlds start again, faster and tougher. <b>Every point is multiplied by the loop number</b>: x2 in loop 2, x3 in loop 3, and so on.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M30 14 a11 11 0 1 0 3 10" stroke="#ffd23c" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M26 6 l6 8 -10 2 z" fill="#ffd23c"/><text x="22" y="27" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="11" fill="#fff">x2</text></svg><div class="htxt"><div class="hname">Loops</div><div>Beat the boss and the five worlds start again, tougher, and each world a little faster than the last. <b>Every point is multiplied by the loop number</b>: x2 in loop 2, x3 in loop 3, and so on.</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 8 l9 14 -9 14 -9 -14 z" fill="#6dff7a" stroke="#eaffea" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Power cells and Overdrive</div><div>Destroyed enemies drop a green cell. It stays on the road where the enemy went down, so steer over it to collect it. Fill the CELLS bar and your guns go into <b>OVERDRIVE</b>: double fire rate and +1 damage.</div><div class="hlim">8 cells · lasts 8 seconds</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M17 38 L19 10 L22 4 L25 10 L27 38 Z" fill="#2c0d52" stroke="#29f3ff" stroke-width="2" stroke-linejoin="round"/><path d="M31 30 q6 -8 0 -16" stroke="#29f3ff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M35 33 q8 -11 0 -22" stroke="#29f3ff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/></svg><div class="htxt"><div class="hname">Close calls</div><div>Slip past a pylon, wall, mine, truck or crystal with almost no room to spare and you score a bonus. Chain them for more. Close calls also charge Overdrive.</div><div class="hlim">+40, growing to +400 in a chain</div></div></div>
 
@@ -703,7 +703,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.9.4';
+const VERSION = '0.9.5';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -714,8 +714,8 @@ const MODE_NAMES = { warp: 'Warp Run', classic: 'Classic' };   // the same, for 
 // "world record" also says which mode it means (game over, save message, share text, share picture).
 const W_SECTOR = 2400;      // Warp Run: the shortest a world can be (world units; about 3.4 km on the HUD)
 const W_WORLD_T = 40;       // Warp Run: seconds a world lasts. Faster loops get longer worlds, so they never fly by
-const W_SPEED_STEP = 10;    // Warp Run: top speed gained per loop (world units a second; 1 = about 5 km/h)
-const W_SPEED_MAX = 130;    // Warp Run: the highest top speed (about 655 km/h, reached in loop 5)
+const W_SPEED_STEP = 10;    // Warp Run: top speed gained per loop (world units a second; 1 = about 5 km/h), spread evenly across the loop's five worlds from loop 2 (v0.9.4)
+const W_SPEED_MAX = 130;    // Warp Run: the highest top speed (about 655 km/h, reached at the end of loop 5)
 const W_LVL_STEP = 3;       // Warp Run: how much harder the hazard patterns get per loop
 const REZ_T = 1.5;          // seconds a new world takes to "load in" around you after a world gate
 const RAIL_HOT_T = 3.2;     // Warp Run: seconds you can ride a rail before it overloads
@@ -1061,7 +1061,7 @@ let HEADING = 0;     // how far the road has turned since the start (radians), s
 let CAM_LIFT = 0;    // the camera rises a little when you jump
 const DRIFT = 0.06;  // how strongly turns push the speeder outward
 const DRIFT_MAX = 2;       // Classic: the most a bend can push you (track units a second; the track is 11 wide)
-const W_DRIFT_MAX = 0.5;   // Warp Run: a quarter of that. At its speeds the full push felt like the speeder steering itself. 0 = no push
+const W_DRIFT_MAX = 0;     // Warp Run: no push at all (v0.9.4; was 0.5). Steering is only your thumb, for fine control at speed
 const curves = [];   // { d0, len, k }   k = curvature (+ bends right)
 const hills = [];    // { d0, len, amp } amp = how high the track lifts off the ground
 let curveEnd = 0, hillEnd = 0, planHeading = 0;
@@ -1092,8 +1092,18 @@ function lvlAt(d) { return WP.on ? Math.min(Math.max(0, d) / 1000, 5) + (WP.loop
 function lvlNow() { return lvlAt(G.d); }
 // The speed you settle at, at distance d.
 function baseSpeed(d) {
-  const top = WP.on ? Math.min(W_SPEED_MAX, 90 + (WP.loop - 1) * W_SPEED_STEP) : 90;
+  const top = WP.on ? warpTop(d) : 90;
   return 32 + (top - 32) * (1 - Math.exp(-d / 4500));
+}
+// Warp Run's top speed at distance d. Loop 1 stays at 90 (as before). From loop 2 the
+// W_SPEED_STEP each loop adds is spread across its five worlds, rising smoothly through
+// each one, so there's never a big jump at the start of a loop (v0.9.4). It reaches the
+// old per-loop speed by the end of that loop's boss.
+function warpTop(d) {
+  const span = WP.gateD - WP.secStart;
+  const frac = span > 0 ? clamp((d - WP.secStart) / span, 0, 1) : 0;
+  const worlds = Math.max(0, WP.sec - SKINS.length + frac);   // worlds flown since loop 1 ended
+  return Math.min(W_SPEED_MAX, 90 + W_SPEED_STEP * worlds / SKINS.length);
 }
 function kMaxAt(d) {
   const lvl = inRun() ? lvlAt(d) : 0.4;

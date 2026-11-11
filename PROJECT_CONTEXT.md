@@ -22,7 +22,7 @@ endless run, kept exactly as it was in v0.7.7.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.9.4 |
+| **Current Version** | v0.9.5 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-10 |
@@ -116,7 +116,7 @@ Same steering, guns, power-up gates and hazards as above, plus:
   faster. It weaves and you have to chase it. Its health scales with your guns and the loop.
   +5,000, six power cells and a prototype for beating it.
 - **Loops:** after the boss the worlds repeat as loop 2, 3, ... Score is multiplied by the
-  loop number; top speed rises 50 km/h a loop to 655 km/h; patterns and enemies get tougher.
+  loop number; top speed rises 50 km/h a loop to 655 km/h, spread across the loop's five worlds (v0.9.5); patterns and enemies get tougher.
   Anything you react to in sequence (slalom, double walls, paired laser fences) is spaced by
   time, not distance, so top speed stays fair (v0.9).
 - **Power cells / OVERDRIVE:** enemies drop cells that **stay on the road where they fell**
@@ -245,6 +245,8 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Boss (v0.9) | Three stages with new attacks, more health, harder to keep in your sights | Adrian found the v0.8 boss too easy. More variety and pressure rather than only a bigger health bar. |
 | Boss (v0.9.3) | Constant aimed shots under every attack; beams, mine walls and fences come in linked pairs or chains | Early feedback: still too easy. A test driver took 0 hits from v0.9.0's boss; attacks that each need one small move never overlapped. |
 | Bend push (v0.9.3) | Capped at 0.5 units/s in Warp Run (was 2) | At Warp Run speeds it reached the cap in most bends and felt like the speeder steering itself. Classic unchanged. |
+| Bend push (v0.9.5) | Removed in Warp Run (`W_DRIFT_MAX = 0`) | Adrian: high loops need fine control; the speeder should only move with your thumb. Crosswind (a hazard) stays. Classic unchanged. |
+| Loop speed-ups (v0.9.5) | Spread over the loop's five worlds, rising smoothly (`warpTop()`); loop 1 unchanged | Adrian found the +50 km/h jump at each new loop too sudden. |
 | Board resets (v0.9) | `W_BOARD_MIN_V`: the Warp board only shows runs from that version on | The game will keep changing; old scores shouldn't be unbeatable. Needs no Firebase work (the rules don't allow deletes). |
 | Loops and score (v0.8) | Score x loop number; +50 km/h and tougher patterns per loop | Makes score mostly about how far you get, which Adrian wanted, without touching Classic's board. |
 | Late-loop fairness (v0.8) | Hazard spacing stretches with speed | Speed is the new difficulty; the time between hazards never drops below Classic's hardest. "Challenging, not impossible." |
@@ -298,6 +300,7 @@ See `CHANGELOG.md` for a full session-by-session history.
   unverified on a real iPhone**: ask Adrian whether the dark strip along the bottom is gone.
 - v0.9.2 (same day): every message that claims a world rank (game over, save message, share
   text, share picture) now names the mode, because there are two world leaderboards.
+- v0.9.5 (same day): bend push removed in Warp Run; speed rises a little each world from loop 2 instead of jumping at each loop.
 - v0.9.4 (same day): both world leaderboards keep the top 50 runs (`BOARD_N`, was 25).
 - v0.9.3 (same day): the push bends give you is capped at 0.5 units/s in Warp Run
   (`W_DRIFT_MAX`; Adrian felt it as the speeder moving without his thumb), and the Warden is
