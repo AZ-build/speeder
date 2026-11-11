@@ -22,7 +22,7 @@ endless run, kept exactly as it was in v0.7.7.
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.9.3 |
+| **Current Version** | v0.9.4 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-10 |
@@ -84,8 +84,8 @@ shot, or pick which gate to take), all with a single control.
 - **Zones (v0.3):** every 1.4 km the world blends into the next zone: Neon Desert, Neon City,
   Sky Islands, Crystal Wastes, Cosmic Highway (then repeats). Same system, different colors,
   sky objects and roadside props.
-- **World leaderboard (v0.5):** top 25 *runs* (one player can hold several spots), plus a
-  "This device" tab (10 best local runs). A run uploads if it makes the top 25 or is your best.
+- **World leaderboard (v0.5):** top 50 *runs* (25 until v0.9.4) (one player can hold several spots), plus a
+  "This device" tab (10 best local runs). A run uploads if it makes the top 50 or is your best.
   If you're offline, scores wait and upload later.
 - **Celebrations and sharing (v0.5):** game over shows NEW WORLD RECORD / #N IN THE WORLD /
   NEW PERSONAL BEST with confetti. "Share & challenge" sends a score picture plus a link with
@@ -182,7 +182,7 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 Warp Run keeps the same per-mode keys under `speeder.w.` (`speeder.w.best`, `speeder.w.local`, `speeder.w.worldTop`, ...), plus `speeder.w.live` (set once its world board has loaded), `speeder.w.boardV` (the board reset this device has applied) and `speeder.w.hidden` (scores of older-version entries, left out of your rank). `speeder.pendingRuns` is shared; each run carries its mode.
 
-Local storage keys: `speeder.settings`, `speeder.best`, `speeder.local`, `speeder.pid` (player ID), `speeder.onlineBest`, `speeder.myRuns` (your board entries), `speeder.pendingRuns` (waiting to upload), `speeder.worldTop` (cached top 25 for the ladder), `speeder.worldTopAt` (when it was downloaded), `speeder.challenge`, `speeder.seen` (analytics: not a new player).
+Local storage keys: `speeder.settings`, `speeder.best`, `speeder.local`, `speeder.pid` (player ID), `speeder.onlineBest`, `speeder.myRuns` (your board entries), `speeder.pendingRuns` (waiting to upload), `speeder.worldTop` (cached top 50 for the ladder), `speeder.worldTopAt` (when it was downloaded), `speeder.challenge`, `speeder.seen` (analytics: not a new player).
 
 `window.SPEEDER` in the browser console exposes game state (e.g. `SPEEDER.G.d = 3000`
 jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics, `SPEEDER.G.invuln = 999` makes you invincible,
@@ -205,7 +205,7 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Rendering | Canvas 2D pseudo-3D, no three.js | Light, fast on phones, nothing to install, suits the retro look. |
 | Gate preview banner | HUD chips at top | At speed, gate labels are only readable late, so the banner lets you choose early. |
 | Leaderboard | Global, in ORBit's Firebase project | Adrian chose global. Reusing ORBit's project avoids a new account and setup. |
-| Leaderboard entries | One per run (v0.5), only runs that make the top 25 or are your best | Adrian wants players to own several spots. Same database list, so no breaking change. |
+| Leaderboard entries | One per run (v0.5), only runs that make the top 50 (25 before v0.9.4) or are your best | Adrian wants players to own several spots. Same database list, so no breaking change. |
 | NOVA → MISSILES | Homing missile swarm | NOVA was hard to understand; missiles you can watch are clearer and more fun. Adrian's idea. |
 | Guns past level 4 | New abilities, not more bullets | More bullets would clutter the screen and cost frame rate. |
 | Helper text | Below the speeder | That part of the screen shows road you've already passed. |
@@ -226,7 +226,7 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Graphics quality | Auto steps down if the frame rate drops | Keeps older phones smooth without asking players to tune anything. |
 | Sound (v0.6) | Free CC0 sound files instead of generated tones | Adrian found the generated sounds cheap. CC0 means no licence worries or credit needed. |
 | Analytics (v0.6.3) | GoatCounter, events only, no cookies | Free, privacy-friendly, phone-friendly dashboard, no cookie banner. Offline runs aren't counted. |
-| Leaderboard reads (v0.6.3) | Reuse a recent download; only re-download after a run that could make the top 25 | Free Firebase plan is ~50k reads/day, shared with ORBit. |
+| Leaderboard reads (v0.6.3) | Reuse a recent download; only re-download after a run that could make the board | Free Firebase plan is ~50k reads/day, shared with ORBit. |
 | Built-in browsers (v0.6.3) | Detect TikTok/Instagram etc. and say "Open in browser" | They can't install the game, and the game is being shared on TikTok. |
 | Visual polish (v0.7) | Particles with flashes, shockwaves and debris; 3D enemies; glossy road on High only | Adrian wanted more polish. Heavier effects are tied to the graphics level so older phones skip them. |
 | Camera fit (v0.7.5) | Close chase camera, ~1.5x farther back than v0.7.1; eases after the speeder (85% follow, slight lag) and looks into turns, as in v0.7.1; wide screens show the whole track (≤85% width) and don't move | v0.7.2 fit the whole track on phones but was too zoomed out: lost the feel of flying. A close camera can't show both rails. v0.7.3's lag-free lockstep camera felt stiff, so the v0.7.1 smoothing is back. |
@@ -298,6 +298,7 @@ See `CHANGELOG.md` for a full session-by-session history.
   unverified on a real iPhone**: ask Adrian whether the dark strip along the bottom is gone.
 - v0.9.2 (same day): every message that claims a world rank (game over, save message, share
   text, share picture) now names the mode, because there are two world leaderboards.
+- v0.9.4 (same day): both world leaderboards keep the top 50 runs (`BOARD_N`, was 25).
 - v0.9.3 (same day): the push bends give you is capped at 0.5 units/s in Warp Run
   (`W_DRIFT_MAX`; Adrian felt it as the speeder moving without his thumb), and the Warden is
   harder again after early feedback (constant aimed shots, chained lane beams, double mine
