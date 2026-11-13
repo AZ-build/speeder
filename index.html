@@ -472,6 +472,7 @@
   .btn.ghost.lab.sel { background: rgba(182, 255, 46, 0.12); border-color: var(--lime); box-shadow: 0 0 14px rgba(182, 255, 46, 0.25); }
   #lab { justify-content: flex-start; padding-top: calc(env(safe-area-inset-top, 0px) + 20px); }
   #lab .panel-title { text-shadow: 0 0 14px var(--lime); }
+  #lab > * { flex: none; }   /* the list can be taller than the screen: scroll, don't squash */
   .labx { border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 14px; padding: 2px 14px 8px; text-align: left; background: rgba(20, 6, 40, 0.5); }
   .labx.on { border-color: rgba(182, 255, 46, 0.55); }
   .labx .setting:last-of-type { border-bottom: none; }
@@ -657,7 +658,9 @@
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><ellipse cx="22" cy="34" rx="14" ry="4" fill="none" stroke="#ffb347" stroke-width="2"/><path d="M36 4 L24 24" stroke="#ff9d2e" stroke-width="4" stroke-linecap="round"/><circle cx="23" cy="26" r="4.5" fill="#fff2c0" stroke="#ff9d2e" stroke-width="2"/></svg><div class="htxt"><div class="hname">Cosmic Highway: meteors</div><div>An orange ring on the road is where a meteor is about to land. It leaves a burning crater: steer around it or jump it. Jumps are longer and floatier out here.</div></div></div>
     <h3>The Lab</h3>
     <p class="hnote">Where new ideas get tried out before they go into the real game. Open it from the title screen, switch on what you want to test, and take a run. Lab runs play by Warp Run&rsquo;s rules, stay off the world leaderboard, and end by asking for a thumbs up or down.</p>
-<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M6 36 H38" stroke="#b6ff2e" stroke-width="2"/><path d="M8 34 Q22 2 36 34" stroke="#b6ff2e" stroke-width="2" fill="none" stroke-dasharray="3 3"/><path d="M22 22 l-6 8 h12 z" fill="#b6ff2e"/></svg><div class="htxt"><div class="hname">Experiment: Jump</div><div>Hop without a ramp. Choose how in the Lab: <b>flick</b> your steering thumb up, or <b>tap with a second finger</b> (Space on a computer). A hop clears mines, walls, craters and ram bikes. Pylons, crystals, trucks and laser fences are too tall. The lime arrows in the top bar are your jump charges.</div><div class="hlim">Hold 2 · every 2 close calls earn one back (or switch to unlimited)</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M6 36 H38" stroke="#b6ff2e" stroke-width="2"/><path d="M8 34 Q22 2 36 34" stroke="#b6ff2e" stroke-width="2" fill="none" stroke-dasharray="3 3"/><path d="M22 22 l-6 8 h12 z" fill="#b6ff2e"/></svg><div class="htxt"><div class="hname">Experiment: Jump</div><div>Jump without a ramp. Choose how in the Lab: <b>flick</b> your steering thumb up, or <b>tap with a second finger</b> (Space on a computer). It&rsquo;s a little bigger than a ramp jump and clears the same things: mines, walls, lasers, trucks, craters and ram bikes. Pylons and crystals are too tall. The lime arrows in the top bar are your jump charges.</div><div class="hlim">Hold 2 · every 2 close calls earn one back (or switch to unlimited) · AIR +150 per thing you fly over</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M4 38 L20 38 L20 28 Z" fill="#2c4a0c" stroke="#b6ff2e" stroke-width="2" stroke-linejoin="round"/><circle cx="30" cy="14" r="8" fill="none" stroke="#ffd23c" stroke-width="3"/><circle cx="30" cy="14" r="5.5" fill="none" stroke="#b6ff2e" stroke-width="1"/><path d="M18 26 Q24 18 27 16" stroke="#fff" stroke-width="1.5" fill="none" stroke-dasharray="2 3"/></svg><div class="htxt"><div class="hname">Experiment: Sky ramps</div><div>A big lime ramp throws you into a long, floaty flight with <b>five rings</b> in the sky. Steer through them: the brightest one is next. The road underneath is kept clear, so you can also stay down and skip it.</div><div class="hlim">Rings +200, +400, +600, +800, +1,000 · all five: +1,000, 2 power cells and a jump charge</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 30 a14 14 0 1 1 28 0" fill="none" stroke="#29f3ff" stroke-width="2.5"/><path d="M22 30 L32 16" stroke="#ffd23c" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="30" r="3" fill="#fff"/></svg><div class="htxt"><div class="hname">Test setup</div><div>For trying things at speed without playing for 20 minutes first. <b>Start on</b> a later loop (faster, tougher, score multiplied) and switch on <b>Fully loaded</b> to begin with guns at level 8 and 2 shields.</div></div></div>
     <h3>Score</h3>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 l5 11 12 1 -9 8 3 12 -11 -7 -11 7 3 -12 -9 -8 12 -1 z" fill="none" stroke="#ffd23c" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Points</div><div>You score for distance (faster = more), plus points for everything you destroy and AIR bonuses. Each mode has its own world leaderboard, which keeps the top 50 runs, and one player can hold several spots. Share a run to challenge a friend.</div></div></div>
     <h3 id="helpInstall">Put it on your Home Screen</h3>
@@ -673,6 +676,7 @@
   <div class="panel-title">THE LAB</div>
   <p class="status">Ideas being tried out before they go into the real game. Switch on what you want to test, take a run, then give it a thumbs up or down.</p>
   <div class="stack" id="labList"></div>
+  <div class="stack" id="labSetup"></div>
   <p class="status small">Lab runs play by Warp Run&rsquo;s rules and stay off the world leaderboard.</p>
   <div class="stack">
     <button class="btn primary" id="labRide">Ride in the Lab</button>
@@ -740,7 +744,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.10.0';
+const VERSION = '0.11.0';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -2879,7 +2883,7 @@ const G = {
   kick: 0, pulse: 0, pulseColor: '#fff', zoneT: 0, zoneName: '', zoneIdx: 0, air: 0, slowmo: 0,
   fly: null, hullHit: 0, shHit: 0, cracks: null,
 };
-const player = { x: 0, tx: 0, vx: 0, bank: 0, lean: 0, edge: 0, alive: true, y: 0, vy: 0, ramp: null, hop: false };
+const player = { x: 0, tx: 0, vx: 0, bank: 0, lean: 0, edge: 0, alive: true, y: 0, vy: 0, ramp: null, hop: false, mega: false };
 const objs = [];      // obstacles: pylons, walls, mines
 const enemies = [];   // drones, rams, turrets
 const shots = [];     // your bullets
@@ -3021,6 +3025,7 @@ function spawnDrone(at, lvl) {
 }
 
 function spawnPattern(at) {
+  if (LAB.on) { const len = labPattern(at); if (len >= 0) return len; }   // (Lab experiments can add their own patterns)
   const lvl = lvlNow();
   // Never put two barriers back to back (wall, slalom, laser fence, jump barrier):
   // lining up one gap and then instantly another on the far side felt impossible.
@@ -3702,7 +3707,7 @@ function update(dt) {
     player.y += player.vy * dt;
     if (player.y <= 0) {
       const hard = player.vy < -4;
-      player.y = 0; player.vy = 0; player.hop = false;
+      player.y = 0; player.vy = 0; player.hop = false; player.mega = false;
       if (hard && player.alive) {
         G.shake = Math.max(G.shake, 0.18);
         burst(player.x, 0.1, G.d, COLORS.cyan, 14, 4, G.speed * 0.8, 0.4);
@@ -3764,17 +3769,19 @@ function update(dt) {
     if (rel + (WP.on ? o.dep : 0) < -PLAYER_Z - 2) { o.dead = true; continue; }
     if (rel > FAR) continue;
     if (WP.on && updateWarpObj(o, rel, dt, playing)) continue;
+    if (o.lab && labObj(o, rel, playing)) continue;          // (things only the Lab puts on the road)
     if (o.type === 'ramp') {
       // Riding up the ramp lifts you; leaving the top edge launches you.
       const on = -rel;   // how far along the ramp you are
       if (player.alive && on >= 0 && on < o.dep && Math.abs(player.x - o.x) < o.w / 2 + 0.15 && player.vy <= 0) {
-        const h = RAMP_H * on / o.dep;
-        if (player.y <= h + 0.05) { player.y = h; player.vy = 0; player.ramp = o; player.hop = false; }
+        const h = o.h * on / o.dep;
+        if (player.y <= h + 0.05) { player.y = h; player.vy = 0; player.ramp = o; player.hop = false; player.mega = false; }
       } else if (player.ramp === o) {
         player.ramp = null;
         if (on >= o.dep - 0.01 && player.alive) {
-          player.y = RAMP_H;
-          player.vy = JUMP_VY;
+          player.y = o.h;
+          player.vy = o.vy || JUMP_VY;
+          if (o.mega) skyLaunch(o);            // (Lab: a sky ramp)
           G.kick = Math.max(G.kick, 0.6);
           STATS.jumps++;
           sfx.jump();
@@ -4114,10 +4121,10 @@ function shadow(x, z, rw, a) {
 function drawRamp(o, z, a) {
   const z1 = Math.max(z, 1), z2 = z + o.dep;
   if (z2 <= 1.05) return;
-  const h1 = RAMP_H * (z1 - z) / o.dep;
+  const h1 = o.h * (z1 - z) / o.dep;
   const xl = o.x - o.w / 2, xr = o.x + o.w / 2;
   const flx = sx(xl, z1), frx = sx(xr, z1), fly = sy(h1, z1), fgy = sy(0, z1);
-  const blx = sx(xl, z2), brx = sx(xr, z2), bty = sy(RAMP_H, z2), bgy = sy(0, z2);
+  const blx = sx(xl, z2), brx = sx(xr, z2), bty = sy(o.h, z2), bgy = sy(0, z2);
   ctx.globalAlpha = a;
   ctx.lineJoin = 'round';
   // glow on the road leading in
@@ -4151,7 +4158,7 @@ function drawRamp(o, z, a) {
     const zc = z + o.dep * f;
     if (zc < 1.05) continue;
     const zt = Math.min(z2, zc + o.dep * 0.18);
-    const yc = RAMP_H * (zc - z) / o.dep, yt = RAMP_H * (zt - z) / o.dep;
+    const yc = o.h * (zc - z) / o.dep, yt = o.h * (zt - z) / o.dep;
     ctx.moveTo(sx(o.x - o.w * 0.3, zc), sy(yc, zc));
     ctx.lineTo(sx(o.x, zt), sy(yt, zt));
     ctx.lineTo(sx(o.x + o.w * 0.3, zc), sy(yc, zc));
@@ -4166,6 +4173,7 @@ function passFade(zFar) { return clamp((zFar - (VIEW_Z - 3.2)) / 2.6, 0, 1); }
 
 function drawObj(o) {
   const z = o._z;
+  if (o.lab) { drawLabObj(o, z); return; }
   if (o.type === 'portal') { drawPortal(o, z, fogA(z)); return; }   // (it never fades as you pass: you fly through it)
   const a = fogA(z) * passFade(z + o.dep);
   if (a < 0.01) return;
@@ -5480,7 +5488,8 @@ function hullMax() { return MAX_HULL + (WP.on && WP.perks.hull ? 1 : 0); }
 function jumpT() { return JUMP_T * (WP.on ? SKINS[WP.theme].float : 1); }
 // gravity that lands the same launch after jumpT() seconds (weaker in floaty worlds)
 function jumpG() {
-  if (player.hop) return HOP_G;          // (Lab: a hop has its own, snappier arc)
+  if (player.mega) return SKY_G;         // (Lab: a sky ramp's long, floaty flight)
+  if (player.hop) return HOP_G;          // (Lab: a jump has its own arc)
   if (!WP.on || SKINS[WP.theme].float === 1) return JUMP_G;
   const T = jumpT();
   return 2 * (RAMP_H + JUMP_VY * T) / (T * T);
@@ -5791,7 +5800,7 @@ function bossAttack(e, dt) {
     B.t += dt;
     if (B.t >= B.warn && B.t < B.warn + B.fire) {
       if (!B.live) { B.live = true; play('zap', 0.6, 0.6); G.shake = Math.max(G.shake, 0.3); }
-      if (B.lanes[playerLane()] && (player.y < 1.4 || player.hop)) hurt();
+      if (B.lanes[playerLane()] && player.y < 1.4) hurt();
     }
     if (B.t >= B.warn + B.fire) {
       // later stages: another set of lanes lights up the moment this one has fired
@@ -6773,7 +6782,7 @@ const LAB_EXPERIMENTS = [
     name: 'JUMP',
     since: '0.10.0',
     on: true,       // switched on for someone opening the Lab for the first time
-    blurb: 'Hop whenever you like, no ramp needed. A hop clears mines, walls, craters and ram bikes. Pylons, crystals, trucks and laser fences are too tall.',
+    blurb: 'Jump whenever you like, no ramp needed. A jump clears everything a ramp jump does: mines, walls, lasers, trucks, craters and ram bikes. Pylons and crystals are too tall.',
     opts: [
       { id: 'gesture', name: 'How to jump', def: 'flick', choices: [
         { id: 'flick', name: 'Flick up', hint: 'Flick your steering thumb upward.' },
@@ -6785,7 +6794,23 @@ const LAB_EXPERIMENTS = [
       ] },
     ],
   },
+  {
+    id: 'ramps',
+    name: 'SKY RAMPS',
+    since: '0.11.0',
+    on: true,
+    blurb: 'Big lime ramps launch you into a long, floaty flight. Steer through the rings in the sky: each one is worth more than the last, and all five is a perfect flight.',
+    opts: [],
+  },
 ];
+// Test setup: not experiments (no vote), just ways to get to the interesting part of a run
+// quickly. Saved on the device like the switches.
+const LAB_LOOPS = 6;      // the highest loop a Lab run can start on (loop 6 starts at top speed)
+function loadLabSetup() {
+  const sv = readJSON('speeder.lab.setup', null) || {};
+  return { loop: clamp(parseInt(sv.loop, 10) || 1, 1, LAB_LOOPS), loaded: sv.loaded === true };
+}
+function saveLabSetup() { storeSet('speeder.lab.setup', JSON.stringify(LAB.setup)); }
 
 function labDefaults() {
   const cfg = {};
@@ -6813,6 +6838,8 @@ const LAB = {
   on: false,            // true during a Lab run (and on its game-over screen)
   cfg: loadLabCfg(),    // the switches in the Lab panel, saved on this device
   run: {},              // the experiments in play this run: { id: { its options } }
+  setup: loadLabSetup(),   // test setup: { loop: which loop a run starts on, loaded: start with full guns and shields }
+  d0: 0,                // where this run started along the track (not 0 when it started on a later loop)
 };
 const LAB_LINK = (function () { try { return new URLSearchParams(location.search).has('lab'); } catch (e) { return false; } })();
 const TOUCH = 'ontouchstart' in window || (navigator.maxTouchPoints || 0) > 0;
@@ -6832,15 +6859,17 @@ function labChoices(id, c) {
   return (labExp(id).opts || []).map((o) => (o.choices.find((ch) => ch.id === c[o.id]) || o.choices[0]).name).join(' · ');
 }
 function labSwitchedOn() { return LAB_EXPERIMENTS.filter((X) => LAB.cfg[X.id].on); }
-// for testing in the console: SPEEDER.labSet('jump', 'gesture', 'tap'), SPEEDER.labSet('jump', 'on', false)
+// for testing in the console: SPEEDER.labSet('jump', 'gesture', 'tap'), SPEEDER.labSet('jump', 'on', false),
+// SPEEDER.labSet('setup', 'loop', 3), SPEEDER.labSet('setup', 'loaded', true)
 function labSet(id, key, value) {
+  if (id === 'setup') { LAB.setup[key] = value; saveLabSetup(); return; }
   if (!LAB.cfg[id]) return;
   LAB.cfg[id][key] = value;
   saveLabCfg();
 }
 function labTitleLine() {
   const names = labSwitchedOn().map((X) => X.name).join(' + ');
-  return 'LAB · ' + (names || 'NOTHING SWITCHED ON') + (G.best > 0 ? ' · BEST ' + G.best.toLocaleString() : '');
+  return 'LAB · ' + (names || 'NOTHING SWITCHED ON') + (LAB.setup.loop > 1 ? ' · LOOP ' + LAB.setup.loop : '');
 }
 function labOverLine() {
   const names = Object.keys(LAB.run).map((id) => labExp(id).name).join(' + ');
@@ -6855,19 +6884,81 @@ function openLabLink() {
 function resetLab() {
   LAB.on = false;
   LAB.run = {};
+  LAB.d0 = 0;
   resetJump();
+  resetSky();
 }
 function startLabRun() {
   LAB.on = true;
   LAB.run = {};
   for (const X of labSwitchedOn()) {
     LAB.run[X.id] = Object.assign({}, LAB.cfg[X.id]);
-    track('lab/play/' + labVariant(X.id), 'Lab run with ' + X.name + ' (' + labChoices(X.id) + ')');
+    track('lab/play/' + labVariant(X.id), 'Lab run with ' + X.name + (labChoices(X.id) ? ' (' + labChoices(X.id) + ')' : ''));
   }
-  startWarpRun();
+  const S = LAB.setup;
+  if (S.loop > 1) labStartOnLoop(S.loop);
+  else startWarpRun();
+  if (S.loaded) { G.weapon = GUN_MAX; G.shield = 2; }
+  if (S.loop > 1 || S.loaded) track('lab/setup/loop' + S.loop + (S.loaded ? '-loaded' : ''), 'Lab run started on loop ' + S.loop + (S.loaded ? ', fully loaded' : ''));
+  if (labOn('ramps')) startSky();
+}
+// Start a run at the beginning of a later loop, already moving fast. The run is placed as far
+// along the track as a real run would be by then (worked out world by world), because speed
+// and difficulty both follow distance. LAB.d0 remembers that, so the distance shown at the
+// end is only what you actually flew.
+function labStartOnLoop(loop) {
+  const worlds = (loop - 1) * SKINS.length;
+  WP.on = true;
+  WP.phase = 'run';
+  let d = 0;
+  for (let i = 0; i < worlds; i++) {
+    WP.sec = i; WP.loop = 1 + Math.floor(i / SKINS.length); WP.theme = i % SKINS.length;
+    WP.secStart = d;
+    d += sectorLen(d);
+    WP.gateD = d;
+  }
+  WP.sec = worlds; WP.loop = loop;
+  LAB.d0 = d;
+  G.d = d;
+  // the course, scenery and trails are laid out from here instead of from zero
+  curves.length = 0; hills.length = 0;
+  curveEnd = d - 40; hillEnd = d - 40; planHeading = 0; HEADING = 0;
+  pushCurve(210, 0); pushHill(460, 0);        // a straight, flat start, like any run
+  VIEW_D = d - PLAYER_Z;
+  resetScenery();
+  resetTrail();
+  for (const st of streaks) resetStreak(st, true);
+  beginSector(d);
+  G.speed = baseSpeed(d) * 0.7;               // already quick, and up to full speed within a couple of seconds
+  G.nextSpawn = d + baseSpeed(d) * 2.4;
+  G.nextGate = G.nextSpawn + 320;
+  if (G.dragged) zoneCard();
+  toast('LOOP ' + loop, COLORS.yellow, 'score x' + loop);
 }
 function updateLab(dt) {
   if (labOn('jump')) updateJump(dt);
+  if (labOn('ramps')) updateSky(dt);
+}
+// Called before the game picks its next hazard pattern for a Lab run. An experiment can put
+// its own pattern at `at` instead: return the length of road it used, or -1 to pass.
+function labPattern(at) {
+  if (labOn('ramps') && at >= SKY.nextD && skyFits(at)) {
+    const len = spawnSkyRamp(at);
+    SKY.nextD = at + len + baseSpeed(at) * rand(SKY_EVERY[0], SKY_EVERY[1]);
+    G.lastPat = 'skyramp';
+    STATS.pat.skyramp = (STATS.pat.skyramp || 0) + 1;
+    return len;
+  }
+  return -1;
+}
+// Objects only the Lab puts on the road carry a `lab` tag. Returns true when the object
+// needs none of the game's normal handling (collisions, bullets, close calls).
+function labObj(o, rel, playing) {
+  if (o.lab === 'ring') { updateRing(o, rel, playing); return true; }
+  return false;
+}
+function drawLabObj(o, z) {
+  if (o.lab === 'ring') drawRing(o, z);
 }
 // a close call just happened (Warp Run's rule, so Lab runs have them too)
 function labCloseCall() {
@@ -6896,10 +6987,21 @@ function labRunEnded(km) {
     const n = JUMP.hops, nb = n === 0 ? '0' : n < 5 ? '1-4' : n < 15 ? '5-14' : '15+';
     track('lab/jump/' + labVariant('jump') + '/' + nb + '-jumps', 'Lab: ' + nb + ' jumps in a run (' + labChoices('jump') + ')');
   }
+  if (labOn('ramps')) {
+    // did people take the ramps they were offered, and how many rings did they thread?
+    const took = SKY.offered ? SKY.flights / SKY.offered : 0, tb = !SKY.offered ? 'none-offered' : took >= 0.8 ? 'took-most' : took >= 0.3 ? 'took-some' : 'took-few';
+    const per = SKY.flights ? SKY.rings / SKY.flights : 0, rb = !SKY.flights ? 'no-flights' : per >= 4 ? '4-5-rings' : per >= 2 ? '2-3-rings' : '0-1-rings';
+    track('lab/ramps/' + tb, 'Lab: sky ramps, ' + tb);
+    track('lab/ramps/' + rb, 'Lab: sky ramps, ' + rb + ' per flight');
+  }
 }
-// one more line for the game-over stats
+// extra lines for the game-over stats
 function labStatsLine() {
-  return labOn('jump') ? '<br>Jumps <b>' + JUMP.hops + '</b>' : '';
+  let t = '';
+  if (labOn('jump')) t += '<br>Jumps <b>' + JUMP.hops + '</b>';
+  if (labOn('ramps')) t += '<br>Rings <b>' + SKY.rings + '</b> in <b>' + SKY.flights + '</b> ' + (SKY.flights === 1 ? 'flight' : 'flights') + (SKY.perfect ? ' · Perfect <b>' + SKY.perfect + '</b>' : '');
+  if (LAB.setup.loop > 1 || LAB.setup.loaded) t += '<br>Test setup <b>' + [LAB.setup.loop > 1 ? 'started on loop ' + LAB.setup.loop : '', LAB.setup.loaded ? 'fully loaded' : ''].filter(Boolean).join(' · ') + '</b>';
+  return t;
 }
 
 // ---- The Lab panel (title screen → THE LAB) ----
@@ -6947,6 +7049,29 @@ function renderLab() {
     }
     list.appendChild(card);
   }
+  // test setup: starting loop and "fully loaded"
+  const S = LAB.setup, box = $('labSetup');
+  box.textContent = '';
+  const card = el('div', 'labx');
+  const head = el('div', 'setting');
+  head.append(el('span', 'labname', 'TEST SETUP'));
+  card.append(head);
+  const r1 = el('div', 'setting');
+  const l1 = el('label', '', 'Start on');
+  const chip = el('button', 'btn chip', 'Loop ' + S.loop);
+  chip.type = 'button'; chip.id = 'labLoop'; l1.htmlFor = chip.id;
+  chip.addEventListener('click', () => { S.loop = S.loop % LAB_LOOPS + 1; saveLabSetup(); renderLab(); updateTitleBest(); });
+  r1.append(l1, chip);
+  const kmh = Math.round((90 + W_SPEED_STEP * (S.loop - 2)) * UNIT_M * 3.6 / 5) * 5;
+  card.append(r1, el('p', 'hnote', S.loop === 1 ? 'A normal start.' : 'Skips straight to loop ' + S.loop + ': about ' + kmh + ' km/h, tougher patterns, score x' + S.loop + '.'));
+  const r2 = el('div', 'setting');
+  const l2 = el('label', '', 'Fully loaded');
+  const sw = el('input', 'switch');
+  sw.type = 'checkbox'; sw.id = 'labLoaded'; sw.checked = S.loaded; l2.htmlFor = sw.id;
+  sw.addEventListener('change', () => { S.loaded = sw.checked; saveLabSetup(); });
+  r2.append(l2, sw);
+  card.append(r2, el('p', 'hnote', 'Start with guns at level 8 and 2 shields.'));
+  box.appendChild(card);
 }
 
 // ---- Thumbs up / down on the game-over screen ----
@@ -6973,7 +7098,7 @@ function fillLabVote(show) {
         if (votes[variant] !== v) {
           votes[variant] = v;
           storeSet('speeder.lab.votes', JSON.stringify(votes));
-          track('lab/vote/' + variant + '/' + v, 'Lab vote: ' + X.name + ' (' + words + ') thumbs ' + v);
+          track('lab/vote/' + variant + '/' + v, 'Lab vote: ' + X.name + (words ? ' (' + words + ')' : '') + ' thumbs ' + v);
         }
         for (const o of btns.children) o.classList.toggle('sel', o === b);
         q.firstChild.textContent = 'Thanks! Your vote on ' + X.name + ' is in.';
@@ -6987,18 +7112,19 @@ function fillLabVote(show) {
 }
 
 // ---- Experiment: JUMP ----
-// A hop you can do anywhere, without a ramp. It is lower and shorter than a ramp jump and
-// only clears the hazards in HOP_OVER (plus ram bikes, turrets and chasms, which already
-// let anything airborne past). Ramps keep their job: a ramp jump still clears lasers and trucks.
+// A jump you can do anywhere, without a ramp. Since v0.11 it is a little bigger than a ramp
+// jump (Adrian: higher and longer, so you can do more and earn more), and it clears whatever
+// it visibly flies over: everything in HOP_OVER, plus ram bikes, turrets and chasms, which
+// already let anything airborne past. Pylons and crystals are taller than any jump.
 // Two things are being tested: the gesture (flick up vs a second-finger tap) and whether
 // jumps should cost a charge (earned from close calls) or be unlimited.
-const HOP_H = 1.5;            // how high a hop goes, give or take a frame (a ramp jump reaches about 2.2)
-const HOP_T = 0.7;            // seconds in the air (a ramp jump is 0.95)
+const HOP_H = 2.4;            // how high a jump goes, give or take a frame (a ramp jump reaches about 2.2; was 1.5 in v0.10)
+const HOP_T = 1.1;            // seconds in the air (a ramp jump is 0.95; was 0.7 in v0.10)
 const HOP_G = 8 * HOP_H / (HOP_T * HOP_T);   // gravity that gives that height and time
 const HOP_VY = HOP_G * HOP_T / 2;            // launch speed
 const HOP_MAX = 2;            // jump charges you can hold
 const HOP_PER_CLOSE = 0.5;    // charge earned per close call
-const HOP_OVER = new Set(['mine', 'wall', 'meteor']);   // what a hop can clear. Pylons, crystals, trucks and lasers: no
+const HOP_OVER = new Set(['mine', 'wall', 'meteor', 'laser', 'traffic']);   // what a jump can clear when it is high enough (the same as a ramp jump)
 const FLICK_PX = 34;          // flick up: the thumb must rise this far (screen points)...
 const FLICK_MS = 150;         // ...within this long...
 const FLICK_RATIO = 1.3;      // ...and rise this much more than it moves sideways (so steering isn't read as a flick)
@@ -7115,6 +7241,141 @@ function hopChip(x, y) {
   }
   return px - x + 10;
 }
+// ---- Experiment: SKY RAMPS ----
+// Every so often a big ramp appears. Take it and you're thrown into a long, floaty flight
+// with a line of rings in the sky to steer through. Each ring is worth more than the last;
+// all of them is a perfect flight (bonus points, power cells and a jump charge).
+// The road under the flight is kept clear, so the ramp is a choice, never a trap: stay down
+// and nothing happens, go up and there are points to earn.
+const SKY_W = 5;              // how wide a sky ramp is (an ordinary ramp is 3.6)
+const SKY_LEN = 9;            // how long (ordinary: 6)
+const SKY_H = 1.4;            // height of its top edge (ordinary: 0.8)
+const SKY_PEAK = 6;           // how high the flight goes (a ramp jump reaches about 2.2)
+const SKY_T = 2.6;            // seconds in the air (a ramp jump is 0.95)
+// gravity and launch speed that give exactly that peak and that time in the air
+const SKY_G = Math.pow((Math.sqrt(2 * (SKY_PEAK - SKY_H)) + Math.sqrt(2 * SKY_PEAK)) / SKY_T, 2);
+const SKY_VY = Math.sqrt(2 * SKY_G * (SKY_PEAK - SKY_H));
+const SKY_RINGS = 5;          // rings per flight
+const RING_R = 1.35;          // ring radius
+const RING_PTS = 200;         // the first ring; the second is worth twice this, the third three times...
+const RING_PERFECT = 1000;    // bonus for threading every ring
+const SKY_EVERY = [11, 17];   // seconds of ordinary road between sky ramps (a random time in this range)
+const SKY = { nextD: 0, offered: 0, flights: 0, rings: 0, perfect: 0, cur: null };
+
+function resetSky() {
+  SKY.nextD = 0; SKY.offered = 0; SKY.flights = 0; SKY.rings = 0; SKY.perfect = 0; SKY.cur = null;
+  player.mega = false;
+}
+function startSky() { SKY.nextD = G.d + Math.max(240, baseSpeed(G.d) * 5); }   // the first one comes early
+// how high the speeder is, t seconds after leaving a sky ramp
+function skyHeight(t) { return SKY_H + SKY_VY * t - SKY_G * t * t / 2; }
+// Is there room for a ramp and its whole flight at `at`? Not into a world gate's run-up or
+// the boss, and not through a tunnel.
+function skyFits(at) {
+  if (WP.phase !== 'run') return false;
+  const v = baseSpeed(at), end = at + SKY_LEN + v * SKY_T + 30;
+  if (end > WP.gateD - (WP.theme === 4 ? 400 : 330) * Math.max(1, v / 90)) return false;
+  for (const t of WP.tunnels) if (at < t.b + 40 && end > t.a - 40) return false;
+  return true;
+}
+// Put a sky ramp and its rings at `at`. Returns the length of road it needs kept clear.
+function spawnSkyRamp(at) {
+  const v = baseSpeed(at);
+  const x = rand(-1.6, 1.6);
+  const ramp = addObj('ramp', x, at, SKY_W, { h: SKY_H, dep: SKY_LEN, vy: SKY_VY, mega: true, rings: [] });
+  const lim = TRACK_HALF - 1.7;
+  let rx = x;
+  for (let i = 0; i < SKY_RINGS; i++) {
+    const t = SKY_T * (0.16 + 0.74 * i / (SKY_RINGS - 1));      // spread along the flight: about half a second apart
+    if (i > 0) {
+      // each ring is a step to one side of the last (always far enough that you have to steer,
+      // never further than you can reach in time), turning back before the rails
+      let dir = Math.random() < 0.5 ? -1 : 1;
+      if (Math.abs(rx + dir * 1.8) > lim) dir = -dir;
+      rx = clamp(rx + dir * rand(1.7, 2.6), -lim, lim);
+    }
+    ramp.rings.push(addObj('ring', rx, at + SKY_LEN + v * t, RING_R * 2, { lab: 'ring', y: skyHeight(t) + 0.42, h: 0, dep: 0.2, t0: t, i, done: false, got: false }));
+  }
+  SKY.offered++;
+  return SKY_LEN + v * SKY_T + 30;
+}
+// You've just left the top of a sky ramp.
+function skyLaunch(o) {
+  player.mega = true;
+  SKY.flights++;
+  SKY.cur = { ramp: o, t: 0, got: 0, passed: 0 };
+  G.kick = 1;
+  G.pulse = 1; G.pulseColor = RAMP_C;
+  play('swarm', 0.45, 1.3);
+  vibrate([20, 30, 20]);
+}
+function updateSky(dt) {
+  const F = SKY.cur;
+  if (F) {
+    if (player.mega) {
+      // In flight the rings keep time with you: each sits exactly where you'll be at its moment,
+      // however your speed changes, so its height always matches your arc and only steering counts.
+      F.t += dt;
+      for (const r of F.ramp.rings) if (!r.done) r.d = G.d + G.speed * Math.max(0, r.t0 - F.t);
+    } else if (F.t > 0.1) {
+      SKY.cur = null;      // landed
+    }
+  }
+  // announce a sky ramp as it comes into view
+  if (G.state === 'play') {
+    for (const o of objs) {
+      if (o.mega && !o.told && o.d - G.d < 215) { o.told = true; toast('SKY RAMP', RAMP_C, 'steer through the rings'); }
+    }
+  }
+}
+function updateRing(o, rel, playing) {
+  if (o.done || rel > 0) return;
+  o.done = true;
+  const F = SKY.cur;
+  if (!F || !F.ramp.rings.includes(o)) return;       // (you stayed on the road: it just goes by overhead)
+  F.passed++;
+  const hit = playing && player.y > 0.5 && Math.abs(player.x - o.x) < RING_R + 0.1 && Math.abs(player.y + 0.42 - o.y) < RING_R + 0.6;
+  if (!hit) return;
+  o.got = true; o.dead = true;
+  F.got++;
+  SKY.rings++;
+  const pts = RING_PTS * F.got;
+  addScore(pts);
+  popup('RING +' + (pts * scoreX()).toLocaleString(), o.x, o.y, o.d + 2, COLORS.yellow);
+  burst(o.x, o.y, o.d, COLORS.yellow, 16, 5, G.speed * 0.9, 0.45);
+  shockRing(o.x, o.y, o.d, COLORS.yellow, RING_R * 1.6, 0.3, G.speed * 0.95);
+  play('ui', 0.5, 1.15 + F.got * 0.14);
+  vibrate(10);
+  if (F.got === F.ramp.rings.length) {
+    SKY.perfect++;
+    addScore(RING_PERFECT);
+    toast('PERFECT FLIGHT', COLORS.yellow, '+' + (RING_PERFECT * scoreX()).toLocaleString());
+    chargeOD(2);
+    if (labOn('jump')) hopCharge(1);
+    G.flash = Math.max(G.flash, 0.35); G.flashColor = COLORS.yellow;
+    play('power', 0.6, 1.2);
+    vibrate([20, 30, 40]);
+  }
+}
+function drawRing(o, z) {
+  if (z < 1.05) return;
+  const a = fogA(z) * passFade(z + 0.4) * (o.done ? 0.3 : 1);
+  if (a < 0.01) return;
+  const sc = FOCAL / z, px = sx(o.x, z), py = sy(o.y, z), r = RING_R * sc;
+  const F = SKY.cur, next = F && F.ramp.rings.includes(o) ? o.i === F.passed : o.i === 0;   // the one to aim for is brighter
+  ctx.globalCompositeOperation = 'lighter';
+  glow(SPR.yellow, px, py, r * 1.7, r * 1.7, a * (next ? 0.5 : 0.28));
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = a;
+  ctx.lineWidth = clamp(0.17 * sc, 1.5, 10);
+  ctx.strokeStyle = next ? '#fffbe0' : COLORS.yellow;
+  ctx.beginPath(); ctx.arc(px, py, r, 0, 6.2832); ctx.stroke();
+  ctx.lineWidth = clamp(0.05 * sc, 1, 3);
+  ctx.strokeStyle = RAMP_C;
+  ctx.beginPath(); ctx.arc(px, py, r * 0.8, 0, 6.2832); ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
 // until your first jump of the run: how to do it
 function drawJumpHint() {
   if (G.state !== 'play' || JUMP.hops > 0 || G.runT < 1.5 || G.runT > 16 || !(G.dragged || G.runT >= 6)) return;
@@ -8376,7 +8637,7 @@ function showOver() {
   const prevBest = G.best;
   const lab = G.mode === 'lab';
   const warp = G.mode !== 'classic';   // (a Lab run plays by Warp Run's rules)
-  const run = { id: newRunId(), mode: G.mode, score, dist: Math.round(G.d * UNIT_M), kills: G.kills, rank: 0, isBest: score > prevBest && score > 0 };
+  const run = { id: newRunId(), mode: G.mode, score, dist: Math.round((G.d - LAB.d0) * UNIT_M), kills: G.kills, rank: 0, isBest: score > prevBest && score > 0 };
   if (warp) { run.loop = WP.loop; run.world = WP.theme + 1; run.bosses = WP.bossKills; }
   {
     // analytics: one event per run, grouped by how far it got
@@ -8980,7 +9241,7 @@ if (LAB_LINK) openLabLink();        // a link ending in ?lab opens straight into
 requestAnimationFrame(frame);
 
 // handy for testing in the browser console
-window.SPEEDER = { step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, LAB, LAB_EXPERIMENTS, JUMP, labOn, labSet, tryHop, hopCharge, addObj, addPylon, addMine, addWallSpan, addLaserFence, openPanel, closePanel, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
+window.SPEEDER = { step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, LAB, LAB_EXPERIMENTS, JUMP, SKY, labOn, labSet, tryHop, hopCharge, spawnSkyRamp, skyFits, addObj, addPylon, addMine, addWallSpan, addLaserFence, openPanel, closePanel, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
 </script>
 </body>
 </html>

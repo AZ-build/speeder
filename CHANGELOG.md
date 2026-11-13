@@ -4,6 +4,37 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.11.0] — 2026-11-13
+
+### Session 13b — Bigger jump, sky ramps with rings, and a test setup for high speed
+
+Adrian: the jumps should be higher and longer, so you can do more and earn more. Add ramps as
+the next experiment, with rings to fly through in the sky. And a setting for the starting loop
+plus a "fully loaded" checkbox, to test at high speed without 20 minutes of play first.
+
+- **Jump is bigger:** about 2.4 high for 1.1 seconds (was 1.5 and 0.7). That is a little more
+  than a ramp jump, so it now clears what a ramp jump clears: lasers and trucks as well as
+  mines, walls, craters and ram bikes. Pylons and crystals are still too tall. More time in the
+  air means more things flown over, and each is worth AIR +150.
+- **New experiment: SKY RAMPS** (switch it on or off in the Lab). Every 11-17 seconds a big
+  lime ramp appears. Take it and you fly about 6 high for 2.6 seconds, with **five rings** in
+  the sky to steer through. Rings pay +200, +400, +600, +800, +1,000; all five is a **perfect
+  flight**: +1,000 more, 2 power cells and a jump charge. The road underneath is kept clear, so
+  you can stay down and skip it. Never in tunnels, before a world gate or during the boss.
+- **Test setup** card in the Lab: **Start on loop 1-6** (the run begins at that loop's speed,
+  difficulty and score multiplier; loop 3 is about 505 km/h) and **Fully loaded** (guns at
+  level 8 and 2 shields from the start). The distance on the game-over screen counts only what
+  you flew.
+- Game over in the Lab now also shows rings, flights, perfect flights and the test setup used.
+- How to play: the Lab section covers the bigger jump, sky ramps and the test setup.
+- The Lab panel scrolls instead of squashing now that it holds more.
+- For the next builder: experiments can now add their own hazard patterns (`labPattern`) and
+  their own objects on the road (`labObj` / `drawLabObj`). See LAB.md.
+- **Classic and Warp Run are unchanged** (same seeded-run check as v0.10).
+- Not tested by a human yet: every number above is a first guess.
+
+---
+
 ## [v0.10.0] — 2026-11-13
 
 ### Session 13 — The Lab, and its first experiment: JUMP

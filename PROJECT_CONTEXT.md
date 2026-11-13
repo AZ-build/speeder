@@ -26,8 +26,8 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.10.0 |
-| **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab and its first experiment, JUMP, added in v0.10 and not yet played by a human) |
+| **Current Version** | v0.11.0 |
+| **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP and SKY RAMPS, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-13 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://az-build.github.io/speeder/ |
@@ -148,13 +148,20 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
 - **Votes:** the game-over screen asks for a thumbs up or down on each experiment that was on.
   Votes and usage go to analytics under `lab/...`, counted per variant (the experiment plus its
   options, e.g. `jump.flick.charges`).
-- **Experiment 1, JUMP:** a hop you can do anywhere (about 1.5 high, 0.7 s; a ramp jump is 2.2
-  and 0.95 s). Clears mines, walls, craters, ram bikes, turrets and chasms; not pylons,
-  crystals, trucks or laser fences. Two things are being compared: the **gesture** (flick the
-  steering thumb up, or tap with a second finger; Space on a computer) and the **fuel** (hold 2
-  charges, each close call earns half of one back; or unlimited).
-- **Ideas queued for the Lab:** mega ramps and new roads, air rings, forks in the road, a
-  space-tunnel stretch with up/down steering (see `LAB.md`).
+- **Experiment 1, JUMP:** a jump you can do anywhere. Since v0.11 it is about 2.4 high for
+  1.1 s (a ramp jump is 2.2 and 0.95 s; v0.10's was 1.5 and 0.7 s) and clears what a ramp jump
+  clears: mines, walls, lasers, trucks, craters, ram bikes, turrets and chasms; not pylons or
+  crystals. Two things are being compared: the **gesture** (flick the steering thumb up, or tap
+  with a second finger; Space on a computer) and the **fuel** (hold 2 charges, each close call
+  earns half of one back; or unlimited).
+- **Experiment 2, SKY RAMPS (v0.11):** every 11-17 s a big lime ramp launches a flight about 6
+  high for 2.6 s with five rings to steer through (+200 up to +1,000, all five = perfect flight:
+  +1,000, 2 power cells, a jump charge). The road underneath is kept clear, so it is a choice.
+- **Test setup (v0.11):** a card in the Lab panel, not an experiment: **Start on loop 1-6**
+  (the run begins at that loop's speed, difficulty and score multiplier) and **Fully loaded**
+  (guns at level 8 and 2 shields from the start). For testing at high speed.
+- **Ideas queued for the Lab:** new roads (raised or split), forks in the road, a space-tunnel
+  stretch with up/down steering (see `LAB.md`).
 
 ---
 
@@ -206,13 +213,13 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 **Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `BOSS_SNIPE` how often it fires single shots under its other attacks · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
 
-**Lab knobs:** `LAB_EXPERIMENTS` the list of experiments (the Lab panel, saved switches, votes and analytics build themselves from it) · JUMP: `HOP_H` / `HOP_T` how high and how long a hop is · `HOP_MAX` charges you can hold · `HOP_PER_CLOSE` charge earned per close call · `HOP_OVER` which obstacles a hop clears · `FLICK_PX` / `FLICK_MS` / `FLICK_RATIO` what counts as a flick up · `TAP_MS` / `TAP_PX` what counts as a one-finger tap.
+**Lab knobs:** `LAB_EXPERIMENTS` the list of experiments (the Lab panel, saved switches, votes and analytics build themselves from it) · JUMP: `HOP_H` / `HOP_T` how high and how long a jump is · `HOP_MAX` charges you can hold · `HOP_PER_CLOSE` charge earned per close call · `HOP_OVER` which obstacles a hop clears · `FLICK_PX` / `FLICK_MS` / `FLICK_RATIO` what counts as a flick up · `TAP_MS` / `TAP_PX` what counts as a one-finger tap · SKY RAMPS: `SKY_W` / `SKY_LEN` / `SKY_H` the ramp's size · `SKY_PEAK` / `SKY_T` how high and how long the flight is · `SKY_RINGS` / `RING_R` how many rings and how big · `RING_PTS` / `RING_PERFECT` points · `SKY_EVERY` seconds between sky ramps · test setup: `LAB_LOOPS` the highest starting loop offered.
 
 ### Testing hooks
 
 Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs). Run all three before publishing.
 
-Lab hooks: `SPEEDER.setMode('lab'); SPEEDER.startGame()` (start a Lab run), `SPEEDER.LAB` (`on`, `cfg` = the saved switches, `run` = this run's experiments), `SPEEDER.labSet('jump', 'gesture', 'tap')` / `SPEEDER.labSet('jump', 'fuel', 'free')` / `SPEEDER.labSet('jump', 'on', false)`, `SPEEDER.tryHop('key')`, `SPEEDER.hopCharge(1)`, `SPEEDER.JUMP` (`n` charges, `hops`, `denied`, `by`), `SPEEDER.openPanel('lab')`. Lab storage keys: `speeder.lab.cfg` (switches), `speeder.lab.best`, `speeder.lab.votes`.
+Lab hooks: `SPEEDER.setMode('lab'); SPEEDER.startGame()` (start a Lab run), `SPEEDER.LAB` (`on`, `cfg` = the saved switches, `run` = this run's experiments), `SPEEDER.labSet('jump', 'gesture', 'tap')` / `SPEEDER.labSet('jump', 'fuel', 'free')` / `SPEEDER.labSet('jump', 'on', false)`, `SPEEDER.tryHop('key')`, `SPEEDER.hopCharge(1)`, `SPEEDER.JUMP` (`n` charges, `hops`, `denied`, `by`), `SPEEDER.openPanel('lab')`, `SPEEDER.labSet('ramps', 'on', true)`, `SPEEDER.spawnSkyRamp(SPEEDER.G.d + 90)` (put a sky ramp just ahead), `SPEEDER.SKY` (`offered`, `flights`, `rings`, `perfect`), `SPEEDER.labSet('setup', 'loop', 3)` / `SPEEDER.labSet('setup', 'loaded', true)` (test setup for the next Lab run). Lab storage keys: `speeder.lab.cfg` (switches), `speeder.lab.setup` (starting loop, fully loaded), `speeder.lab.best`, `speeder.lab.votes`.
 
 Warp Run keeps the same per-mode keys under `speeder.w.` (`speeder.w.best`, `speeder.w.local`, `speeder.w.worldTop`, ...), plus `speeder.w.live` (set once its world board has loaded), `speeder.w.boardV` (the board reset this device has applied) and `speeder.w.hidden` (scores of older-version entries, left out of your rank). `speeder.pendingRuns` is shared; each run carries its mode.
 
@@ -292,6 +299,10 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Lab votes (v0.10) | Counted per variant, one per device unless it changes | Lets two versions of an idea be compared, and counts people rather than runs. |
 | Jump gesture (v0.10) | Two are being tested side by side: flick up and second-finger tap | Claude's concern: a flick can misfire because the thumb drifts up and down while steering. The Lab decides rather than guessing. |
 | Jump cost (v0.10) | Tested both ways: 2 charges earned from close calls, or unlimited | Claude's concern: a free jump makes mines, chasms and ramps stop mattering. A hop is also lower than a ramp jump and can't clear pylons, crystals, trucks or lasers, so ramps keep their job. |
+| Bigger jump (v0.11) | About 2.4 high for 1.1 s (was 1.5 and 0.7), and it clears lasers and trucks too | Adrian: higher and longer, "so you can do more and earn more". Once the jump visibly flies over a truck it has to clear it. Trade-off: it now does what an ordinary ramp does, so only the charge cost keeps ordinary ramps meaningful. |
+| Sky ramps (v0.11) | A choice, not a gate: the ramp is 5 wide and the road under the flight is kept clear | Adrian asked for ramps with rings to fly through in the sky. Keeping the road clear means nobody is punished for missing a ramp at 500 km/h. Trade-off: skipping one is 2.6 s of empty road. |
+| Rings (v0.11) | They keep time with the speeder in flight; each is worth more than the last | Height always matches the flight arc, so only steering decides a hit. Rising values reward finishing the line. |
+| Test setup (v0.11) | Starting loop and "fully loaded" live in the Lab only, with no vote | Adrian wants to test ideas at high speed without 20 minutes of play first. Kept out of the real modes so leaderboards stay fair. |
 | Music speed-up | Play the loop faster (pitch rises too) as speed climbs, capped at +14% | Simple, no extra files, and the rising pitch adds urgency. Trade-off: a pitch-preserving version would need several pre-made copies of the track. |
 
 ---
@@ -327,7 +338,16 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.10.0, 2026-11-13):**
+**Where things stand (after v0.11.0, 2026-11-13):**
+- Adrian's first Lab feedback: he likes the Lab; the jump should be higher and longer; next
+  experiment should be ramps with rings in the sky; and he wants to test at high speed without
+  playing for 20 minutes. v0.11.0 does all four: bigger jump, SKY RAMPS experiment, and a test
+  setup card (start on loop 1-6, fully loaded).
+- Classic and Warp Run still play exactly as before (`tests/same-as-before.sh`).
+- **Not played by a human yet:** the bigger jump, sky ramps (flight size, ring spacing at 500+
+  km/h, how often they come) and the loop start. All numbers are first guesses; knobs are in `LAB.md`.
+
+**Earlier the same day (after v0.10.0, 2026-11-13):**
 - v0.10.0 added **the Lab** and its first experiment, **JUMP**. Adrian asked for a jump (a
   flick up, maybe), other ideas (different roads and ramps, mega jumps, a space-flight mode in
   a tunnel with up/down movement) and a test mode so none of it is merged into the game.
@@ -400,11 +420,12 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
-- Adrian's playtest of the Lab's JUMP on a phone: does flick-up misfire while steering, is the
-  second-finger tap comfortable, do charges feel like a decision or a nuisance, does a hop feel
-  the right size? Then tune the knobs in `LAB.md`, or pick a gesture and drop the other.
-- Next experiment: mega ramps and new roads (then air rings, forks, the space tunnel). Follow
-  the recipe in `LAB.md`.
+- Adrian's playtest of v0.11 in the Lab, ideally starting on loop 3, fully loaded: is the jump
+  now the right size, does flick-up misfire while steering, is the second-finger tap
+  comfortable, do charges feel like a decision or a nuisance? Sky ramps: is the flight big
+  enough, are five rings threadable at that speed, do the ramps come too often or too rarely?
+  Then tune the knobs in `LAB.md`.
+- Next experiments: new roads, forks in the road, the space tunnel. Follow the recipe in `LAB.md`.
 - Adrian's playtest of v0.9: do the gates feel good at speed, is the boss now a good fight or
   too much, is 40 s per world right, does the rail limit feel fair, where does a great run end?
 - Then tune: `W_WORLD_T`, `BOSS_TOUGH`, `BOSS_PACE`, `RAIL_HOT_T`, each world's `pat` / `sig`
