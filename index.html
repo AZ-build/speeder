@@ -22,6 +22,7 @@
     --pink: #ff2bd6;
     --cyan: #29f3ff;
     --yellow: #ffd23c;
+    --lime: #b6ff2e;
     --red: #ff2b4e;
     --text: #efe6ff;
   }
@@ -466,6 +467,23 @@
   .btn.mode small { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 10px; letter-spacing: 0; text-transform: none; color: #cdbdf2; line-height: 1.2; }
   .btn.mode.sel { opacity: 1; color: var(--yellow); border-color: var(--yellow); background: rgba(255, 210, 60, 0.1); box-shadow: 0 0 14px rgba(255, 210, 60, 0.25); }
   .over-mode { font-size: 11px; letter-spacing: 0.3em; color: var(--cyan); text-transform: uppercase; margin-top: -6px; }
+  /* ---- the Lab ---- */
+  .btn.ghost.lab { color: var(--lime); border-color: rgba(182, 255, 46, 0.45); }
+  .btn.ghost.lab.sel { background: rgba(182, 255, 46, 0.12); border-color: var(--lime); box-shadow: 0 0 14px rgba(182, 255, 46, 0.25); }
+  #lab { justify-content: flex-start; padding-top: calc(env(safe-area-inset-top, 0px) + 20px); }
+  #lab .panel-title { text-shadow: 0 0 14px var(--lime); }
+  .labx { border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 14px; padding: 2px 14px 8px; text-align: left; background: rgba(20, 6, 40, 0.5); }
+  .labx.on { border-color: rgba(182, 255, 46, 0.55); }
+  .labx .setting:last-of-type { border-bottom: none; }
+  .labx .hnote { margin: 6px 0 4px; }
+  .labname { font-family: 'Orbitron', system-ui, sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.12em; color: #fff; }
+  .labx.on .labname { color: var(--lime); }
+  .labname small { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 500; letter-spacing: 0; margin-left: 8px; }
+  .labvote { display: flex; flex-direction: column; gap: 8px; border: 1px solid rgba(182, 255, 46, 0.45); border-radius: 14px; padding: 10px 12px 12px; background: rgba(182, 255, 46, 0.06); }
+  .labvote .status { min-height: 0; max-width: none; color: #fff; }
+  .labvote .status small { display: block; font-size: 12px; color: #cdbdf2; }
+  .labvote .btn { flex: 1; min-height: 44px; padding: 0 8px; font-size: 12px; letter-spacing: 0.08em; }
+  .labvote .btn.sel { color: #160626; background: var(--lime); border-color: var(--lime); }
   @media (prefers-reduced-motion: reduce) {
     .cta, .celebrate, .cel-title { animation: none; }
   }
@@ -508,7 +526,10 @@
     <button class="btn" id="titleBoardBtn">Leaderboard</button>
     <button class="btn" id="titleSettingsBtn">Settings</button>
   </div>
-  <button class="btn ghost ui" id="titleHelpBtn">How to play</button>
+  <div class="row ui">
+    <button class="btn ghost" id="titleHelpBtn">How to play</button>
+    <button class="btn ghost lab" id="titleLabBtn">The Lab</button>
+  </div>
   <button id="installBtn" class="hidden ui">INSTALL APP</button>
   <div class="install hidden ui" id="installHint"><span id="installText"></span> <button class="linkbtn" id="installHow">How?</button> <button class="linkbtn hidden" id="copyLinkBtn">Copy link</button></div>
   <div class="version" id="versionTag"></div>
@@ -530,6 +551,7 @@
     <button class="btn" id="saveScoreBtn">Save my score</button>
   </div>
   <div class="status" id="saveStatus" aria-live="polite"></div>
+  <div class="stack hidden" id="labVote"></div>
   <div class="stack">
     <button class="btn primary" id="againBtn">Ride again</button>
     <button class="btn share" id="shareBtn">
@@ -541,6 +563,7 @@
       <button class="btn" id="overBoardBtn">Leaderboard</button>
       <button class="btn" id="overSettingsBtn">Settings</button>
     </div>
+    <button class="btn ghost lab hidden" id="overLabBtn">Change the experiments</button>
     <button class="btn ghost" id="overModeBtn">Play CLASSIC instead</button>
   </div>
 </div>
@@ -632,6 +655,9 @@
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M4 30 H16 M28 30 H40" stroke="#ffe296" stroke-width="3"/><path d="M16 30 q6 -22 12 0" stroke="#b6ff2e" stroke-width="2" fill="none" stroke-dasharray="3 3"/><path d="M6 12 h12 M10 17 h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg><div class="htxt"><div class="hname">Sky Islands: chasms and wind</div><div>Where the road is missing, a full-width ramp throws you across. When WIND shows under your speeder, a crosswind is about to push you sideways: steer against it.</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M14 38 L18 20 L22 6 L26 22 L30 38 Z" fill="#12888c" stroke="#c8fff6" stroke-width="2" stroke-linejoin="round"/><path d="M22 6 L22 38" stroke="#c8fff6" stroke-width="1.5"/><path d="M4 38 H40" stroke="#6effe6" stroke-width="2"/></svg><div class="htxt"><div class="hname">Crystal Wastes: crystals</div><div>A glowing crack in the road means a crystal is about to burst out of it. Dodge it or shatter it.</div><div class="hlim">3 hits, +100</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><ellipse cx="22" cy="34" rx="14" ry="4" fill="none" stroke="#ffb347" stroke-width="2"/><path d="M36 4 L24 24" stroke="#ff9d2e" stroke-width="4" stroke-linecap="round"/><circle cx="23" cy="26" r="4.5" fill="#fff2c0" stroke="#ff9d2e" stroke-width="2"/></svg><div class="htxt"><div class="hname">Cosmic Highway: meteors</div><div>An orange ring on the road is where a meteor is about to land. It leaves a burning crater: steer around it or jump it. Jumps are longer and floatier out here.</div></div></div>
+    <h3>The Lab</h3>
+    <p class="hnote">Where new ideas get tried out before they go into the real game. Open it from the title screen, switch on what you want to test, and take a run. Lab runs play by Warp Run&rsquo;s rules, stay off the world leaderboard, and end by asking for a thumbs up or down.</p>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M6 36 H38" stroke="#b6ff2e" stroke-width="2"/><path d="M8 34 Q22 2 36 34" stroke="#b6ff2e" stroke-width="2" fill="none" stroke-dasharray="3 3"/><path d="M22 22 l-6 8 h12 z" fill="#b6ff2e"/></svg><div class="htxt"><div class="hname">Experiment: Jump</div><div>Hop without a ramp. Choose how in the Lab: <b>flick</b> your steering thumb up, or <b>tap with a second finger</b> (Space on a computer). A hop clears mines, walls, craters and ram bikes. Pylons, crystals, trucks and laser fences are too tall. The lime arrows in the top bar are your jump charges.</div><div class="hlim">Hold 2 · every 2 close calls earn one back (or switch to unlimited)</div></div></div>
     <h3>Score</h3>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 l5 11 12 1 -9 8 3 12 -11 -7 -11 7 3 -12 -9 -8 12 -1 z" fill="none" stroke="#ffd23c" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Points</div><div>You score for distance (faster = more), plus points for everything you destroy and AIR bonuses. Each mode has its own world leaderboard, which keeps the top 50 runs, and one player can hold several spots. Share a run to challenge a friend.</div></div></div>
     <h3 id="helpInstall">Put it on your Home Screen</h3>
@@ -641,6 +667,17 @@
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="6" y="8" width="32" height="28" rx="5" fill="none" stroke="#ff5fe0" stroke-width="2"/><path d="M16 22 h12 M24 18 l4 4 -4 4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Opened from TikTok, Instagram and the like?</div><div>Those apps show links in their own built-in browser, which can&rsquo;t install anything. Tap their <b>&bull;&bull;&bull;</b> or share menu and choose <b>Open in browser</b> (or <b>Open in Safari</b>), then follow the steps above. No such option? Copy the link and paste it into Safari or Chrome.</div></div></div>
   </div>
   <div class="stack"><button class="btn primary" id="helpBack">Back</button></div>
+</div>
+
+<div id="lab" class="overlay panel hidden">
+  <div class="panel-title">THE LAB</div>
+  <p class="status">Ideas being tried out before they go into the real game. Switch on what you want to test, take a run, then give it a thumbs up or down.</p>
+  <div class="stack" id="labList"></div>
+  <p class="status small">Lab runs play by Warp Run&rsquo;s rules and stay off the world leaderboard.</p>
+  <div class="stack">
+    <button class="btn primary" id="labRide">Ride in the Lab</button>
+    <button class="btn" id="labBack">Back</button>
+  </div>
 </div>
 
 <div id="countdown" class="overlay hidden"><div class="count" id="countNum">3</div></div>
@@ -703,13 +740,15 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.9.5';
+const VERSION = '0.10.0';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
 // between each, a boss at the end of every loop, and loops that get faster and score more.
-const MODES = { warp: 'WARP RUN', classic: 'CLASSIC' };
-const MODE_NAMES = { warp: 'Warp Run', classic: 'Classic' };   // the same, for use inside a sentence
+// THE LAB (v0.10) is a third mode for trying ideas out. It plays by Warp Run's rules with
+// experiments switched on over the top, and it never touches a leaderboard. See "THE LAB" below.
+const MODES = { warp: 'WARP RUN', classic: 'CLASSIC', lab: 'LAB' };
+const MODE_NAMES = { warp: 'Warp Run', classic: 'Classic', lab: 'the Lab' };   // the same, for use inside a sentence
 // There are two world leaderboards, one per mode: anything that says "in the world" or
 // "world record" also says which mode it means (game over, save message, share text, share picture).
 const W_SECTOR = 2400;      // Warp Run: the shortest a world can be (world units; about 3.4 km on the HUD)
@@ -842,7 +881,8 @@ function storeSet(key, val) {
 }
 // Each game mode keeps its own best score and leaderboards. Classic uses the original
 // keys ("speeder.best"), Warp Run the same names under "speeder.w." ("speeder.w.best").
-function modeKey(name, mode) { return (mode === 'warp' ? 'speeder.w.' : 'speeder.') + name; }
+// The Lab only ever keeps a best score ("speeder.lab.best"): it has no leaderboards.
+function modeKey(name, mode) { return (mode === 'warp' ? 'speeder.w.' : mode === 'lab' ? 'speeder.lab.' : 'speeder.') + name; }
 function bestFor(mode) { return parseInt(storeGet(modeKey('best', mode)) || '0', 10) || 0; }
 // true if version string a is the same as or newer than b ("0.10.0" is newer than "0.9.2")
 function versionAtLeast(a, b) {
@@ -931,11 +971,14 @@ function loadSettings() {
   try { saved = JSON.parse(storeGet('speeder.settings') || '{}') || {}; } catch (e) { saved = {}; }
   if (saved.sound === undefined && storeGet('speeder.muted') === '1') saved.sound = false;
   const out = Object.assign({}, SETTINGS_DEFAULT, saved);
-  if (!MODES[out.mode]) out.mode = SETTINGS_DEFAULT.mode;
+  if (!MODES[out.mode] || out.mode === 'lab') out.mode = SETTINGS_DEFAULT.mode;
   return out;
 }
 const SET = loadSettings();
-function saveSettings() { storeSet('speeder.settings', JSON.stringify(SET)); }
+// The Lab is something you step into on purpose each time: it is never saved as your mode,
+// so the game always opens on the last real mode you played (homeMode).
+let homeMode = SET.mode;
+function saveSettings() { storeSet('speeder.settings', JSON.stringify(SET.mode === 'lab' ? Object.assign({}, SET, { mode: homeMode }) : SET)); }
 
 // ---------- Graphics quality ----------
 // Auto starts on High and steps down by itself if the phone can't keep up.
@@ -2836,7 +2879,7 @@ const G = {
   kick: 0, pulse: 0, pulseColor: '#fff', zoneT: 0, zoneName: '', zoneIdx: 0, air: 0, slowmo: 0,
   fly: null, hullHit: 0, shHit: 0, cracks: null,
 };
-const player = { x: 0, tx: 0, vx: 0, bank: 0, lean: 0, edge: 0, alive: true, y: 0, vy: 0, ramp: null };
+const player = { x: 0, tx: 0, vx: 0, bank: 0, lean: 0, edge: 0, alive: true, y: 0, vy: 0, ramp: null, hop: false };
 const objs = [];      // obstacles: pylons, walls, mines
 const enemies = [];   // drones, rams, turrets
 const shots = [];     // your bullets
@@ -2900,6 +2943,7 @@ function resetRun() {
   objs.length = 0; enemies.length = 0; shots.length = 0; eshots.length = 0;
   parts.length = 0; gates.length = 0; popups.length = 0; missiles.length = 0;
   resetWarp();
+  resetLab();
   resetCourse();
   VIEW_D = -PLAYER_Z;
   resetScenery();
@@ -3591,6 +3635,7 @@ function update(dt) {
       if (drag) drag.t0 += push;
     }
 
+    if (LAB.on) updateLab(dt);
     if (WP.on) {
       updateWarp(dt);
     } else {
@@ -3657,7 +3702,7 @@ function update(dt) {
     player.y += player.vy * dt;
     if (player.y <= 0) {
       const hard = player.vy < -4;
-      player.y = 0; player.vy = 0;
+      player.y = 0; player.vy = 0; player.hop = false;
       if (hard && player.alive) {
         G.shake = Math.max(G.shake, 0.18);
         burst(player.x, 0.1, G.d, COLORS.cyan, 14, 4, G.speed * 0.8, 0.4);
@@ -3724,7 +3769,7 @@ function update(dt) {
       const on = -rel;   // how far along the ramp you are
       if (player.alive && on >= 0 && on < o.dep && Math.abs(player.x - o.x) < o.w / 2 + 0.15 && player.vy <= 0) {
         const h = RAMP_H * on / o.dep;
-        if (player.y <= h + 0.05) { player.y = h; player.vy = 0; player.ramp = o; }
+        if (player.y <= h + 0.05) { player.y = h; player.vy = 0; player.ramp = o; player.hop = false; }
       } else if (player.ramp === o) {
         player.ramp = null;
         if (on >= o.dep - 0.01 && player.alive) {
@@ -3771,7 +3816,8 @@ function update(dt) {
     if (playing && !o.dead && !o.hit && rel < 0.5 && pr + o.dep > -0.5 && Math.abs(player.x - o.x) < o.w / 2 + playerHalfW()) {
       o.hit = true;
       const top = o.type === 'mine' ? 1.0 : o.y + o.h;
-      if (player.y > top - 0.1) { G.air++; STATS.air++; continue; }
+      // (Lab: a hop is lower than a ramp jump and only clears the hazards in HOP_OVER)
+      if (player.y > top - 0.1 && !(player.hop && !HOP_OVER.has(o.type))) { G.air++; STATS.air++; continue; }
       if (o.jump) STATS.wallHits++;
       if (hurt()) {
         if (o.type === 'mine') {
@@ -5434,6 +5480,7 @@ function hullMax() { return MAX_HULL + (WP.on && WP.perks.hull ? 1 : 0); }
 function jumpT() { return JUMP_T * (WP.on ? SKINS[WP.theme].float : 1); }
 // gravity that lands the same launch after jumpT() seconds (weaker in floaty worlds)
 function jumpG() {
+  if (player.hop) return HOP_G;          // (Lab: a hop has its own, snappier arc)
   if (!WP.on || SKINS[WP.theme].float === 1) return JUMP_G;
   const T = jumpT();
   return 2 * (RAMP_H + JUMP_VY * T) / (T * T);
@@ -5540,7 +5587,7 @@ function enterWorld() {
   if (newLoop) {
     toast('LOOP ' + WP.loop, COLORS.yellow, 'score x' + WP.loop + ' · faster · tougher');
     sfx.fanfare();
-    track('warp/loop/' + Math.min(WP.loop, 8), 'Warp Run: reached loop ' + Math.min(WP.loop, 8));
+    if (!LAB.on) track('warp/loop/' + Math.min(WP.loop, 8), 'Warp Run: reached loop ' + Math.min(WP.loop, 8));
   } else {
     toast('WORLD CLEARED', COLORS.yellow, pts);
   }
@@ -5653,6 +5700,7 @@ function nearMiss() {
   WP.nmShow = 0.9;
   play('ui', 0.32, 1.1 + Math.min(WP.nm, 10) * 0.07, 0.04);
   vibrate(8);
+  if (LAB.on) labCloseCall();
 }
 
 // ---- Prototypes (permanent upgrades from bosses) ----
@@ -5743,7 +5791,7 @@ function bossAttack(e, dt) {
     B.t += dt;
     if (B.t >= B.warn && B.t < B.warn + B.fire) {
       if (!B.live) { B.live = true; play('zap', 0.6, 0.6); G.shake = Math.max(G.shake, 0.3); }
-      if (B.lanes[playerLane()] && player.y < 1.4) hurt();
+      if (B.lanes[playerLane()] && (player.y < 1.4 || player.hop)) hurt();
     }
     if (B.t >= B.warn + B.fire) {
       // later stages: another set of lanes lights up the moment this one has fired
@@ -5926,7 +5974,7 @@ function bossDown(e) {
   spawnGatePair(G.d + 380, a, b);
   WP.gateD = G.d + 680;
   addPortal(WP.gateD);
-  track('warp/boss/' + Math.min(WP.loop, 8), 'Warp Run: beat the loop ' + Math.min(WP.loop, 8) + ' boss');
+  if (!LAB.on) track('warp/boss/' + Math.min(WP.loop, 8), 'Warp Run: beat the loop ' + Math.min(WP.loop, 8) + ' boss');
 }
 // CHAIN BLAST: a kill damages whatever is close by
 function chainBlast(e) {
@@ -6698,6 +6746,390 @@ function odChip(x, y) {
   return lw + 62;
 }
 
+/* =========================================================
+   THE LAB (v0.10)
+   A third mode for trying ideas out before they go anywhere near the real game.
+   - A Lab run plays by Warp Run's rules (WP.on is true) with the experiments you've
+     switched on layered over the top.
+   - Classic and Warp Run never run any of this. Every hook in the game sits behind
+     LAB.on or labOn('<id>'), and those are only ever true during a Lab run.
+   - Lab runs never touch a world leaderboard, the "This device" boards or the share
+     card. The Lab keeps one thing on the device: its own best score.
+   - After a Lab run the game-over screen asks for a thumbs up or down on each
+     experiment that was on. Votes and usage go to analytics under "lab/...".
+
+   HOW TO ADD AN EXPERIMENT (the full recipe is in LAB.md):
+     1. add an entry to LAB_EXPERIMENTS (id, name, blurb, options);
+     2. give it its own "---- Experiment: NAME ----" block below;
+     3. hook it into the game only through `if (labOn('id'))` checks;
+     4. call its reset from resetLab(), its start from startLabRun(), and report its
+        end-of-run numbers from labRunEnded().
+   The Lab panel, the saved switches, the HUD tag, the vote buttons and the analytics
+   names all build themselves from LAB_EXPERIMENTS.
+   ========================================================= */
+const LAB_EXPERIMENTS = [
+  {
+    id: 'jump',
+    name: 'JUMP',
+    since: '0.10.0',
+    on: true,       // switched on for someone opening the Lab for the first time
+    blurb: 'Hop whenever you like, no ramp needed. A hop clears mines, walls, craters and ram bikes. Pylons, crystals, trucks and laser fences are too tall.',
+    opts: [
+      { id: 'gesture', name: 'How to jump', def: 'flick', choices: [
+        { id: 'flick', name: 'Flick up', hint: 'Flick your steering thumb upward.' },
+        { id: 'tap', name: '2nd finger', hint: 'Tap anywhere with another finger while you steer. A quick tap with one finger works too.' },
+      ] },
+      { id: 'fuel', name: 'Jump charges', def: 'charges', choices: [
+        { id: 'charges', name: 'Earned', hint: 'You hold 2 jumps. Every 2 close calls earn one back.' },
+        { id: 'free', name: 'Unlimited', hint: 'Jump as often as you like.' },
+      ] },
+    ],
+  },
+];
+
+function labDefaults() {
+  const cfg = {};
+  for (const X of LAB_EXPERIMENTS) {
+    cfg[X.id] = { on: !!X.on };
+    for (const o of X.opts || []) cfg[X.id][o.id] = o.def;
+  }
+  return cfg;
+}
+// The switches as last set on this device. Anything missing or no longer offered falls back to its default.
+function loadLabCfg() {
+  const cfg = labDefaults(), saved = readJSON('speeder.lab.cfg', null);
+  if (saved && typeof saved === 'object') {
+    for (const X of LAB_EXPERIMENTS) {
+      const s = saved[X.id];
+      if (!s || typeof s !== 'object') continue;
+      if (typeof s.on === 'boolean') cfg[X.id].on = s.on;
+      for (const o of X.opts || []) if (o.choices.some((c) => c.id === s[o.id])) cfg[X.id][o.id] = s[o.id];
+    }
+  }
+  return cfg;
+}
+function saveLabCfg() { storeSet('speeder.lab.cfg', JSON.stringify(LAB.cfg)); }
+const LAB = {
+  on: false,            // true during a Lab run (and on its game-over screen)
+  cfg: loadLabCfg(),    // the switches in the Lab panel, saved on this device
+  run: {},              // the experiments in play this run: { id: { its options } }
+};
+const LAB_LINK = (function () { try { return new URLSearchParams(location.search).has('lab'); } catch (e) { return false; } })();
+const TOUCH = 'ontouchstart' in window || (navigator.maxTouchPoints || 0) > 0;
+
+function labOn(id) { return LAB.on && LAB.run[id] !== undefined; }
+function labOpt(id, opt) { const r = LAB.run[id]; return r ? r[opt] : undefined; }
+function labExp(id) { return LAB_EXPERIMENTS.find((X) => X.id === id); }
+// "jump.flick.charges": an experiment plus the options it ran with. Votes and analytics are
+// counted per variant, so two ways of doing the same idea can be compared.
+function labVariant(id, c) {
+  c = c || LAB.run[id] || LAB.cfg[id];
+  return [id].concat((labExp(id).opts || []).map((o) => c[o.id])).join('.');
+}
+// the same in words: "Flick up · Earned"
+function labChoices(id, c) {
+  c = c || LAB.run[id] || LAB.cfg[id];
+  return (labExp(id).opts || []).map((o) => (o.choices.find((ch) => ch.id === c[o.id]) || o.choices[0]).name).join(' · ');
+}
+function labSwitchedOn() { return LAB_EXPERIMENTS.filter((X) => LAB.cfg[X.id].on); }
+// for testing in the console: SPEEDER.labSet('jump', 'gesture', 'tap'), SPEEDER.labSet('jump', 'on', false)
+function labSet(id, key, value) {
+  if (!LAB.cfg[id]) return;
+  LAB.cfg[id][key] = value;
+  saveLabCfg();
+}
+function labTitleLine() {
+  const names = labSwitchedOn().map((X) => X.name).join(' + ');
+  return 'LAB · ' + (names || 'NOTHING SWITCHED ON') + (G.best > 0 ? ' · BEST ' + G.best.toLocaleString() : '');
+}
+function labOverLine() {
+  const names = Object.keys(LAB.run).map((id) => labExp(id).name).join(' + ');
+  return 'LAB' + (names ? ' · ' + names : '');
+}
+function openLabLink() {
+  track('lab/link', 'Opened a Lab link');
+  try { if (history.replaceState) history.replaceState(null, '', location.pathname); } catch (e) { /* fine */ }
+  openPanel('lab');
+}
+
+function resetLab() {
+  LAB.on = false;
+  LAB.run = {};
+  resetJump();
+}
+function startLabRun() {
+  LAB.on = true;
+  LAB.run = {};
+  for (const X of labSwitchedOn()) {
+    LAB.run[X.id] = Object.assign({}, LAB.cfg[X.id]);
+    track('lab/play/' + labVariant(X.id), 'Lab run with ' + X.name + ' (' + labChoices(X.id) + ')');
+  }
+  startWarpRun();
+}
+function updateLab(dt) {
+  if (labOn('jump')) updateJump(dt);
+}
+// a close call just happened (Warp Run's rule, so Lab runs have them too)
+function labCloseCall() {
+  if (labOn('jump')) hopCharge(HOP_PER_CLOSE);
+}
+// extra chips on the HUD's timers row, after the CELLS bar. Returns the width used.
+function labChips(x, y) {
+  return labOn('jump') ? hopChip(x, y) : 0;
+}
+function drawLabHints() {
+  // a small tag on the world-pips row, so a screenshot always shows it was a Lab run
+  if (G.state === 'play' || G.state === 'dying') {
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.font = '800 9px ' + FONT;
+    ctx.fillStyle = RAMP_C;
+    ctx.fillText('LAB', W - 16 - 62, SAFE_TOP + 12 + 91);
+  }
+  if (labOn('jump')) drawJumpHint();
+}
+// analytics when a Lab run ends
+function labRunEnded(km) {
+  const b = km < 1 ? '0-1' : km < 3.4 ? '1-3' : km < 7 ? '3-7' : km < 17 ? '7-17' : '17+';
+  track('lab/run/' + b + 'km', 'Lab run ended at ' + b + ' km');
+  if (labOn('jump')) {
+    const n = JUMP.hops, nb = n === 0 ? '0' : n < 5 ? '1-4' : n < 15 ? '5-14' : '15+';
+    track('lab/jump/' + labVariant('jump') + '/' + nb + '-jumps', 'Lab: ' + nb + ' jumps in a run (' + labChoices('jump') + ')');
+  }
+}
+// one more line for the game-over stats
+function labStatsLine() {
+  return labOn('jump') ? '<br>Jumps <b>' + JUMP.hops + '</b>' : '';
+}
+
+// ---- The Lab panel (title screen → THE LAB) ----
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text) e.textContent = text;
+  return e;
+}
+function renderLab() {
+  const list = $('labList');
+  list.textContent = '';
+  for (const X of LAB_EXPERIMENTS) {
+    const c = LAB.cfg[X.id];
+    const card = el('div', 'labx' + (c.on ? ' on' : ''));
+    const head = el('div', 'setting');
+    const label = el('label', 'labname', X.name);
+    label.htmlFor = 'labOn_' + X.id;
+    label.appendChild(el('small', '', 'since v' + X.since));
+    const sw = el('input', 'switch');
+    sw.type = 'checkbox';
+    sw.id = 'labOn_' + X.id;
+    sw.checked = c.on;
+    sw.addEventListener('change', () => { c.on = sw.checked; saveLabCfg(); renderLab(); updateTitleBest(); });
+    head.append(label, sw);
+    card.append(head, el('p', 'hnote', X.blurb));
+    if (c.on) {
+      for (const o of X.opts || []) {
+        const cur = o.choices.find((ch) => ch.id === c[o.id]) || o.choices[0];
+        const row = el('div', 'setting');
+        const lb = el('label', '', o.name);
+        const chip = el('button', 'btn chip', cur.name);
+        chip.type = 'button';
+        chip.id = 'labOpt_' + X.id + '_' + o.id;
+        lb.htmlFor = chip.id;
+        chip.addEventListener('click', () => {
+          const i = o.choices.indexOf(cur);
+          c[o.id] = o.choices[(i + 1) % o.choices.length].id;
+          saveLabCfg();
+          renderLab();
+        });
+        row.append(lb, chip);
+        card.append(row, el('p', 'hnote', cur.hint));
+      }
+    }
+    list.appendChild(card);
+  }
+}
+
+// ---- Thumbs up / down on the game-over screen ----
+// One row per experiment that was on in the run. A device's vote is kept per variant
+// ("speeder.lab.votes") and only sent to analytics when it is new or has changed, so the
+// counts are roughly "people", not "runs".
+function fillLabVote(show) {
+  const box = $('labVote');
+  box.textContent = '';
+  const ids = show ? Object.keys(LAB.run) : [];
+  box.classList.toggle('hidden', !ids.length);
+  const votes = readJSON('speeder.lab.votes', {});
+  for (const id of ids) {
+    const X = labExp(id), variant = labVariant(id), words = labChoices(id);
+    const row = el('div', 'labvote');
+    const q = el('div', 'status', 'How was ' + X.name + '?');
+    if (words) q.appendChild(el('small', '', words));
+    const btns = el('div', 'row');
+    const mk = (v, text) => {
+      const b = el('button', 'btn' + (votes[variant] === v ? ' sel' : ''), text);
+      b.type = 'button';
+      b.dataset.vote = v;
+      b.addEventListener('click', () => {
+        if (votes[variant] !== v) {
+          votes[variant] = v;
+          storeSet('speeder.lab.votes', JSON.stringify(votes));
+          track('lab/vote/' + variant + '/' + v, 'Lab vote: ' + X.name + ' (' + words + ') thumbs ' + v);
+        }
+        for (const o of btns.children) o.classList.toggle('sel', o === b);
+        q.firstChild.textContent = 'Thanks! Your vote on ' + X.name + ' is in.';
+      });
+      return b;
+    };
+    btns.append(mk('up', '👍 Keep it'), mk('down', '👎 Drop it'));
+    row.append(q, btns);
+    box.appendChild(row);
+  }
+}
+
+// ---- Experiment: JUMP ----
+// A hop you can do anywhere, without a ramp. It is lower and shorter than a ramp jump and
+// only clears the hazards in HOP_OVER (plus ram bikes, turrets and chasms, which already
+// let anything airborne past). Ramps keep their job: a ramp jump still clears lasers and trucks.
+// Two things are being tested: the gesture (flick up vs a second-finger tap) and whether
+// jumps should cost a charge (earned from close calls) or be unlimited.
+const HOP_H = 1.5;            // how high a hop goes, give or take a frame (a ramp jump reaches about 2.2)
+const HOP_T = 0.7;            // seconds in the air (a ramp jump is 0.95)
+const HOP_G = 8 * HOP_H / (HOP_T * HOP_T);   // gravity that gives that height and time
+const HOP_VY = HOP_G * HOP_T / 2;            // launch speed
+const HOP_MAX = 2;            // jump charges you can hold
+const HOP_PER_CLOSE = 0.5;    // charge earned per close call
+const HOP_OVER = new Set(['mine', 'wall', 'meteor']);   // what a hop can clear. Pylons, crystals, trucks and lasers: no
+const FLICK_PX = 34;          // flick up: the thumb must rise this far (screen points)...
+const FLICK_MS = 150;         // ...within this long...
+const FLICK_RATIO = 1.3;      // ...and rise this much more than it moves sideways (so steering isn't read as a flick)
+const TAP_MS = 220;           // one-finger tap: down and up within this long...
+const TAP_PX = 10;            // ...without moving further than this
+const JUMP = { n: HOP_MAX, hops: 0, denied: 0, deny: 0, gain: 0, by: {} };
+// the steering finger, as the jump gestures see it
+const FL = { id: -1, t0: 0, x0: 0, y0: 0, far: false, armed: true, pts: [] };
+
+function resetJump() {
+  JUMP.n = HOP_MAX; JUMP.hops = 0; JUMP.denied = 0; JUMP.deny = 0; JUMP.gain = 0; JUMP.by = {};
+  FL.id = -1; FL.pts.length = 0;
+  player.hop = false;
+}
+function updateJump(dt) {
+  if (JUMP.deny > 0) JUMP.deny -= dt;
+  if (JUMP.gain > 0) JUMP.gain -= dt;
+}
+function hopFree() { return labOpt('jump', 'fuel') === 'free'; }
+function hopReady() { return hopFree() || JUMP.n >= 1; }
+function hopCharge(n) {
+  if (hopFree()) return;
+  const had = Math.floor(JUMP.n + 1e-6);
+  JUMP.n = Math.min(HOP_MAX, JUMP.n + n);
+  if (Math.floor(JUMP.n + 1e-6) > had) { JUMP.gain = 0.7; play('ui', 0.4, 1.9); }
+}
+// `how` is 'flick', 'tap' or 'key'. Returns true if the speeder left the ground.
+function tryHop(how) {
+  if (!labOn('jump') || G.state !== 'play' || paused || !player.alive) return false;
+  if (player.y > 0.02 || player.vy > 0 || player.ramp) return false;   // only from the road
+  if (!hopFree()) {
+    if (JUMP.n < 1) {
+      JUMP.deny = 0.45; JUMP.denied++;
+      play('ui', 0.3, 0.55);
+      return false;
+    }
+    JUMP.n -= 1;
+  }
+  player.y = 0.01; player.vy = HOP_VY; player.hop = true;
+  JUMP.hops++;
+  JUMP.by[how] = (JUMP.by[how] || 0) + 1;
+  G.kick = Math.max(G.kick, 0.35);
+  burst(player.x, 0.1, G.d, RAMP_C, 10, 3.5, G.speed * 0.8, 0.35);
+  sfx.jump();
+  vibrate(12);
+  return true;
+}
+function labKey() { tryHop('key'); }   // Space, Up arrow or W on a computer
+
+// A finger touched down during a Lab run. Returns true if the Lab used the touch itself,
+// so it must not take over the steering.
+function labPointerDown(e) {
+  if (!labOn('jump')) return false;
+  if (labOpt('jump', 'gesture') === 'tap' && drag && e.pointerId !== drag.id) {
+    tryHop('tap');      // a second finger while the first is steering
+    return true;
+  }
+  FL.id = e.pointerId; FL.t0 = e.timeStamp; FL.x0 = e.clientX; FL.y0 = e.clientY;
+  FL.far = false; FL.armed = true; FL.pts.length = 0;
+  return false;
+}
+function labPointerMove(e) {
+  if (e.pointerId !== FL.id || !labOn('jump')) return;
+  if (Math.abs(e.clientX - FL.x0) > TAP_PX || Math.abs(e.clientY - FL.y0) > TAP_PX) FL.far = true;
+  if (labOpt('jump', 'gesture') !== 'flick') return;
+  // Where the thumb has been over the last FLICK_MS: time, x, y, oldest first.
+  const P = FL.pts;
+  P.push(e.timeStamp, e.clientX, e.clientY);
+  while (P.length > 3 && e.timeStamp - P[0] > FLICK_MS) P.splice(0, 3);
+  const up = P[2] - e.clientY, across = Math.abs(e.clientX - P[1]);
+  if (FL.armed) {
+    if (up >= FLICK_PX && up > across * FLICK_RATIO) { FL.armed = false; tryHop('flick'); }
+  } else if (up < FLICK_PX * 0.3) {
+    FL.armed = true;    // the thumb has stopped rising: ready for the next flick
+  }
+}
+function labPointerUp(e) {
+  if (e.pointerId !== FL.id) return;
+  FL.id = -1; FL.pts.length = 0;
+  if (!labOn('jump') || labOpt('jump', 'gesture') !== 'tap') return;
+  // a quick tap with the only finger down (not the tap that started the run)
+  if (e.type === 'pointerup' && !FL.far && e.timeStamp - FL.t0 < TAP_MS && G.runT > 0.4) tryHop('tap');
+}
+
+// The jump charges on the HUD: one lime up-arrow each (lime means "jump", like the ramps).
+// An arrow fills from the bottom as close calls earn it back. Returns the width used.
+function hopChip(x, y) {
+  ctx.font = '800 10px ' + FONT;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  const no = JUMP.deny > 0 && Math.sin(G.t * 40) > 0;      // no charge left: it blinks red
+  const color = no ? COLORS.red : JUMP.gain > 0 ? '#ffffff' : RAMP_C;
+  const arrow = (px) => { ctx.beginPath(); ctx.moveTo(px, y + 4.5); ctx.lineTo(px + 5.5, y - 5); ctx.lineTo(px + 11, y + 4.5); ctx.closePath(); };
+  if (hopFree()) {
+    ctx.fillStyle = color;
+    arrow(x); ctx.fill();
+    ctx.fillText('∞', x + 15, y);
+    return 38;
+  }
+  let px = x;
+  for (let i = 0; i < HOP_MAX; i++) {
+    const f = clamp(JUMP.n - i, 0, 1);
+    ctx.fillStyle = no ? 'rgba(255, 43, 78, 0.45)' : 'rgba(255, 255, 255, 0.2)';
+    arrow(px); ctx.fill();
+    if (f > 0) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(px - 1, y + 4.5 - 9.5 * f, 13, 9.5 * f + 1); ctx.clip();
+      ctx.globalAlpha = f >= 1 ? 1 : 0.55;
+      ctx.fillStyle = color;
+      arrow(px); ctx.fill();
+      ctx.restore();
+    }
+    px += 15;
+  }
+  return px - x + 10;
+}
+// until your first jump of the run: how to do it
+function drawJumpHint() {
+  if (G.state !== 'play' || JUMP.hops > 0 || G.runT < 1.5 || G.runT > 16 || !(G.dragged || G.runT >= 6)) return;
+  const text = !TOUCH ? 'PRESS SPACE TO JUMP' : labOpt('jump', 'gesture') === 'flick' ? '▲  FLICK UP TO JUMP  ▲' : 'TAP A 2ND FINGER TO JUMP';
+  ctx.globalAlpha = 0.6 + 0.4 * Math.sin(G.t * 5);
+  ctx.font = '800 14px ' + FONT;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  ctx.fillText(text, CX + 1, H * 0.88 + 2);
+  ctx.fillStyle = RAMP_C;
+  ctx.fillText(text, CX, H * 0.88);
+  ctx.globalAlpha = 1;
+}
+
 const drawList = [];
 function sortZ(o) {
   if (o.type === 'ramp') return o._z + o.dep;
@@ -6903,6 +7335,7 @@ function drawHUD() {
   if (WP.on) {
     drawWarpHUD(top, left, py, gx + GUN_MAX * 6 + 12);
     tx += odChip(tx, ty);
+    if (LAB.on) tx += labChips(tx, ty);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
   }
@@ -7012,7 +7445,7 @@ function drawHUD() {
     plate(lt, POWERS[gl.type].color, 12, lw, side === 1 ? 0.55 : 1);
     plate(rt, POWERS[gr.type].color, W - 12 - rw, rw, side === -1 ? 0.55 : 1);
   } else if (jumpWall && player.y <= 0.05) {
-    const label = '▲ HIT THE RAMP';
+    const label = labOn('jump') && hopReady() ? '▲ RAMP OR JUMP' : '▲ HIT THE RAMP';
     ctx.font = '800 13px ' + FONT;
     ctx.textBaseline = 'middle';
     const w = ctx.measureText(label).width + 22;
@@ -7122,6 +7555,7 @@ function drawHUD() {
     ctx.stroke();
     ctx.globalAlpha = 1;
   }
+  if (LAB.on) drawLabHints();
 }
 
 function render() {
@@ -7347,7 +7781,7 @@ function applySound() {
 // "ui" is the panel currently on screen, or null while racing / on the title screen.
 let ui = null;
 const panelStack = [];
-const PANELS = ['menu', 'settings', 'board', 'help', 'over', 'title'];
+const PANELS = ['menu', 'settings', 'board', 'help', 'lab', 'over', 'title'];
 const show = (id) => $(id).classList.remove('hidden');
 const hide = (id) => $(id).classList.add('hidden');
 const isShown = (id) => !$(id).classList.contains('hidden');
@@ -7361,7 +7795,8 @@ function openPanel(id) {
   show(id);
   ui = id;
   if (id === 'settings') fillSettings();
-  if (id === 'board') { boardMode = inRun() ? G.mode : SET.mode; loadBoard(boardTab); }
+  if (id === 'board') { boardMode = boardFor(inRun() ? G.mode : SET.mode); loadBoard(boardTab); }
+  if (id === 'lab') { renderLab(); $('lab').scrollTop = 0; }
   if (id === 'help') { fillHelpIcons(); $('help').scrollTop = 0; }
 }
 
@@ -7723,6 +8158,7 @@ async function renameOnline() {
 
 let boardTab = 'world';
 let boardMode = SET.mode;     // which mode's leaderboard is on screen
+function boardFor(mode) { return mode === 'lab' ? homeMode : mode; }   // (the Lab has no leaderboard of its own)
 let boardReq = 0;
 
 function renderRows(rows, mine, highlightId) {
@@ -7863,8 +8299,9 @@ function updateLadder(dt) {
 function updateTitleBest() {
   $('modeWarp').classList.toggle('sel', SET.mode === 'warp');
   $('modeClassic').classList.toggle('sel', SET.mode === 'classic');
+  $('titleLabBtn').classList.toggle('sel', SET.mode === 'lab');
   G.best = bestFor(SET.mode);
-  $('titleBest').textContent = G.best > 0 ? MODES[SET.mode] + ' BEST  ' + G.best.toLocaleString() : '';
+  $('titleBest').textContent = SET.mode === 'lab' ? labTitleLine() : G.best > 0 ? MODES[SET.mode] + ' BEST  ' + G.best.toLocaleString() : '';
   const ch = $('titleChallenge');
   if (CHALLENGE) {
     ch.textContent = CHALLENGE.name + ' challenged you: beat ' + CHALLENGE.score.toLocaleString() + ' in ' + MODES[CHALLENGE.mode || 'classic'];
@@ -7878,10 +8315,11 @@ function updateTitleBest() {
 function setMode(mode) {
   if (!MODES[mode] || mode === SET.mode) return;
   SET.mode = mode;
+  if (mode !== 'lab') homeMode = mode;
   saveSettings();
   track('mode/' + mode, 'Picked mode: ' + MODES[mode]);
   updateTitleBest();
-  fetchTop(TOP_AGE_START, mode).catch(() => {});   // so the "next to beat" ladder is ready for this mode
+  if (mode !== 'lab') fetchTop(TOP_AGE_START, mode).catch(() => {});   // so the "next to beat" ladder is ready for this mode
 }
 function startGame() {
   clearPanels();
@@ -7890,7 +8328,8 @@ function startGame() {
   G.mode = SET.mode;
   G.best = bestFor(G.mode);
   G.state = 'play';
-  if (G.mode === 'warp') startWarpRun();
+  if (G.mode === 'lab') startLabRun();        // (Warp Run's rules, plus whatever is switched on in the Lab)
+  else if (G.mode === 'warp') startWarpRun();
   track('play/' + G.mode, 'Run started: ' + MODES[G.mode]);
   buildLadder();
   paused = false;
@@ -7935,13 +8374,16 @@ function showOver() {
   hide('pauseBtn');
   const score = Math.floor(G.score);
   const prevBest = G.best;
-  const warp = G.mode === 'warp';
+  const lab = G.mode === 'lab';
+  const warp = G.mode !== 'classic';   // (a Lab run plays by Warp Run's rules)
   const run = { id: newRunId(), mode: G.mode, score, dist: Math.round(G.d * UNIT_M), kills: G.kills, rank: 0, isBest: score > prevBest && score > 0 };
   if (warp) { run.loop = WP.loop; run.world = WP.theme + 1; run.bosses = WP.bossKills; }
   {
     // analytics: one event per run, grouped by how far it got
     const km = run.dist / 1000;
-    if (warp) {
+    if (lab) {
+      labRunEnded(km);
+    } else if (warp) {
       const b = km < 1 ? '0-1' : km < 3.4 ? '1-3' : km < 7 ? '3-7' : km < 17 ? '7-17' : km < 34 ? '17-34' : '34+';
       track('warp/run/' + b + 'km', 'Warp Run ended at ' + b + ' km');
       track('warp/reached/L' + Math.min(run.loop, 8) + '-W' + run.world, 'Warp Run ended in loop ' + Math.min(run.loop, 8) + ', world ' + run.world);
@@ -7961,7 +8403,7 @@ function showOver() {
     G.best = score;
     storeSet(modeKey('best', G.mode), String(score));
   }
-  addLocalRun(run);
+  if (!lab) addLocalRun(run);
   $('finalScore').textContent = score.toLocaleString();
   $('newBest').classList.toggle('hidden', !run.isBest);
   $('celebrate').classList.add('hidden');
@@ -7971,18 +8413,28 @@ function showOver() {
     (warp ? 'Reached <b>Loop ' + run.loop + ' · ' + THEMES[WP.theme].name + '</b><br>' : '') +
     'Distance <b>' + dist + ' km</b><br>' +
     'Enemies destroyed <b>' + G.kills + '</b>' + (warp && run.bosses ? ' · Bosses <b>' + run.bosses + '</b>' : '') + '<br>' +
-    'Best <b>' + G.best.toLocaleString() + '</b>';
-  $('overMode').textContent = MODES[G.mode];
-  $('overModeBtn').textContent = 'Play ' + MODES[warp ? 'classic' : 'warp'] + ' instead';
+    'Best <b>' + G.best.toLocaleString() + '</b>' + (lab ? labStatsLine() : '');
+  $('overMode').textContent = lab ? labOverLine() : MODES[G.mode];
+  $('overModeBtn').textContent = 'Play ' + MODES[warp && !lab ? 'classic' : 'warp'] + ' instead';
 
   const status = $('saveStatus');
   status.textContent = '';
-  const needsName = !SET.name && score > 0;
+  const needsName = !lab && !SET.name && score > 0;
   $('nameBox').classList.toggle('hidden', !needsName);
   if (needsName) $('nameInput').value = '';
   celebrate(run);
-  makeShareCard(run);
-  checkRun(run, status);
+  // A Lab run is a test drive: it is never checked against, or sent to, a world leaderboard,
+  // and there is nothing to share. It asks what you thought of the experiments instead.
+  $('shareBtn').classList.toggle('hidden', lab);
+  $('overLabBtn').classList.toggle('hidden', !lab);
+  $('shareStatus').textContent = '';
+  fillLabVote(lab);
+  if (lab) {
+    status.textContent = 'Lab runs are test drives, so they stay off the world leaderboard.';
+  } else {
+    makeShareCard(run);
+    checkRun(run, status);
+  }
 
   clearPanels();
   openPanel('over');
@@ -8247,6 +8699,10 @@ $('againBtn').addEventListener('click', () => { audioInit(); startGame(); });
 $('overModeBtn').addEventListener('click', () => { audioInit(); setMode(G.mode === 'warp' ? 'classic' : 'warp'); startGame(); });
 $('modeWarp').addEventListener('click', (e) => { e.stopPropagation(); audioInit(); setMode('warp'); });
 $('modeClassic').addEventListener('click', (e) => { e.stopPropagation(); audioInit(); setMode('classic'); });
+$('titleLabBtn').addEventListener('click', (e) => { e.stopPropagation(); audioInit(); openPanel('lab'); });
+$('overLabBtn').addEventListener('click', () => openPanel('lab'));
+$('labBack').addEventListener('click', closePanel);
+$('labRide').addEventListener('click', () => { audioInit(); setMode('lab'); startGame(); });
 $('overBoardBtn').addEventListener('click', () => openPanel('board'));
 $('overSettingsBtn').addEventListener('click', () => openPanel('settings'));
 $('titleBoardBtn').addEventListener('click', () => openPanel('board'));
@@ -8312,10 +8768,12 @@ window.addEventListener('pointerdown', (e) => {
   if (ui) return;
   if (G.state === 'title') startGame();
   if (G.state !== 'play') return;
+  if (LAB.on && labPointerDown(e)) return;     // (Lab: this touch was a jump, not a new steering thumb)
   drag = { id: e.pointerId, x0: e.clientX, t0: player.tx };
 });
 
 window.addEventListener('pointermove', (e) => {
+  if (LAB.on) labPointerMove(e);
   if (!drag || e.pointerId !== drag.id || G.state !== 'play') return;
   if (paused) {
     // during the resume countdown, just remember where the thumb is
@@ -8336,6 +8794,7 @@ window.addEventListener('pointermove', (e) => {
 });
 
 function endDrag(e) {
+  if (LAB.on) labPointerUp(e);
   if (drag && e.pointerId === drag.id) drag = null;
 }
 window.addEventListener('pointerup', endDrag);
@@ -8347,9 +8806,10 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
   if (e.key === 'Escape' || e.key === 'p') {
     if (ui === 'menu') resumeGame();
-    else if (ui === 'settings' || ui === 'board' || ui === 'help') closePanel();
+    else if (ui === 'settings' || ui === 'board' || ui === 'help' || ui === 'lab') closePanel();
     else if (G.state === 'play' && resumeT <= 0) openMenu();
   }
+  if (LAB.on && !ui && !e.repeat && (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w')) labKey();
   if ((e.key === ' ' || e.key === 'Enter') && !ui) {
     audioInit();
     if (G.state === 'title') startGame();
@@ -8514,12 +8974,13 @@ if (document.fonts && document.fonts.load) {
   document.fonts.load('800 20px Orbitron').catch(() => {});
 }
 setTimeout(() => {
-  retryPending().then(() => fetchTop(TOP_AGE_START, SET.mode)).then(() => { if (G.state === 'play') buildLadder(); }).catch(() => {});
+  retryPending().then(() => fetchTop(TOP_AGE_START, boardFor(SET.mode))).then(() => { if (G.state === 'play') buildLadder(); }).catch(() => {});
 }, 1500);
+if (LAB_LINK) openLabLink();        // a link ending in ?lab opens straight into the Lab panel
 requestAnimationFrame(frame);
 
 // handy for testing in the browser console
-window.SPEEDER = { step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
+window.SPEEDER = { step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, LAB, LAB_EXPERIMENTS, JUMP, labOn, labSet, tryHop, hopCharge, addObj, addPylon, addMine, addWallSpan, addLaserFence, openPanel, closePanel, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
 </script>
 </body>
 </html>

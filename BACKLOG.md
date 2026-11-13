@@ -5,6 +5,15 @@ on right now. Add anything here so it doesn't get lost.
 
 ---
 
+## Lab experiments (ideas to try in the Lab first, see LAB.md)
+
+- [x] ~~**Jump anywhere**~~ In the Lab since v0.10 (flick up vs second-finger tap; charges vs unlimited). Awaiting Adrian's playtest and a decision.
+- [ ] **Mega ramps and new roads**: bigger launches, longer air time, raised or split roads.
+- [ ] **Air rings**: steer through rings in mid-air off a mega ramp for a bonus.
+- [ ] **Forks in the road**: a safe path and a risky one with more power cells.
+- [ ] **Space tunnel**: fly through a tunnel, moving up/down as well as left/right, dodging. Suggested first as a 20-30 s stretch after the Warden. Needs its own run setup in the Lab ("A bigger experiment" in LAB.md).
+- [ ] **Lab results in the game**: show the vote totals in the Lab panel (needs somewhere to read them from; today they only go to the analytics dashboard).
+
 ## Feature Ideas
 
 > Things we might build someday. No commitment yet.

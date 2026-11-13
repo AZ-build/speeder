@@ -4,6 +4,43 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.10.0] — 2026-11-13
+
+### Session 13 — The Lab, and its first experiment: JUMP
+
+Adrian: could we add a jump, like a flick up? Other ideas too: different roads or ramps, mega
+jumps, maybe a mode where you fly through space in a tunnel and move up and down as well. But
+don't merge it with the game: add a test mode where anyone can try new features.
+
+- **THE LAB**, a third mode for trying ideas out. Open it from the title screen (the lime
+  button beside How to play), switch experiments on or off, and ride. A Lab run plays by Warp
+  Run's rules with the experiments layered over the top.
+- **Lab runs stay off every leaderboard** (world and "This device") and have no share card.
+  The Lab keeps only its own best score on the device.
+- **Thumbs up or down** on each experiment at the end of a Lab run. Votes and usage go to the
+  analytics dashboard under `lab/...`, per variant, so two versions of an idea can be compared.
+- The Lab is **never the saved mode**: the game always reopens on the last real mode you played.
+- A link ending in **`?lab`** opens the Lab directly (for inviting testers).
+- **Experiment: JUMP.** Hop anywhere, no ramp needed. About 1.5 high for 0.7 seconds (a ramp
+  jump is 2.2 and 0.95 s). A hop clears mines, walls, craters, ram bikes, turrets and chasms.
+  Pylons, crystals, trucks and laser fences are too tall, so ramps keep their job.
+  - **Two gestures to compare:** flick your steering thumb up, or tap with a second finger
+    (a quick one-finger tap works too). Space, Up or W on a computer.
+  - **Two costs to compare:** hold 2 jump charges and earn one back every 2 close calls, or
+    unlimited jumps. Charges show as lime arrows in the top bar; they blink red when empty.
+  - "HIT THE RAMP" reads "RAMP OR JUMP" when you have a charge. AIR bonuses count for hops.
+- How to play has a new section, The Lab.
+- **Classic and Warp Run are unchanged.** All Lab code sits behind `LAB.on` / `labOn()`. A
+  seeded 2-minute Classic run and 5-minute Warp Run produce identical game states before and
+  after this version.
+- New for whoever builds the next experiment: **`LAB.md`** (rules of the Lab, how to read the
+  results, the recipe for adding an experiment, the ideas queue) and **`tests/`** (three
+  automated checks to run before publishing).
+- Not tested by a human yet: hop size, the flick and tap thresholds and the charge rate are
+  first guesses.
+
+---
+
 ## [v0.9.5] — 2026-11-10
 
 ### Session 12f — No bend push, smoother speed-ups (Warp Run)

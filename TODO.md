@@ -20,6 +20,9 @@ actually working on right now?
 - [x] Warp Run scores save to the world board (Adrian's two test runs showed up, 2026-11-10)
 - [x] **Adrian:** played Warp Run and gave notes (2026-11-10)
 - [x] v0.9.0: world gates you see through and worlds that load in; 40-second worlds; three-stage Warden; cells stay on the road; fairer slalom and lasers at top speed; laser pass-through fix; rail overheat; city buildings and roadside details; Warp board reset
+- [x] v0.10.0: the Lab (test mode with switches, no leaderboard, votes) and its first experiment, JUMP
+- [ ] **Adrian:** play the Lab's JUMP on a phone, both gestures and both fuel settings, and say which feels right (questions listed in LAB.md)
+- [ ] **Adrian:** send friends the Lab link (https://az-build.github.io/speeder/?lab) and watch the `lab/vote/...` numbers on the analytics dashboard
 - [ ] **Adrian:** play v0.9 and say how these feel: the gates, the boss, 40 s per world, the rail limit
 - [ ] **Adrian (optional):** delete the two v0.8 test entries in the Firebase console (they're already hidden from the board)
 - [ ] Check v0.9's frame rate on a real mid-range phone (new buildings and roadside props)
@@ -30,6 +33,8 @@ actually working on right now?
 
 - [ ] Tune feel from playtest notes (steering speed default, speed curve, spawn spacing)
 - [ ] Tune Warp Run from Adrian's v0.9 playtest (`W_WORLD_T`, `BOSS_TOUGH`, `BOSS_PACE`, `RAIL_HOT_T`, slalom and laser spacing)
+- [ ] Tune or settle JUMP from Adrian's playtest (pick a gesture, pick charges or unlimited, or retire it)
+- [ ] Next Lab experiment: mega ramps and new roads (recipe in LAB.md)
 - [ ] Decide the next big feature: a second boss, music per world, or more set pieces (see BACKLOG)
 - [ ] Name filter for rude leaderboard names
 

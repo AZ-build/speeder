@@ -18,14 +18,18 @@ There are two modes (v0.8): **WARP RUN**, five worlds with their own hazards, a 
 between each, a boss, and loops that get faster and score more; and **CLASSIC**, the original
 endless run, kept exactly as it was in v0.7.7.
 
+There is also **THE LAB** (v0.10): a test mode where new ideas are tried out without touching
+the two real modes. Anyone can open it from the title screen, switch experiments on, play and
+vote. **Read `LAB.md` before adding or changing an experiment.**
+
 ## Status
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.9.5 |
-| **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another) |
+| **Current Version** | v0.10.0 |
+| **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab and its first experiment, JUMP, added in v0.10 and not yet played by a human) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-10 |
+| **Last Updated** | 2026-11-13 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://az-build.github.io/speeder/ |
 
 ---
@@ -130,6 +134,28 @@ Same steering, guns, power-up gates and hazards as above, plus:
   It only shows runs from version `W_BOARD_MIN_V` or newer: raising that number resets the board.
 - Timing with a perfect driver: a loop takes about 4 minutes (five 40-second worlds plus the boss).
 
+### The Lab (v0.10), the test mode
+
+Full guide, experiment list, results guide and the recipe for adding one: **`LAB.md`**.
+
+- **What it is:** a third mode for trying ideas before they go into the real game. A Lab run
+  plays by Warp Run's rules with the switched-on experiments layered over the top.
+- **Getting in:** title screen → **THE LAB** (lime button beside How to play) → switch things
+  on → **Ride in the Lab**. A link ending in `?lab` opens the Lab panel directly.
+- **Kept apart:** Lab runs never go to a world leaderboard, the "This device" boards or the
+  share card. The Lab is never the saved mode: the game always reopens on the last real mode.
+  Every Lab hook in the code sits behind `LAB.on` / `labOn('<id>')`.
+- **Votes:** the game-over screen asks for a thumbs up or down on each experiment that was on.
+  Votes and usage go to analytics under `lab/...`, counted per variant (the experiment plus its
+  options, e.g. `jump.flick.charges`).
+- **Experiment 1, JUMP:** a hop you can do anywhere (about 1.5 high, 0.7 s; a ramp jump is 2.2
+  and 0.95 s). Clears mines, walls, craters, ram bikes, turrets and chasms; not pylons,
+  crystals, trucks or laser fences. Two things are being compared: the **gesture** (flick the
+  steering thumb up, or tap with a second finger; Space on a computer) and the **fuel** (hold 2
+  charges, each close call earns half of one back; or unlimited).
+- **Ideas queued for the Lab:** mega ramps and new roads, air rings, forks in the road, a
+  space-tunnel stretch with up/down steering (see `LAB.md`).
+
 ---
 
 ## Tech Stack & Tools
@@ -156,6 +182,8 @@ Speeder/
 ├── firestore-rules-speeder.txt ← the database rules block for the Classic leaderboard
 ├── firestore-rules-warp.txt ← the database rules block for the Warp Run leaderboard
 ├── firestore-rules-FULL.txt ← the whole Firebase rules page as published (ORBit + Classic + Warp Run); keep it in step whenever a block changes
+├── LAB.md                 ← the Lab: rules, experiments, how to read results, how to add an experiment
+├── tests/                 ← automated checks (see "Before you publish" in LAB.md); not part of the game
 ├── PROJECT_CONTEXT.md / CHANGELOG.md / BACKLOG.md / TODO.md
 ```
 
@@ -178,7 +206,13 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 **Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `BOSS_SNIPE` how often it fires single shots under its other attacks · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
 
+**Lab knobs:** `LAB_EXPERIMENTS` the list of experiments (the Lab panel, saved switches, votes and analytics build themselves from it) · JUMP: `HOP_H` / `HOP_T` how high and how long a hop is · `HOP_MAX` charges you can hold · `HOP_PER_CLOSE` charge earned per close call · `HOP_OVER` which obstacles a hop clears · `FLICK_PX` / `FLICK_MS` / `FLICK_RATIO` what counts as a flick up · `TAP_MS` / `TAP_PX` what counts as a one-finger tap.
+
 ### Testing hooks
+
+Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs). Run all three before publishing.
+
+Lab hooks: `SPEEDER.setMode('lab'); SPEEDER.startGame()` (start a Lab run), `SPEEDER.LAB` (`on`, `cfg` = the saved switches, `run` = this run's experiments), `SPEEDER.labSet('jump', 'gesture', 'tap')` / `SPEEDER.labSet('jump', 'fuel', 'free')` / `SPEEDER.labSet('jump', 'on', false)`, `SPEEDER.tryHop('key')`, `SPEEDER.hopCharge(1)`, `SPEEDER.JUMP` (`n` charges, `hops`, `denied`, `by`), `SPEEDER.openPanel('lab')`. Lab storage keys: `speeder.lab.cfg` (switches), `speeder.lab.best`, `speeder.lab.votes`.
 
 Warp Run keeps the same per-mode keys under `speeder.w.` (`speeder.w.best`, `speeder.w.local`, `speeder.w.worldTop`, ...), plus `speeder.w.live` (set once its world board has loaded), `speeder.w.boardV` (the board reset this device has applied) and `speeder.w.hidden` (scores of older-version entries, left out of your rank). `speeder.pendingRuns` is shared; each run carries its mode.
 
@@ -253,6 +287,11 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Boss health (v0.8) | Scales with your firepower (to the power 0.75) and the loop | Gun damage ranges 15x from level 1 to maxed. A fixed health bar was either a wall or a 2-second fight. Better guns still kill it about twice as fast. |
 | Boss arena (v0.8) | Straight road | Bullets drift outward in bends; at boss range that's up to 3 units, which made hits feel random. |
 | Warp leaderboard (v0.8) | Its own Firestore list, `speeder_warp_scores` | The Classic rules only allow fixed fields and a per-km score cap that loops break. A new list needs one paste of rules by Adrian; until then scores wait on the device. |
+| The Lab (v0.10) | A third mode for experiments, on Warp Run's rules, with on/off switches, no leaderboard, and a thumbs up/down after each run | Adrian wants to try ideas (a jump, new roads, mega jumps, a space-flight stretch) without merging them into the game, and for anyone to be able to try them. Less prominent than the two real modes on purpose. |
+| Lab is never the saved mode (v0.10) | The game always reopens on the last real mode | A friend who tries the Lab once shouldn't come back the next day to runs that don't count. |
+| Lab votes (v0.10) | Counted per variant, one per device unless it changes | Lets two versions of an idea be compared, and counts people rather than runs. |
+| Jump gesture (v0.10) | Two are being tested side by side: flick up and second-finger tap | Claude's concern: a flick can misfire because the thumb drifts up and down while steering. The Lab decides rather than guessing. |
+| Jump cost (v0.10) | Tested both ways: 2 charges earned from close calls, or unlimited | Claude's concern: a free jump makes mines, chasms and ramps stop mattering. A hop is also lower than a ramp jump and can't clear pylons, crystals, trucks or lasers, so ramps keep their job. |
 | Music speed-up | Play the loop faster (pitch rises too) as speed climbs, capped at +14% | Simple, no extra files, and the rising pitch adds urgency. Trade-off: a pitch-preserving version would need several pre-made copies of the track. |
 
 ---
@@ -260,7 +299,9 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## What's Not In Scope (for now)
 
 - Player accounts or logins (the leaderboard uses a random ID saved on each device)
-- A second button (boost, bomb, etc.). One input is the design.
+- A second button (boost, bomb, etc.). One input is the design. (The Lab's JUMP experiment is a
+  second input on purpose: it is there to find out whether it earns a place. It stays in the Lab
+  until Adrian decides.)
 - Native app store builds
 
 ---
@@ -286,7 +327,21 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.9.0, 2026-11-10):**
+**Where things stand (after v0.10.0, 2026-11-13):**
+- v0.10.0 added **the Lab** and its first experiment, **JUMP**. Adrian asked for a jump (a
+  flick up, maybe), other ideas (different roads and ramps, mega jumps, a space-flight mode in
+  a tunnel with up/down movement) and a test mode so none of it is merged into the game.
+- Agreed plan and order: 1) Lab shell (done), 2) jump with two gestures to compare (done),
+  3) mega ramps and new roads, 4) space tunnel, suggested as a 20-30 s stretch after the
+  Warden rather than a separate game. Adrian also liked two additions: forks in the road and
+  air rings.
+- Classic and Warp Run play exactly as before: a seeded 2-minute Classic run and
+  5-minute Warp Run produce identical game states before and after (`tests/same-as-before.sh`).
+- **No human has played the Lab or the jump yet.** Hop height and length, the flick and tap
+  thresholds, and the charge rate are first guesses. Automated tests cover the rules, not the feel.
+- v0.9's playtest is still outstanding too (see below).
+
+**Earlier (after v0.9.0, 2026-11-10):**
 - Adrian played v0.8's Warp Run on 2026-11-10 (a million points on his first run): he liked
   it but it didn't feel done. v0.9.0 answers every note he gave: world gates you see through
   and worlds that load in (no wormhole, no hyperspace tube), 40-second worlds in every loop, a
@@ -345,6 +400,11 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
+- Adrian's playtest of the Lab's JUMP on a phone: does flick-up misfire while steering, is the
+  second-finger tap comfortable, do charges feel like a decision or a nuisance, does a hop feel
+  the right size? Then tune the knobs in `LAB.md`, or pick a gesture and drop the other.
+- Next experiment: mega ramps and new roads (then air rings, forks, the space tunnel). Follow
+  the recipe in `LAB.md`.
 - Adrian's playtest of v0.9: do the gates feel good at speed, is the boss now a good fight or
   too much, is 40 s per world right, does the rail limit feel fair, where does a great run end?
 - Then tune: `W_WORLD_T`, `BOSS_TOUGH`, `BOSS_PACE`, `RAIL_HOT_T`, each world's `pat` / `sig`
