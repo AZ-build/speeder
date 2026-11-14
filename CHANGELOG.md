@@ -4,6 +4,28 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.12.4] — 2026-11-13
+
+### Session 13g — Slower lanes, solid walls, easier to see what's coming
+
+Adrian: slow the hyperlanes down a little, don't make the tunnel wall see-through, and make
+the objects easier to see.
+
+- **Slower:** a lane now runs at 1.05x the road's speed (was 1.25x), never under about 300 km/h
+  (was 350); ring boosts are +15% (was +20%); the light pulses and streaks on the walls move
+  slower too. A lane still lasts about 16 seconds.
+- **Solid walls:** the tube is now shaded like a real surface, lit from above and darker
+  underneath, with dark grooves between the panels instead of bright lines, and the light
+  streaks are fainter. It no longer reads as a glowing glass tube.
+- **Easier to see:** the far end of the tunnel fades to a deep, dark blue instead of glowing
+  lavender, and the bright core is smaller, so everything coming at you (all of it glows) stands
+  out against it. Rocks have a bigger, brighter orange glow and thicker edges; rings are thicker
+  with a stronger glow and a dark outline; cells are bigger. Things come into view a little
+  sooner.
+- Classic and Warp Run unchanged.
+
+---
+
 ## [v0.12.3] — 2026-11-13
 
 ### Session 13f — Light-speed streaks blended into the walls

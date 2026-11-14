@@ -37,7 +37,7 @@ const start = await S(() => {
   P.step(1 / 60, 50); P.render();
   return { on: P.LANE.on, then: P.LANE.then, runs: P.LANE.runs, speed: Math.round(P.G.speed), hz, d: P.G.d, theme: P.WP.theme, sec: P.WP.sec };
 });
-ok('start in a lane: the run begins inside one, at hyperlane speed, with the road waiting', start.on && start.then === 'resume' && start.runs === 1 && start.speed >= 65 && start.d === 0, start);
+ok('start in a lane: the run begins inside one, at hyperlane speed, with the road waiting', start.on && start.then === 'resume' && start.runs === 1 && start.speed >= 55 && start.d === 0, start);
 await shot(page, '21-lane-start');
 ok('no jumping in a lane (jump is on)', await S(() => SPEEDER.tryHop('key') === false && SPEEDER.JUMP.hops === 0));
 
@@ -169,7 +169,7 @@ const back = await S(() => {
   P.step(1 / 60, 60); P.render();
   return Object.assign(at, { d1: G.d, state: G.state, x: P.player.x, hz0: L.hz0 });
 });
-ok('exit (test start): back on the road in the world it started in, and the road moves on', !back.on && back.sec === 0 && back.theme === 0 && back.d === 0 && back.d1 > 50 && back.state === 'play', back);
+ok('exit (test start): back on the road in the world it started in, and the road moves on', !back.on && back.sec === 0 && back.theme === 0 && back.d === 0 && back.d1 > 30 && back.state === 'play', back);
 await shot(page, '28-back-on-the-road');
 
 // --- the real thing: a Lab run reaches a world gate, flies the lane, comes out in the next world ---

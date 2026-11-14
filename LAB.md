@@ -138,8 +138,8 @@ power-ups, with the speeder rolling and flipping naturally as you move.
 - **The road waits.** While you're in the lane, nothing on the road moves and `G.d` doesn't
   change; the lane has its own distance (`LANE.d`). The score, timers (RAPID, 2X, OVERDRIVE,
   AEGIS), hull, shields and guns carry on as normal.
-- **Speed:** 1.25x the road's speed (`LANE_SPEEDUP`), never under 70 (about 350 km/h,
-  `LANE_MIN_V`). On the way out the road eases back down to its own speed.
+- **Speed:** 1.05x the road's speed (`LANE_SPEEDUP`; 1.25 until v0.12.4, Adrian: too fast),
+  never under 60 (about 300 km/h, `LANE_MIN_V`). On the way out the road eases back down to its own speed.
 - **Steering:** the same relative drag and the same sensitivity, in two directions, held
   inside a circle (`LANE_LIM`). Arrow keys / WASD on a computer. A thumb already down when you
   enter keeps steering. No jumps in a lane (flick-up would clash with steering up).
@@ -172,8 +172,10 @@ power-ups, with the speeder rolling and flipping naturally as you move.
   - Both: the nose points a little toward where it's going (pitch and yaw), and the gun
     spread turns with the speeder (rolled on its side, the bullets fan out up and down).
 - **The look (v0.12.1, after Adrian's first look):** a lit tunnel, dark hazards edged in neon,
-  bright pickups. The walls are filled panels in blue-violet (`LANE_PANEL`), lighter toward the
-  far end (`LANE_LIT`), with seams (`LANE_SEAM`) and rings of light rushing at you (`LT_PULSE`,
+  bright pickups. The walls are filled panels in blue-violet (`LANE_PANEL`), shaded like a
+  solid surface (lit from above, dark grooves between panels; v0.12.4, after Adrian found them
+  see-through), fading to a deep dark blue far off (`LANE_DEEP`) so everything coming at you
+  glows against it, with rings of light rushing at you (`LT_PULSE`,
   `LT_PULSE_V`, lightening to `LANE_PULSE`; their seam is in the next world's colour). The walls
   never take the next world's colour, so danger colours always stand out. Rocks are near-black
   with orange edges and get red target brackets on a collision course; lasers sit on a dark
