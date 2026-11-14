@@ -745,7 +745,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.12.6';
+const VERSION = '0.12.7';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -8472,38 +8472,94 @@ function drawLaneObj(o) {
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
 }
-// A wall right across the tunnel with one way through: a dark slab, so the hole (showing the lit
-// tunnel beyond, with a bright rim) is the brightest thing in it.
+// A wall right across the tunnel with one way through (v0.12.7: Adrian found the old dark slab
+// didn't read as a wall). Now a glowing pink force field: a honeycomb surface (pink is the
+// game's colour for walls), energy waves rippling out across it, a ring of hazard stripes
+// round the opening, and depth inside the hole (it is drawn as a short tube), so it reads as a
+// doorway through something thick. The way through stays the brightest, clearest thing on it.
+const IRIS_DEPTH = 0.9;      // how thick the wall looks (drawing only)
+// the honeycomb, in world units across the tunnel (built once; drawn by scaling it to each wall)
+const IRIS_HEX = (() => {
+  const P = new Path2D(), r = 0.42, w = r * Math.sqrt(3), lim = LANE_R * 1.05;
+  for (let row = -12; row <= 12; row++) {
+    for (let col = -8; col <= 8; col++) {
+      const cx = col * w + (row & 1 ? w / 2 : 0), cy = row * r * 1.5;
+      if (Math.hypot(cx, cy) > lim + r) continue;
+      for (let k = 0; k < 3; k++) {      // three edges per cell is enough to draw the whole grid once
+        const a0 = Math.PI / 6 + k * Math.PI / 3, a1 = a0 + Math.PI / 3;
+        P.moveTo(cx + r * Math.cos(a0), cy + r * Math.sin(a0));
+        P.lineTo(cx + r * Math.cos(a1), cy + r * Math.sin(a1));
+      }
+    }
+  }
+  return P;
+})();
 function drawIris(o, z, a, s) {
   if (z < 0.5) return;
-  const cx = sx(0, z), cy = sy(0, z), R = LANE_R * 1.02 * s;
+  const cx = sx(0, z), cy = sy(0, z), R = laneWallR(0, o.d) * 1.03 * s;
   const hx = sx(o.x, z), hy = sy(o.y, z), hr = o.hr * s;
   const near = clamp((z - VIEW_Z + 1) / 3, 0, 1);      // fades as you pass, so a hit never blinds you
-  ctx.globalAlpha = a * (0.3 + 0.62 * near);
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, 0, 6.2832);
-  ctx.moveTo(hx + hr, hy);
-  ctx.arc(hx, hy, hr, 0, 6.2832, true);
-  ctx.fillStyle = '#0e0418';
+  const fa = a * (0.35 + 0.65 * near);
+  const facePath = () => { ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.moveTo(hx + hr, hy); ctx.arc(hx, hy, hr, 0, 6.2832, true); };
+  // the face: deep magenta, brighter toward the tunnel wall, darker round the opening
+  const g = ctx.createRadialGradient(hx, hy, hr, cx, cy, R);
+  g.addColorStop(0, '#2a0630');
+  g.addColorStop(1, '#5c1060');
+  ctx.globalAlpha = fa * 0.94;
+  ctx.fillStyle = g;
+  facePath();
   ctx.fill('evenodd');
+  ctx.save();
+  facePath();
+  ctx.clip('evenodd');
   ctx.globalCompositeOperation = 'lighter';
-  // spokes out from the hole, so it reads as one solid wall
-  ctx.globalAlpha = a * 0.35 * (0.4 + 0.6 * near);
+  // the honeycomb, drawn in the wall's own plane
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(s, -s);
+  ctx.rotate(o.t * 0.15);
+  ctx.globalAlpha = fa * 0.45;
   ctx.strokeStyle = '#ff5fe0';
-  ctx.lineWidth = clamp(0.035 * s, 1, 3);
-  ctx.beginPath();
-  const ox = hx - cx, oy = hy - cy, oo = ox * ox + oy * oy - R * R;
-  for (let k = 0; k < 16; k++) {
-    const t = k * 0.3927 + o.t * 0.4, ux = Math.cos(t), uy = Math.sin(t), b = ux * ox + uy * oy;
-    const far = -b + Math.sqrt(Math.max(0, b * b - oo));
-    if (far <= hr) continue;
-    ctx.moveTo(hx + ux * hr * 1.2, hy + uy * hr * 1.2); ctx.lineTo(hx + ux * far, hy + uy * far);
+  ctx.lineWidth = 1.2 / s;
+  ctx.stroke(IRIS_HEX);
+  ctx.restore();
+  // waves of energy rippling out from the opening across the face
+  for (let k = 0; k < 2; k++) {
+    const f = ((o.t * 0.9 + k * 0.5) % 1), rr = hr + (R * 1.6 - hr) * f;
+    ctx.globalAlpha = fa * 0.55 * (1 - f);
+    ctx.strokeStyle = '#ff9df0';
+    ctx.lineWidth = clamp(0.25 * s * (1 - f * 0.5), 2, 26);
+    ctx.beginPath(); ctx.arc(hx, hy, rr, 0, 6.2832); ctx.stroke();
   }
-  ctx.stroke();
-  ctx.globalAlpha = a * (0.5 + 0.5 * near);
-  ctx.lineWidth = clamp(0.1 * s, 1.5, 9);
+  // hazard stripes round the opening
+  const sr = hr * 1.32, sw = clamp(0.28 * s, 3, 40), n = 18, spin = o.t * 0.8;
+  ctx.lineWidth = sw;
+  ctx.globalAlpha = fa * 0.9;
+  ctx.strokeStyle = '#ffd23f';
+  for (let k = 0; k < n; k += 2) { ctx.beginPath(); ctx.arc(hx, hy, sr, spin + k * 6.2832 / n, spin + (k + 1) * 6.2832 / n); ctx.stroke(); }
+  ctx.restore();
+  ctx.globalCompositeOperation = 'lighter';
+  // where the wall meets the tunnel: a bright pink seam
+  ctx.globalAlpha = fa * 0.4;
+  ctx.strokeStyle = '#ff5fe0';
+  ctx.lineWidth = clamp(0.35 * s, 3, 40);
   ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.stroke();
-  // the way through
+  ctx.globalAlpha = fa;
+  ctx.strokeStyle = '#ffc4f6';
+  ctx.lineWidth = clamp(0.07 * s, 1.5, 8);
+  ctx.stroke();
+  ctx.globalCompositeOperation = 'source-over';
+  // inside the opening: the wall's thickness, as a short tube to fly through
+  const z2 = z + IRIS_DEPTH, s2 = FOCAL / z2, bx = sx(o.x, z2), by = sy(o.y, z2), br = o.hr * s2;
+  ctx.globalAlpha = fa * 0.9;
+  ctx.fillStyle = '#1a0424';
+  ctx.beginPath(); ctx.arc(hx, hy, hr, 0, 6.2832); ctx.moveTo(bx + br, by); ctx.arc(bx, by, br, 0, 6.2832, true); ctx.fill('evenodd');
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = fa * 0.5;
+  ctx.strokeStyle = COLORS.cyan;
+  ctx.lineWidth = clamp(0.04 * s2, 1, 4);
+  ctx.beginPath(); ctx.arc(bx, by, br, 0, 6.2832); ctx.stroke();
+  // the way through: a bright rim, and four arrows pointing in
   const pulse = 0.8 + 0.2 * Math.sin(o.t * 8);
   glow(SPR.cyan, hx, hy, hr * 1.6, hr * 1.6, a * 0.45);
   ctx.globalAlpha = a * pulse;
@@ -8513,11 +8569,11 @@ function drawIris(o, z, a, s) {
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = clamp(0.045 * s, 1, 4);
   ctx.stroke();
-  // four arrows pointing into it
-  ctx.globalAlpha = a * pulse * 0.9;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = a * pulse * 0.95;
   ctx.fillStyle = '#e8ffff';
   for (let k = 0; k < 4; k++) {
-    const t = k * 1.5708 + 0.785, ux = Math.cos(t), uy = Math.sin(t), d0 = hr * (1.35 + 0.12 * Math.sin(o.t * 8)), q = hr * 0.22;
+    const t = k * 1.5708 + 0.785, ux = Math.cos(t), uy = Math.sin(t), d0 = hr * (1.62 + 0.1 * Math.sin(o.t * 8)), q = hr * 0.2;
     ctx.beginPath();
     ctx.moveTo(hx + ux * d0, hy + uy * d0);
     ctx.lineTo(hx + ux * (d0 + q * 1.4) - uy * q, hy + uy * (d0 + q * 1.4) + ux * q);

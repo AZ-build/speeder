@@ -179,7 +179,9 @@ power-ups, with the speeder rolling and flipping naturally as you move.
   `LT_PULSE_V`, lightening to `LANE_PULSE`; their seam is in the next world's colour). The walls
   never take the next world's colour, so danger colours always stand out. Rocks are near-black
   with orange edges and get red target brackets on a collision course; lasers sit on a dark
-  band; iris walls are dark with a bright hole. The tunnel forms around you as you drop in
+  band; iris walls are glowing pink honeycomb force fields with energy waves, hazard stripes
+  round the opening and visible thickness inside it (v0.12.7: Adrian found the dark version
+  didn't read as a wall; `drawIris()`, `IRIS_HEX`, `IRIS_DEPTH`). The tunnel forms around you as you drop in
   (`LANE.form`, 0.7 s), streaks stretch with speed, boosts and the exit, and a dark vignette
   frames the screen. Each ring gives a speed burst (`LANE.boost`, +20%). Light-speed walls:
   the walls ripple (`LANE_WARP`, drawing only) and wide, faint bands of light pour down them,

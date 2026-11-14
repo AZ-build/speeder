@@ -4,6 +4,25 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.12.7] — 2026-11-13
+
+### Session 13j — Walls that look like walls
+
+Adrian: it's hard to tell the walls with holes are walls; make them more obviously walls, still
+looking cool.
+
+- The iris walls are now glowing pink force fields instead of dark discs: a honeycomb surface
+  (pink is the game's colour for walls), deep magenta getting brighter toward the tunnel wall,
+  energy waves rippling out from the opening across the face, a bright seam where the wall meets
+  the tunnel, and a ring of turning hazard stripes round the opening.
+- The opening has depth: you see the wall's thickness inside it as a short tube, so it reads
+  as a doorway through something solid. The bright cyan rim and the four arrows still mark the
+  way through.
+- Drawing only: the hole size and what counts as a hit are unchanged.
+- Classic and Warp Run unchanged.
+
+---
+
 ## [v0.12.6] — 2026-11-13
 
 ### Session 13i — Bigger holes, shorter lanes

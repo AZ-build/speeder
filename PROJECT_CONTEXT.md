@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.12.6 |
+| **Current Version** | v0.12.7 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-13 |
@@ -353,7 +353,8 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Adrian likes the hyperlane ("cool"). Since v0.12.1: softer streaks blended into the walls
   (v0.12.2-3), slower lanes and solid shaded walls with a dark far end (v0.12.4), a proper
   landing out of the lane and a new outline shield that rolls with the speeder in every mode
-  (v0.12.5), and bigger wall holes and rings plus 11 s lanes instead of 16 (v0.12.6).
+  (v0.12.5), bigger wall holes and rings plus 11 s lanes instead of 16 (v0.12.6), and walls that
+  clearly look like walls: pink honeycomb force fields with depth in the opening (v0.12.7).
 
 **Earlier (after v0.12.1, 2026-11-13):**
 - Adrian's first look at the hyperlane: potential, but the look needed a lot more (bigger
