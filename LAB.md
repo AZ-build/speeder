@@ -131,7 +131,7 @@ between worlds: through the portal into hyperspace, at high speed, dodging thing
 power-ups, with the speeder rolling and flipping naturally as you move.
 
 - **When:** every world gate (including the one after the Warden) opens onto the lane instead
-  of the next world; the gate's window shows the tunnel. You're in it for about **16 seconds**
+  of the next world; the gate's window shows the tunnel. You're in it for about **11 seconds**
   (`LANE_T`), then out through an exit that shows the next world, which loads in as usual
   (`enterWorld()`). The first lane of a run comes at the first gate, about 55 seconds in, or
   straight away with the test setup's **Start in a hyperlane**.
@@ -152,9 +152,9 @@ power-ups, with the speeder rolling and flipping naturally as you move.
     drift from loop 2.
   - **Lasers** (red, like everywhere): a beam across the tunnel; bullets pass through.
     `spin` beams turn; `cross` is two at right angles, turning together.
-  - **Iris walls** (pink, like walls): a wall right across with one hole (radius 1.2, a little
-    smaller each loop, never under 0.95). Bullets only get through the hole.
-  - **Rings** (yellow): six in a snaking line, +150 x how many you've threaded so far; all six
+  - **Iris walls** (pink, like walls): a wall right across with one hole (radius 1.6, a little
+    smaller each loop, never under 1.3; was 1.2 / 0.95 until v0.12.6, too hard to hit). Bullets only get through the hole.
+  - **Rings** (yellow, radius 1.3; 1.0 until v0.12.6): six in a snaking line, +150 x how many you've threaded so far; all six
     is +800, 2 cells and a zoom.
   - **Cells** (green): a spiral of 8, each charges OVERDRIVE. MAGNET pulls them in.
   - **Orb:** one power-up per lane, only ones that would do something (shield, guns, repair,
@@ -201,12 +201,12 @@ power-ups, with the speeder rolling and flipping naturally as you move.
   `LANE_MIN_V`, `LANE_CAM_Z`, `LANE_ZOOM` (how big the speeder is on screen), `LANE_CAM_UP`, `LANE_FOLLOW`, `LANE_FOLLOW_Y`, `LANE_WARP`, `LANE_STREAKS`, `LANE_BEND`, `LANE_GAP`, `ROLL_V`,
   `LANE_ROLL_RATE`, `LANE_BANK`, `SPIN_V`, `SPIN_T`, `LROCK_HP`, `LRING_R`, `LRING_PTS`,
   `LRING_PERFECT`, `LIRIS_HOLE`, `LASER_HALF`; what's in a lane: `LANE_SECTIONS`.
-- **Known trade-off:** five lanes a loop add about 80 seconds, so a Lab loop takes ~5 minutes
-  instead of ~4. If it should graduate, the obvious variants are "every other gate" or
+- **Known trade-off:** five lanes a loop add about a minute (11 s each), so a Lab loop takes
+  ~5 minutes instead of ~4. If it should graduate, the obvious variants are "every other gate" or
   "only after the Warden".
 - **Open questions for the playtest:** Is the new look (v0.12.1) right: walls light enough,
   hazards easy to read at speed, zoom right? Barrel rolls or Smooth banks? Is up/down with the same
-  thumb natural, or does it fight the left/right? Is 16 s right? Too much or too little in a
+  thumb natural, or does it fight the left/right? Is 11 s right (16 until v0.12.6)? Too much or too little in a
   lane? Is the barrel-roll swipe too easy or too hard to trigger? Does the lane break the flow
   between worlds that Adrian liked in v0.9, or is it a welcome change of pace?
 

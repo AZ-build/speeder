@@ -4,6 +4,22 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.12.6] — 2026-11-13
+
+### Session 13i — Bigger holes, shorter lanes
+
+Adrian: the hyperlane is cool. The holes to fly through are a bit too small and hard to hit;
+make them bigger, and make the lanes a bit shorter since they come between every world.
+
+- Iris wall holes are a third bigger: radius 1.6 on loop 1 (was 1.2), never under 1.3 on later
+  loops (was 0.95).
+- Rings are bigger too: radius 1.3 (was 1.0).
+- A hyperlane now lasts about 11 seconds (was 16), so five a loop add about a minute, not 80 s.
+  It still opens with rings and has the power-up orb third, with fewer sections after it.
+- Classic and Warp Run unchanged.
+
+---
+
 ## [v0.12.5] — 2026-11-13
 
 ### Session 13h — Landing out of the hyperlane, and a new shield

@@ -243,7 +243,7 @@ const res = await S(() => {
   after.roadD = G.d - m.entryD; after.state = G.state;
   return after;
 });
-ok('a world gate leads into a hyperlane that lasts about 16 s', res.runs === 1 && !res.on && res.secs > 14.5 && res.secs < 18, res);
+ok('a world gate leads into a hyperlane that lasts about 11 s', res.runs === 1 && !res.on && res.secs > 9.5 && res.secs < 13, res);
 ok('the road waits while you are in the lane, then carries on', res.gD === 0 && res.roadD > 20, res);
 ok('out of the lane into the next world (+1 world, new world loads in)', res.sec === res.sec0 + 1 && res.theme === 1 && res.rez < 1, res);
 ok('a lane has rings, an orb, and hazards', res.seen.ring >= 6 && res.seen.orb === 1 && (res.seen.rock || 0) + (res.seen.laser || 0) + (res.seen.iris || 0) >= 3, res.seen);

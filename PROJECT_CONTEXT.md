@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.12.2 |
+| **Current Version** | v0.12.6 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-13 |
@@ -158,7 +158,7 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
   high for 2.6 s with five rings to steer through (+200 up to +1,000, all five = perfect flight:
   +1,000, 2 power cells, a jump charge). The road underneath is kept clear, so it is a choice.
 - **Experiment 3, HYPERLANE (v0.12):** every world gate opens onto a zero-gravity hyperspace
-  tunnel for about 16 s before the next world. The same drag steers up and down too. Rocks
+  tunnel for about 11 s (16 until v0.12.6) before the next world. The same drag steers up and down too. Rocks
   (shoot or dodge), lasers, iris walls (fly through the hole), six-ring lines, cell spirals and
   one power-up orb per lane. The road waits while you're in it. Compared: **flying style**,
   Barrel rolls (the speeder rolls its top toward where it's going, flips on dives, a fast swipe
@@ -349,7 +349,13 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.12.1, 2026-11-13):**
+**Where things stand (after v0.12.6, 2026-11-13):**
+- Adrian likes the hyperlane ("cool"). Since v0.12.1: softer streaks blended into the walls
+  (v0.12.2-3), slower lanes and solid shaded walls with a dark far end (v0.12.4), a proper
+  landing out of the lane and a new outline shield that rolls with the speeder in every mode
+  (v0.12.5), and bigger wall holes and rings plus 11 s lanes instead of 16 (v0.12.6).
+
+**Earlier (after v0.12.1, 2026-11-13):**
 - Adrian's first look at the hyperlane: potential, but the look needed a lot more (bigger
   tunnel, more contrast, maybe zoomed in). v0.12.1 is a full visual pass: lit panelled walls,
   dark hazards with neon edges and target brackets, bright pickups, a bigger tunnel and closer
@@ -450,7 +456,7 @@ See `CHANGELOG.md` for a full session-by-session history.
 **Next session focus:**
 - Adrian's playtest of the HYPERLANE (switch on "Start in a hyperlane"): does the v0.12.1 look
   work (contrast, zoom, effects)? Barrel rolls or Smooth
-  banks? Does up/down steering feel natural? Is 16 s right, and is there too much or too little
+  banks? Does up/down steering feel natural? Is 11 s right, and is there too much or too little
   in a lane? Then tune the knobs in `LAB.md`.
 - Adrian's playtest of v0.11 in the Lab, ideally starting on loop 3, fully loaded: is the jump
   now the right size, does flick-up misfire while steering, is the second-finger tap
