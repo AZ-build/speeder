@@ -745,7 +745,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.12.2';
+const VERSION = '0.12.3';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -8191,6 +8191,9 @@ function drawLaneTunnel() {
     ctx.closePath();
   }
   ctx.fill();
+  const ez = L.exit ? L.exit.d - L.d : 1e9;
+  const stretch = (1 + 5 * (1 - form) * (1 - form)) * (1 + 2 * clamp(1 - ez / 70, 0, 1)) * (1 + 0.8 * L.boost);
+  drawLaneWarp(end, stretch, form);
   ctx.globalCompositeOperation = 'lighter';
   // the seams running down the tube
   ctx.globalAlpha = 0.22 * form;
@@ -8220,8 +8223,6 @@ function drawLaneTunnel() {
   }
   // star streaks through the tube, and dashes of energy racing along the seams. The faster you
   // go (and just after you jump in, or as the exit nears) the longer they stretch.
-  const ez = L.exit ? L.exit.d - L.d : 1e9;
-  const stretch = (1 + 5 * (1 - form) * (1 - form)) * (1 + 2 * clamp(1 - ez / 70, 0, 1)) * (1 + 0.8 * L.boost);
   const ns = Math.min(L.streaks.length, QUAL.streaks + 20);
   ctx.lineCap = 'round';
   for (let i = 0; i < ns; i++) {
@@ -8241,49 +8242,53 @@ function drawLaneTunnel() {
     ctx.lineWidth = clamp(0.025 * FOCAL / z, 0.6, 2);
     ctx.stroke();
   }
-  // light speed: streaks of blue-white light pouring down the walls, curling round the tube as
-  // they come, flickering
-  ctx.lineCap = 'round';
+  ctx.lineCap = 'butt';
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+// Light speed, painted onto the walls: wide, faint bands of light pouring down the tube and
+// curling round it, in the walls' own colours. Drawn under the seams so they read as part of
+// the wall (v0.12.3: Adrian wanted them thicker, subtler and blended into the walls).
+function drawLaneWarp(end, stretch, form) {
+  const L = LANE, camD = VIEW_D;
   const nw = Math.min(L.warp.length, QUAL.name === 'Low' ? 45 : LANE_STREAKS);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineCap = 'butt';            // (square ends: they fade into the wall rather than ending in blobs)
   for (let i = 0; i < nw; i++) {
     const w = L.warp[i], z = w.d - camD;
     if (z < 1.5 || z > end) continue;
     const len = w.len * stretch, z2 = Math.min(z + len, end), zm = (z + z2) / 2;
     const a0 = w.a + L.twist + w.d * 0.004, a1 = a0 + w.curl * (z2 - z), am = (a0 + a1) / 2;
     const r0 = laneWallR(a0, w.d) * w.rf, rm = laneWallR(am, w.d + (zm - z)) * w.rf, r1 = laneWallR(a1, w.d + (z2 - z)) * w.rf;
-    const fog = clamp((115 - z) / 50, 0, 1) * clamp((z - 1.5) / 5, 0, 1);    // (none far off: the middle stays clear for what's coming)
-    const fl = 0.8 + 0.2 * Math.sin(L.t * w.fq + i * 1.7);     // a gentle shimmer, not a flicker
+    const fog = clamp((115 - z) / 50, 0, 1) * clamp((z - 1.5) / 5, 0, 1);
+    const fl = 0.85 + 0.15 * Math.sin(L.t * w.fq + i * 1.7);
     const X0 = sx(Math.cos(a0) * r0, z), Y0 = sy(Math.sin(a0) * r0, z);
     const XM = sx(Math.cos(am) * rm, zm), YM = sy(Math.sin(am) * rm, zm);
     const X1 = sx(Math.cos(a1) * r1, z2), Y1 = sy(Math.sin(a1) * r1, z2);
     ctx.beginPath(); ctx.moveTo(X0, Y0); ctx.quadraticCurveTo(2 * XM - (X0 + X1) / 2, 2 * YM - (Y0 + Y1) / 2, X1, Y1);
-    // soft and hazy: two wide faint strokes and only a faint brighter middle, no hard white line
-    ctx.globalAlpha = fog * fl * 0.07 * form;
     ctx.strokeStyle = w.c;
-    ctx.lineWidth = clamp(w.w * 7 * FOCAL / z, 3, 34);
+    ctx.globalAlpha = fog * fl * 0.06 * form;
+    ctx.lineWidth = clamp(w.w * 16 * FOCAL / z, 5, 90);
     ctx.stroke();
-    ctx.globalAlpha = fog * fl * 0.13 * form;
-    ctx.lineWidth = clamp(w.w * 3 * FOCAL / z, 1.5, 14);
-    ctx.stroke();
-    ctx.globalAlpha = fog * fl * 0.22 * form;
-    ctx.lineWidth = clamp(w.w * FOCAL / z, 0.8, 4);
+    ctx.globalAlpha = fog * fl * 0.08 * form;
+    ctx.lineWidth = clamp(w.w * 7 * FOCAL / z, 2.5, 40);
     ctx.stroke();
   }
   ctx.lineCap = 'butt';
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
 }
-// a light-speed streak on the walls: where it is round the tube and how long, bright and curly
-const LANE_WARP_C = ['#9fdcff', '#c8ecff', '#7ab8ff', '#e2d4ff'];
+// a light-speed streak on the walls: where it is round the tube and how long, wide and curly
+const LANE_WARP_C = ['#8fa8ff', '#a890ff', '#b8c8ff', '#9cc4ff'];   // the walls' own blues and violets
 function laneWarpStreak(w, d) {
   w.d = d;
   w.a = rand(0, 6.2832);
   w.len = rand(18, 60);
   w.w = rand(0.025, 0.06);
-  w.rf = rand(0.9, 0.99);
+  w.rf = rand(0.97, 1);          // right on the wall
   w.curl = rand(-0.012, 0.012);
   w.fq = rand(3, 7);
-  w.c = Math.random() < 0.2 ? laneTint().c : pick(LANE_WARP_C);
+  w.c = Math.random() < 0.12 ? laneTint().c : pick(LANE_WARP_C);
   return w;
 }
 // Screen effects that don't turn with the camera: the dark frame round the edges, and the burst

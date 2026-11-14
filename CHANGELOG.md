@@ -4,6 +4,20 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.12.3] — 2026-11-13
+
+### Session 13f — Light-speed streaks blended into the walls
+
+Adrian: even thicker, more subtle, and blended into the wall of the hyperlane.
+
+- The light-speed streaks are now wide, faint bands painted onto the walls themselves, in the
+  walls' own blues and violets (an occasional one in the next world's colour), with no bright
+  middle. They sit right on the wall and are drawn under the panel seams, so they read as part
+  of the wall rather than something floating in front of it.
+- Classic and Warp Run unchanged.
+
+---
+
 ## [v0.12.2] — 2026-11-13
 
 ### Session 13e — Softer light-speed streaks
