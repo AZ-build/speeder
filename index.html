@@ -745,7 +745,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.12.1';
+const VERSION = '0.12.2';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -8092,7 +8092,7 @@ const LANE_LIT = [92, 76, 190];                    // what the walls fade to far
 const LANE_SEAM = '#a8ecff';                        // the seams between panels
 const LANE_PULSE = [150, 136, 255];                // a pulse of light lightens the panels to this
 const LANE_WARP = 0.08;       // how much the walls ripple and warp (share of the radius; drawing only, never the gameplay)
-const LANE_STREAKS = 120;     // light-speed streaks on the walls
+const LANE_STREAKS = 80;      // light-speed streaks on the walls (120 in the first v0.12.1 build: too striking)
 const LT_PULSE = 72;          // a ring of light every this many units...
 const LT_PULSE_V = 80;        // ...rushing at you this much faster than you fly
 const LT_N = Math.ceil(LANE_FAR / LANE_RING_GAP) + 4;
@@ -8109,7 +8109,7 @@ function drawLane() {
   drawLaneTunnel();
   drawList.length = 0;
   for (const o of L.objs) { o._z = o.d - VIEW_D; if (o._z > 0.3 && o._z < LANE_FAR + 10) drawList.push(o); }
-  for (const b of L.shots) { b._z = b.d - VIEW_D; if (b._z > 1 && b._z < LANE_FAR) drawList.push(b); }
+  for (const b of L.shots) { b._z = b.d - VIEW_D; if (b._z > 1 && b._z < 95) drawList.push(b); }   // (bullets fade from view part way down, so they don't scribble over the middle; they still hit)
   for (const p of parts) { p._z = p.d - VIEW_D; if (p._z > 0.8 && p._z < LANE_FAR) drawList.push(p); }
   if (player.alive) { PLAYER_ITEM._z = VIEW_Z; drawList.push(PLAYER_ITEM); }
   drawList.sort((a, b) => b._z - a._z);
@@ -8232,13 +8232,13 @@ function drawLaneTunnel() {
     const z2 = z + G.speed * (wall ? 0.11 : 0.06) * stretch;
     const fog = clamp((115 - z) / 50, 0, 1) * clamp((z - 2.5) / 4, 0, 1);
     const X1 = sx(x, z), Y1 = sy(y, z), X2 = sx(x, z2), Y2 = sy(y, z2);
-    ctx.globalAlpha = fog * (wall ? 0.5 : 0.35);
+    ctx.globalAlpha = fog * 0.12;
     ctx.strokeStyle = wall ? T.c : '#c8d6ff';
-    ctx.lineWidth = clamp((wall ? 0.09 : 0.05) * FOCAL / z, 1, 6);
+    ctx.lineWidth = clamp((wall ? 0.16 : 0.1) * FOCAL / z, 2, 10);
     ctx.beginPath(); ctx.moveTo(X1, Y1); ctx.lineTo(X2, Y2); ctx.stroke();
-    ctx.globalAlpha = fog * 0.8;
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = clamp(0.02 * FOCAL / z, 0.6, 2);
+    ctx.globalAlpha = fog * 0.25;
+    ctx.strokeStyle = '#dfe8ff';
+    ctx.lineWidth = clamp(0.025 * FOCAL / z, 0.6, 2);
     ctx.stroke();
   }
   // light speed: streaks of blue-white light pouring down the walls, curling round the tube as
@@ -8252,18 +8252,21 @@ function drawLaneTunnel() {
     const a0 = w.a + L.twist + w.d * 0.004, a1 = a0 + w.curl * (z2 - z), am = (a0 + a1) / 2;
     const r0 = laneWallR(a0, w.d) * w.rf, rm = laneWallR(am, w.d + (zm - z)) * w.rf, r1 = laneWallR(a1, w.d + (z2 - z)) * w.rf;
     const fog = clamp((115 - z) / 50, 0, 1) * clamp((z - 1.5) / 5, 0, 1);    // (none far off: the middle stays clear for what's coming)
-    const fl = 0.55 + 0.45 * Math.sin(L.t * w.fq + i * 1.7);
+    const fl = 0.8 + 0.2 * Math.sin(L.t * w.fq + i * 1.7);     // a gentle shimmer, not a flicker
     const X0 = sx(Math.cos(a0) * r0, z), Y0 = sy(Math.sin(a0) * r0, z);
     const XM = sx(Math.cos(am) * rm, zm), YM = sy(Math.sin(am) * rm, zm);
     const X1 = sx(Math.cos(a1) * r1, z2), Y1 = sy(Math.sin(a1) * r1, z2);
     ctx.beginPath(); ctx.moveTo(X0, Y0); ctx.quadraticCurveTo(2 * XM - (X0 + X1) / 2, 2 * YM - (Y0 + Y1) / 2, X1, Y1);
-    ctx.globalAlpha = fog * fl * 0.35 * form;
+    // soft and hazy: two wide faint strokes and only a faint brighter middle, no hard white line
+    ctx.globalAlpha = fog * fl * 0.07 * form;
     ctx.strokeStyle = w.c;
-    ctx.lineWidth = clamp(w.w * 2.6 * FOCAL / z, 1, 14);
+    ctx.lineWidth = clamp(w.w * 7 * FOCAL / z, 3, 34);
     ctx.stroke();
-    ctx.globalAlpha = fog * fl * 0.9 * form;
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = clamp(w.w * FOCAL / z, 0.7, 4);
+    ctx.globalAlpha = fog * fl * 0.13 * form;
+    ctx.lineWidth = clamp(w.w * 3 * FOCAL / z, 1.5, 14);
+    ctx.stroke();
+    ctx.globalAlpha = fog * fl * 0.22 * form;
+    ctx.lineWidth = clamp(w.w * FOCAL / z, 0.8, 4);
     ctx.stroke();
   }
   ctx.lineCap = 'butt';
@@ -8279,7 +8282,7 @@ function laneWarpStreak(w, d) {
   w.w = rand(0.025, 0.06);
   w.rf = rand(0.9, 0.99);
   w.curl = rand(-0.012, 0.012);
-  w.fq = rand(8, 22);
+  w.fq = rand(3, 7);
   w.c = Math.random() < 0.2 ? laneTint().c : pick(LANE_WARP_C);
   return w;
 }

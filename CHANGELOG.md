@@ -4,6 +4,21 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.12.2] — 2026-11-13
+
+### Session 13e — Softer light-speed streaks
+
+Adrian: the streaks need to be softer, fuzzier, less striking and distracting.
+
+- Light-speed streaks on the walls are now soft, hazy bands of light (wide faint glow, a faint
+  brighter middle, no hard white line), a gentle shimmer instead of a flicker, and fewer of
+  them (80, was 120). The star streaks inside the tube are softer too.
+- Your bullets fade from view part way down the tunnel, so they no longer scribble a bright
+  knot over the middle of the screen. They still hit things all the way down.
+- Classic and Warp Run unchanged.
+
+---
+
 ## [v0.12.1] — 2026-11-13
 
 ### Session 13d — A new look for the hyperlane

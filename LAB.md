@@ -180,8 +180,9 @@ power-ups, with the speeder rolling and flipping naturally as you move.
   band; iris walls are dark with a bright hole. The tunnel forms around you as you drop in
   (`LANE.form`, 0.7 s), streaks stretch with speed, boosts and the exit, and a dark vignette
   frames the screen. Each ring gives a speed burst (`LANE.boost`, +20%). Light-speed walls:
-  the walls ripple (`LANE_WARP`, drawing only) and streaks of light pour down them
-  (`LANE_STREAKS`, `laneWarpStreak()`). The camera sits above the speeder (`LANE_CAM_UP`) and
+  the walls ripple (`LANE_WARP`, drawing only) and soft, hazy streaks of light pour down them
+  (`LANE_STREAKS`, `laneWarpStreak()`; v0.12.2 made them softer after Adrian found the first
+  ones too striking). The camera sits above the speeder (`LANE_CAM_UP`) and
   follows more of its up-and-down (`LANE_FOLLOW_Y`) so the speeder stays below the far end.
 - **How it plugs in:** `startLane()` is called from the world gate (one guarded line in
   `updateWarpObj`), and while `LANE.on` the game's `update()` and `render()` hand over to

@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.12.1 |
+| **Current Version** | v0.12.2 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-13 |
@@ -354,7 +354,8 @@ See `CHANGELOG.md` for a full session-by-session history.
   tunnel, more contrast, maybe zoomed in). v0.12.1 is a full visual pass: lit panelled walls,
   dark hazards with neon edges and target brackets, bright pickups, a bigger tunnel and closer
   camera, a jump-in effect, speed bursts through rings, and (his mid-session ask) Star Wars-style
-  light-speed walls: rippling, with streaks of light pouring down them. Still not played on a phone.
+  light-speed walls: rippling, with streaks of light pouring down them. v0.12.2 made the streaks
+  soft and hazy (Adrian: too striking and distracting). Still not played on a phone.
 
 **Earlier the same day (after v0.12.0, 2026-11-13):**
 - Adrian asked for the flying idea in the Lab, between worlds rather than after the Warden:
