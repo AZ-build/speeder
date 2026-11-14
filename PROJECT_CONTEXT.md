@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.12.0 |
+| **Current Version** | v0.12.1 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-13 |
@@ -219,7 +219,7 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 **Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `BOSS_SNIPE` how often it fires single shots under its other attacks · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
 
-**Lab knobs:** `LAB_EXPERIMENTS` the list of experiments (the Lab panel, saved switches, votes and analytics build themselves from it) · JUMP: `HOP_H` / `HOP_T` how high and how long a jump is · `HOP_MAX` charges you can hold · `HOP_PER_CLOSE` charge earned per close call · `HOP_OVER` which obstacles a hop clears · `FLICK_PX` / `FLICK_MS` / `FLICK_RATIO` what counts as a flick up · `TAP_MS` / `TAP_PX` what counts as a one-finger tap · SKY RAMPS: `SKY_W` / `SKY_LEN` / `SKY_H` the ramp's size · `SKY_PEAK` / `SKY_T` how high and how long the flight is · `SKY_RINGS` / `RING_R` how many rings and how big · `RING_PTS` / `RING_PERFECT` points · `SKY_EVERY` seconds between sky ramps · HYPERLANE: `LANE_T` seconds in a lane · `LANE_R` / `LANE_LIM` tunnel size and how far you can go · `LANE_SPEEDUP` / `LANE_MIN_V` speed · `LANE_CAM_Z` / `LANE_FOLLOW` camera · `LANE_BEND` how much it snakes · `LANE_GAP` space between sections · `ROLL_V` / `LANE_ROLL_RATE` / `LANE_BANK` how the speeder rolls · `SPIN_V` / `SPIN_T` barrel roll swipe and length · `LROCK_HP` / `LRING_PTS` / `LRING_PERFECT` / `LIRIS_HOLE` hazards and points · `LANE_SECTIONS` what's in a lane · test setup: `LAB_LOOPS` the highest starting loop offered.
+**Lab knobs:** `LAB_EXPERIMENTS` the list of experiments (the Lab panel, saved switches, votes and analytics build themselves from it) · JUMP: `HOP_H` / `HOP_T` how high and how long a jump is · `HOP_MAX` charges you can hold · `HOP_PER_CLOSE` charge earned per close call · `HOP_OVER` which obstacles a hop clears · `FLICK_PX` / `FLICK_MS` / `FLICK_RATIO` what counts as a flick up · `TAP_MS` / `TAP_PX` what counts as a one-finger tap · SKY RAMPS: `SKY_W` / `SKY_LEN` / `SKY_H` the ramp's size · `SKY_PEAK` / `SKY_T` how high and how long the flight is · `SKY_RINGS` / `RING_R` how many rings and how big · `RING_PTS` / `RING_PERFECT` points · `SKY_EVERY` seconds between sky ramps · HYPERLANE: `LANE_T` seconds in a lane · `LANE_R` / `LANE_LIM` tunnel size and how far you can go · `LANE_SPEEDUP` / `LANE_MIN_V` speed · `LANE_CAM_Z` / `LANE_ZOOM` / `LANE_FOLLOW` camera · `LANE_PANEL` / `LANE_LIT` / `LANE_PULSE` / `LT_PULSE` the walls' colours and light pulses · `LANE_WARP` / `LANE_STREAKS` light-speed ripple and streaks · `LANE_CAM_UP` / `LANE_FOLLOW_Y` keep the speeder below the far end · `LANE_BEND` how much it snakes · `LANE_GAP` space between sections · `ROLL_V` / `LANE_ROLL_RATE` / `LANE_BANK` how the speeder rolls · `SPIN_V` / `SPIN_T` barrel roll swipe and length · `LROCK_HP` / `LRING_PTS` / `LRING_PERFECT` / `LIRIS_HOLE` hazards and points · `LANE_SECTIONS` what's in a lane · test setup: `LAB_LOOPS` the highest starting loop offered.
 
 ### Testing hooks
 
@@ -313,6 +313,7 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Hyperlane and the road (v0.12) | The road waits while you're in the lane; the lane takes over update and drawing | Keeps the lane fully separate from road gameplay, so it can't break Warp Run, and lets it live in the Lab as a layer rather than its own run. |
 | Hyperlane steering (v0.12) | The same relative drag, now two-way, held inside a circle; no jumps in the lane | One input stays the design. A flick-up jump would fight steering up. |
 | Speeder in the lane (v0.12) | Two styles compared: Barrel rolls (top toward the move, flips on dives, swipe to spin) vs Smooth banks | Adrian described the first; Claude's concern: flipping upside down may disorient, so the Lab compares it with a calmer one. Rolls are looks only, never change collisions. |
+| Hyperlane look (v0.12.1) | Lit blue-violet tunnel, dark hazards edged in neon, bright pickups; walls never take the next world's colour | Adrian: needs more contrast between walls and what's coming, maybe lighter walls, a bigger tunnel, zoomed in. Light-vs-dark plus cool-vs-warm keeps hazards readable at speed. |
 | Music speed-up | Play the loop faster (pitch rises too) as speed climbs, capped at +14% | Simple, no extra files, and the rising pitch adds urgency. Trade-off: a pitch-preserving version would need several pre-made copies of the track. |
 
 ---
@@ -348,7 +349,14 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.12.0, 2026-11-13):**
+**Where things stand (after v0.12.1, 2026-11-13):**
+- Adrian's first look at the hyperlane: potential, but the look needed a lot more (bigger
+  tunnel, more contrast, maybe zoomed in). v0.12.1 is a full visual pass: lit panelled walls,
+  dark hazards with neon edges and target brackets, bright pickups, a bigger tunnel and closer
+  camera, a jump-in effect, speed bursts through rings, and (his mid-session ask) Star Wars-style
+  light-speed walls: rippling, with streaks of light pouring down them. Still not played on a phone.
+
+**Earlier the same day (after v0.12.0, 2026-11-13):**
 - Adrian asked for the flying idea in the Lab, between worlds rather than after the Warden:
   through the portal into a zero-g hyperspace tunnel at high speed, dodging and grabbing
   power-ups, with the speeder rotating and flipping naturally. v0.12.0 adds it as HYPERLANE,
@@ -439,7 +447,8 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
-- Adrian's playtest of the HYPERLANE (switch on "Start in a hyperlane"): Barrel rolls or Smooth
+- Adrian's playtest of the HYPERLANE (switch on "Start in a hyperlane"): does the v0.12.1 look
+  work (contrast, zoom, effects)? Barrel rolls or Smooth
   banks? Does up/down steering feel natural? Is 16 s right, and is there too much or too little
   in a lane? Then tune the knobs in `LAB.md`.
 - Adrian's playtest of v0.11 in the Lab, ideally starting on loop 3, fully loaded: is the jump

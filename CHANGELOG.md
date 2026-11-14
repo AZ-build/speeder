@@ -4,6 +4,49 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.12.1] — 2026-11-13
+
+### Session 13d — A new look for the hyperlane
+
+Adrian, after his first look: there's potential, but the styling and effects need a lot more.
+The tunnel could be a little bigger; there needs to be more contrast between the walls and the
+things coming at you (maybe lighter walls, darker or brighter shapes); maybe zoom in.
+
+- **One rule for the whole look: a lit tunnel, dark hazards edged in neon, bright pickups.**
+  Things now stand out from the walls by brightness and by colour (cool walls, warm danger).
+- **Walls:** a solid tube of lit panels in blue-violet instead of thin lines on black, with
+  glowing seams, alternate strips a shade lighter so the tiles rush past, walls getting lighter
+  toward the far end (lit by the core), and rings of light racing at you faster than you fly,
+  with their seam in the colour of the world you're heading to. The walls stay blue-violet
+  whatever world is ahead, so orange rocks and red lasers never blend in.
+- **Bigger tunnel, closer camera:** radius 4 (was 3.4), camera closer behind the speeder and
+  zoomed in (the speeder is about a third bigger on screen), wider view for more rush, and the
+  camera banks more with your moves.
+- **Hazards:** rocks are near-black with bright orange edges and a hot glow, and get **red target
+  brackets** when they're on a collision course; lasers sit on a dark band so they stay sharp
+  against the walls, and flicker when they're on your line; iris walls are dark slabs with the
+  hole as the brightest thing on them, plus four arrows pointing in.
+- **Pickups:** rings, cells and orbs are brighter, with a dark outline so they read against
+  bright parts of the tunnel. Each ring now gives a **burst of speed** (+20%, with a zoom and
+  stretched streaks); all six still earns the perfect-line bonus.
+- **Light-speed walls** (Adrian, mid-session: "like light speed in Star Wars"): the walls ripple
+  and warp in waves running round and down the tube (drawing only: nothing you can hit moves),
+  and 120 streaks of blue-white light pour down the walls at twice your speed, curling round the
+  tube and flickering. They only appear from mid-distance in, so the far middle stays clear for
+  what's coming at you.
+- **Camera keeps the speeder below the far end of the tunnel** (higher, and follows more of your
+  up-and-down), so it never sits in the bright centre where everything converges.
+- **Speed and hyperspace effects:** star streaks through the tube and energy dashes racing
+  along the walls, stretching longer as you boost and as the exit nears; a **jump-in effect**
+  (the tunnel forms around you over 0.7 s out of a burst of light lines, replacing the coloured
+  flash); a dark frame round the screen edges to pull your eye to the middle; softer, shorter
+  engine trails.
+- The world gate's window now shows the new tunnel look.
+- Frame cost checked: a lane frame costs about half a road frame (test machine, not a phone).
+- **Classic and Warp Run are unchanged.** Not yet played by a human.
+
+---
+
 ## [v0.12.0] — 2026-11-13
 
 ### Session 13c — HYPERLANE: flying between worlds

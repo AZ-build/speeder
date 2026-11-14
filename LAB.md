@@ -171,6 +171,18 @@ power-ups, with the speeder rolling and flipping naturally as you move.
     and down. Never upside down, no barrel rolls.
   - Both: the nose points a little toward where it's going (pitch and yaw), and the gun
     spread turns with the speeder (rolled on its side, the bullets fan out up and down).
+- **The look (v0.12.1, after Adrian's first look):** a lit tunnel, dark hazards edged in neon,
+  bright pickups. The walls are filled panels in blue-violet (`LANE_PANEL`), lighter toward the
+  far end (`LANE_LIT`), with seams (`LANE_SEAM`) and rings of light rushing at you (`LT_PULSE`,
+  `LT_PULSE_V`, lightening to `LANE_PULSE`; their seam is in the next world's colour). The walls
+  never take the next world's colour, so danger colours always stand out. Rocks are near-black
+  with orange edges and get red target brackets on a collision course; lasers sit on a dark
+  band; iris walls are dark with a bright hole. The tunnel forms around you as you drop in
+  (`LANE.form`, 0.7 s), streaks stretch with speed, boosts and the exit, and a dark vignette
+  frames the screen. Each ring gives a speed burst (`LANE.boost`, +20%). Light-speed walls:
+  the walls ripple (`LANE_WARP`, drawing only) and streaks of light pour down them
+  (`LANE_STREAKS`, `laneWarpStreak()`). The camera sits above the speeder (`LANE_CAM_UP`) and
+  follows more of its up-and-down (`LANE_FOLLOW_Y`) so the speeder stays below the far end.
 - **How it plugs in:** `startLane()` is called from the world gate (one guarded line in
   `updateWarpObj`), and while `LANE.on` the game's `update()` and `render()` hand over to
   `updateLane()` / `drawLane()` (one guarded line each). The lane writes its own camera into the
@@ -178,13 +190,14 @@ power-ups, with the speeder rolling and flipping naturally as you move.
   particles, popups) work in the tunnel; the road's horizon is put back by `exitLane()` and
   `resetLane()`. The tunnel's bends are drawing only, like the road's: gameplay is straight.
 - Knobs (in the "Experiment: HYPERLANE" block): `LANE_T`, `LANE_R`, `LANE_SPEEDUP`,
-  `LANE_MIN_V`, `LANE_CAM_Z`, `LANE_FOLLOW`, `LANE_BEND`, `LANE_GAP`, `ROLL_V`,
+  `LANE_MIN_V`, `LANE_CAM_Z`, `LANE_ZOOM` (how big the speeder is on screen), `LANE_CAM_UP`, `LANE_FOLLOW`, `LANE_FOLLOW_Y`, `LANE_WARP`, `LANE_STREAKS`, `LANE_BEND`, `LANE_GAP`, `ROLL_V`,
   `LANE_ROLL_RATE`, `LANE_BANK`, `SPIN_V`, `SPIN_T`, `LROCK_HP`, `LRING_R`, `LRING_PTS`,
   `LRING_PERFECT`, `LIRIS_HOLE`, `LASER_HALF`; what's in a lane: `LANE_SECTIONS`.
 - **Known trade-off:** five lanes a loop add about 80 seconds, so a Lab loop takes ~5 minutes
   instead of ~4. If it should graduate, the obvious variants are "every other gate" or
   "only after the Warden".
-- **Open questions for the playtest:** Barrel rolls or Smooth banks? Is up/down with the same
+- **Open questions for the playtest:** Is the new look (v0.12.1) right: walls light enough,
+  hazards easy to read at speed, zoom right? Barrel rolls or Smooth banks? Is up/down with the same
   thumb natural, or does it fight the left/right? Is 16 s right? Too much or too little in a
   lane? Is the barrel-roll swipe too easy or too hard to trigger? Does the lane break the flow
   between worlds that Adrian liked in v0.9, or is it a welcome change of pace?

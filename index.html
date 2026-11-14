@@ -745,7 +745,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.12.0';
+const VERSION = '0.12.1';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -7461,14 +7461,16 @@ function drawJumpHint() {
 // values (VIEW_D, VIEW_Z, FOCAL, HORIZON, cam.x, CAM_LIFT, the bend tables) describe the lane,
 // so the game's usual drawing helpers (sx/sy, drawMesh, particles, popups) all work in here.
 const LANE_T = 16;             // seconds in the lane, entry to exit
-const LANE_R = 3.4;            // tunnel radius
-const LANE_LIM = LANE_R - 0.6; // how far from the middle the speeder can go
+const LANE_R = 4;              // tunnel radius (3.4 in v0.12.0)
+const LANE_LIM = LANE_R - 0.7; // how far from the middle the speeder can go
 const LANE_HIT_R = 0.3;        // the speeder's size for collisions (a circle, seen down the tunnel)
 const LANE_SPEEDUP = 1.25;     // faster than the road you came off...
 const LANE_MIN_V = 70;         // ...and never slower than this (about 350 km/h)
-const LANE_CAM_Z = 5.2;        // camera distance behind the speeder
-const LANE_CAM_UP = 0.5;       // and how far above it
-const LANE_FOLLOW = 0.55;      // how much of the speeder's move the camera copies (the rest moves it on screen)
+const LANE_CAM_Z = 4.4;        // camera distance behind the speeder (closer = wider view, more rush)
+const LANE_CAM_UP = 1.4;       // and how far above it (so the speeder always sits below the far end of the tunnel)
+const LANE_ZOOM = 0.2;         // the speeder's size on screen: a unit at the speeder is this share of the screen's width (0.165 in v0.12.0)
+const LANE_FOLLOW = 0.6;       // how much of the speeder's sideways move the camera copies (the rest moves it on screen)
+const LANE_FOLLOW_Y = 0.72;    // and of its up-and-down move (more, so the speeder never climbs into the far end of the tunnel)
 const LANE_FAR = 210;          // how far down the tunnel you can see
 const LANE_RING_GAP = 8;       // the tunnel's rings of light, this far apart
 const LANE_SIDES = 18;         // the tunnel is an 18-sided tube
@@ -7493,14 +7495,13 @@ const LANE = {
   on: false, then: 'enter', t: 0, d: 0, len: 0, vt: 0, tint: 0, ph: 0, twist: 0,
   x: 0, y: 0, tx: 0, ty: 0, vx: 0, vy: 0, ptx: 0, tvx: 0, ty0: 0,
   roll: 0, pitch: 0, yaw: 0, spin: 0, spinT: 0, spinDir: 1, spinCool: 0,
-  camX: 0, camY: 0, hz0: 0, hz: -1,
+  camX: 0, camY: 0, hz0: 0, hz: -1, form: 1, boost: 0,
   pid: -1, ax: 0, ay: 0, atx: 0, aty: 0, anchored: false, cx: -1,
-  objs: [], shots: [], streaks: [], trail: [], trailT: 0, exit: null, nextD: 0, segs: 0, last: '', fireT: 0,
+  objs: [], shots: [], streaks: [], warp: [], trail: [], trailT: 0, exit: null, nextD: 0, segs: 0, last: '', fireT: 0,
   // counters (analytics and the game-over line)
   runs: 0, rings: 0, ringsSeen: 0, hits: 0, orbs: 0, rolls: 0, diedIn: false, movedY: false,
 };
-const LANE_TINTS = SKINS.map((S) => ({ c: 'rgb(' + S.rail.join(',') + ')', spr: S.spr }));
-const LANE_VIOLET = '#a64cff';
+const LANE_TINTS = SKINS.map((S) => ({ c: 'rgb(' + S.rail.join(',') + ')', rgb: S.rail, spr: S.spr }));
 // A low-poly rock: an icosahedron with its corners pushed in and out a little (fixed, not random).
 const ROCK_MESH = (() => {
   const t = (1 + Math.sqrt(5)) / 2;
@@ -7512,8 +7513,8 @@ const ROCK_MESH = (() => {
   });
   const F = [[0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11], [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
     [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9], [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]];
-  const cols = [[96, 52, 124], [74, 38, 100], [58, 30, 84]];
-  return makeMesh(v, F.map((f, i) => [f, cols[i % 3], '#ff9d2e']), [0, 0, 0]);
+  const cols = [[46, 26, 58], [34, 18, 44], [26, 14, 34]];      // near-black, so it stands out against the lit walls
+  return makeMesh(v, F.map((f, i) => [f, cols[i % 3], '#ffab4a']), [0, 0, 0]);
 })();
 
 function resetLane() {
@@ -7524,6 +7525,13 @@ function resetLane() {
   L.runs = 0; L.rings = 0; L.ringsSeen = 0; L.hits = 0; L.orbs = 0; L.rolls = 0; L.diedIn = false; L.movedY = false;
 }
 function laneTint() { return LANE_TINTS[LANE.tint]; }
+// a streak of light: a third of them race along the walls, the rest hang in the tube
+function laneStreak(s, d) {
+  s.d = d;
+  s.a = rand(0, 6.2832);
+  s.r = rand(0.3, 0.85) * LANE_R;
+  return s;
+}
 function laneLvl() { return (WP.loop - 1) + (WP.sec % SKINS.length) / SKINS.length; }
 function wrapPi(a) { return a - 6.283185307 * Math.round(a / 6.283185307); }
 function smooth01(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
@@ -7543,14 +7551,14 @@ function startLane(then) {
   L.tint = then === 'enter' ? (WP.sec + 1) % SKINS.length : WP.theme;    // tinted like the world it leads to
   L.vt = Math.max(baseSpeed(G.d) * LANE_SPEEDUP, LANE_MIN_V);
   L.len = L.vt * LANE_T;
-  L.ph = rand(0, 6.2832); L.twist = 0;
+  L.ph = rand(0, 6.2832); L.twist = 0; L.form = 0; L.boost = 0;
   // you come in where you were across the road, a little below the middle of the tunnel
   L.x = clamp(player.x, -LANE_LIM * 0.8, LANE_LIM * 0.8); L.y = -1.3;
   const m = Math.hypot(L.x, L.y);
   if (m > LANE_LIM * 0.85) { L.x *= LANE_LIM * 0.85 / m; L.y *= LANE_LIM * 0.85 / m; }
   L.tx = L.x; L.ty = L.y; L.ptx = L.x; L.ty0 = L.y; L.vx = 0; L.vy = 0; L.tvx = 0;
   L.roll = -player.bank; L.pitch = LANE_TILT; L.yaw = 0; L.spin = 0; L.spinT = 0; L.spinCool = 0.5;
-  L.camX = L.x * LANE_FOLLOW; L.camY = L.y * LANE_FOLLOW;
+  L.camX = L.x * LANE_FOLLOW; L.camY = L.y * LANE_FOLLOW_Y;
   L.hz = -1;
   L.pid = drag ? drag.id : -1; L.anchored = false;     // a thumb already down keeps steering (it picks up from its next move)
   L.cx = drag ? drag.x0 + (player.tx - drag.t0) / steerSensitivity() : -1;   // (where that thumb is, near enough)
@@ -7559,11 +7567,13 @@ function startLane(then) {
   L.nextD = L.vt * 1.5;        // a second and a half of open tunnel to find your bearings
   L.segs = 0; L.last = ''; L.fireT = 0.2;
   L.streaks.length = 0;
-  for (let i = 0; i < 46; i++) L.streaks.push({ a: rand(0, 6.2832), r: rand(0.5, 0.97) * LANE_R, d: rand(0, LANE_FAR) });
+  for (let i = 0; i < 66; i++) L.streaks.push(laneStreak({}, rand(0, LANE_FAR)));
+  L.warp.length = 0;
+  for (let i = 0; i < LANE_STREAKS; i++) L.warp.push(laneWarpStreak({}, rand(0, LANE_FAR)));
   player.y = 0; player.vy = 0; player.ramp = null; player.hop = false; player.mega = false;
   SKY.cur = null; G.air = 0;
   G.speed = Math.max(G.speed, L.vt * 0.85);
-  G.flash = Math.max(G.flash, 0.8); G.flashColor = laneTint().c;
+  G.flash = Math.max(G.flash, 0.45); G.flashColor = '#ffffff';
   G.kick = 1;
   toast('HYPERLANE', laneTint().c, L.runs === 1 ? 'steer up and down too' : 'next: ' + THEMES[L.tint].name);
   play('swarm', 0.5, 0.8);
@@ -7599,15 +7609,14 @@ function exitLane() {
 // The lane's camera, written into the shared camera values (see the top of this block).
 function laneView() {
   const L = LANE;
-  const k = 1 - 0.06 * G.kick;
+  const k = 1 - 0.1 * G.kick - 0.06 * L.boost;     // a kick or a boost pulls the camera in: the world rushes
   VIEW_Z = LANE_CAM_Z * k;
-  // the tunnel, at the speeder, is a little wider than the screen
-  FOCAL = Math.min(W, H * 0.7) * 1.12 * LANE_CAM_Z / (2 * LANE_R) * k;
+  FOCAL = Math.min(W, H * 0.7) * LANE_ZOOM * LANE_CAM_Z * k;
   VIEW_D = L.d - VIEW_Z;
   cam.x = L.camX;
-  CAM_LIFT = L.camY + LANE_CAM_UP - CAM_H;
+  CAM_LIFT = Math.min(L.camY + LANE_CAM_UP, LANE_R * (1 - LANE_WARP) - 0.4) - CAM_H;   // (never up through the rippling ceiling)
   if (HORIZON !== L.hz) L.hz0 = HORIZON;     // (the road's own value, or a new one after the screen changed size)
-  HORIZON = L.hz = Math.round(H * 0.44);     // the far end of the tunnel, a little above the middle of the screen
+  HORIZON = L.hz = Math.round(H * 0.36);     // the far end of the tunnel, a little above the middle of the screen
   HZ = HORIZON;
   // the tunnel snakes about: built like the road's bends, so everything drawn in it bends together
   let lat = 0, slope = 0, up = 0, rise = 0;
@@ -7652,16 +7661,16 @@ const LANE_SECTIONS = {
   },
   // a field of tumbling rocks: shoot them or slip between
   rocks(at, v, lvl) {
-    const dur = 2, n = Math.round(7 + 2.5 * Math.min(lvl, 4));
-    for (let i = 0; i < n; i++) laneRock(at + v * dur * (i + rand(0, 0.8)) / n, lanePt(LANE_R - 0.75), rand(0.55, 0.9), lvl >= 1);
+    const dur = 2, n = Math.round(8 + 2.5 * Math.min(lvl, 4));
+    for (let i = 0; i < n; i++) laneRock(at + v * dur * (i + rand(0, 0.8)) / n, lanePt(LANE_R - 0.8), rand(0.6, 1), lvl >= 1);
     return v * dur;
   },
   // two laser beams across the tunnel at different angles
   laser(at, v) {
     let a = rand(0, 3.1416);
-    laneAdd('laser', at, { ang: a, w: 0, off: rand(-1.4, 1.4) });
+    laneAdd('laser', at, { ang: a, w: 0, off: rand(-1.7, 1.7) });
     a += 1.5708 + rand(-0.6, 0.6);
-    laneAdd('laser', at + v * 0.95, { ang: a, w: 0, off: rand(-1.4, 1.4) });
+    laneAdd('laser', at + v * 0.95, { ang: a, w: 0, off: rand(-1.7, 1.7) });
     return v * 0.95;
   },
   // two beams turning as they come, opposite ways
@@ -7690,13 +7699,13 @@ const LANE_SECTIONS = {
   },
   // a spiral of power cells
   cells(at, v) {
-    const n = 8, a = rand(0, 6.2832), dir = Math.random() < 0.5 ? -1 : 1, r = rand(1.4, 2.2);
+    const n = 8, a = rand(0, 6.2832), dir = Math.random() < 0.5 ? -1 : 1, r = rand(1.6, 2.7);
     for (let i = 0; i < n; i++) laneAdd('cell', at + v * 0.16 * i, { x: Math.cos(a + dir * i * 0.45) * r, y: Math.sin(a + dir * i * 0.45) * r });
     return v * 0.16 * (n - 1);
   },
   // a power-up orb, with a rock parked right in front of it and a few more around
   orb(at, v, lvl) {
-    const a = rand(0, 6.2832), r = rand(1.2, 2), x = Math.cos(a) * r, y = Math.sin(a) * r;
+    const a = rand(0, 6.2832), r = rand(1.4, 2.4), x = Math.cos(a) * r, y = Math.sin(a) * r;
     laneAdd('orb', at + v * 0.6, { x, y, power: lanePower() });
     laneRock(at + v * 0.2, [x, y], 0.7, false);
     for (let i = 0; i < 3; i++) {
@@ -7738,8 +7747,8 @@ function updateLane(dt) {
   if (G.state === 'play') {
     G.runT += dt;
     L.t += dt;
-    const target = L.vt * (G.slow > 0 ? 0.6 : 1);
-    G.speed += (target - G.speed) * Math.min(1, dt * (G.slow > 0 ? 6 : 2));
+    const target = L.vt * (G.slow > 0 ? 0.6 : 1 + 0.2 * L.boost);     // rings give a burst of speed
+    G.speed += (target - G.speed) * Math.min(1, dt * (G.slow > 0 ? 6 : 3));
     G.score += G.speed * dt * 0.5 * scoreX();
     G.invuln = Math.max(0, G.invuln - dt);
     G.slow = Math.max(0, G.slow - dt);
@@ -7763,7 +7772,9 @@ function updateLane(dt) {
   }
   L.d += G.speed * dt;
   if (!playing && L.exit) L.d = Math.min(L.d, L.exit.d - 3);
-  L.twist += dt * 0.22;
+  L.twist += dt * 0.3;
+  L.form = Math.min(1, L.form + dt / 0.7);     // the tunnel forms around you as you drop in
+  L.boost = Math.max(0, L.boost - dt * 0.8);
 
   // steering: the speeder glides to where your thumb (or the keys) put it, as on the road
   if (playing) {
@@ -7788,8 +7799,8 @@ function updateLane(dt) {
   laneAttitude(dt);
   const cf = 1 - Math.exp(-dt * CAM_FOLLOW);
   L.camX += (L.x * LANE_FOLLOW - L.camX) * cf;
-  L.camY += (L.y * LANE_FOLLOW - L.camY) * cf;
-  ROLL += (clamp(-L.vx * 0.012, -0.1, 0.1) - ROLL) * (1 - Math.exp(-dt * 3));
+  L.camY += (L.y * LANE_FOLLOW_Y - L.camY) * cf;
+  ROLL += (clamp(-L.vx * 0.02, -0.16, 0.16) - ROLL) * (1 - Math.exp(-dt * 3.5));   // the camera banks with you
   player.x = L.x; player.tx = L.x; player.vx = L.vx;
   laneView();
 
@@ -7803,7 +7814,14 @@ function updateLane(dt) {
       L.nextD += len + L.vt * rand(LANE_GAP[0], LANE_GAP[1]);
     }
   }
-  for (const s of L.streaks) if (s.d - VIEW_D < 1) { s.d = VIEW_D + rand(LANE_FAR * 0.3, LANE_FAR); s.a = rand(0, 6.2832); s.r = rand(0.5, 0.97) * LANE_R; }
+  for (const s of L.streaks) {
+    if (s.r > LANE_R * 0.9) s.d -= G.speed * 0.6 * dt;       // (energy along the walls races at you)
+    if (s.d - VIEW_D < 2.5) laneStreak(s, VIEW_D + rand(LANE_FAR * 0.3, LANE_FAR));
+  }
+  for (const w of L.warp) {
+    w.d -= G.speed * 0.9 * dt;                                // light speed: twice as fast as you fly
+    if (w.d + w.len - VIEW_D < 1.5) laneWarpStreak(w, VIEW_D + rand(LANE_FAR * 0.5, LANE_FAR + 20));
+  }
   // the engine trail: where the speeder has been over the last fifth of a second
   L.trailT -= dt;
   if (L.trailT <= 0) {
@@ -8000,6 +8018,7 @@ function updateLaneObj(o, dt, playing) {
     laneBurst(o.x, o.y, o.d, COLORS.yellow, 14, 5, G.speed * 0.9, 0.45);
     shockRing(o.x, o.y, o.d, COLORS.yellow, LRING_R * 1.6, 0.3, G.speed * 0.95);
     play('ui', 0.5, 1.1 + S.got * 0.12);
+    L.boost = 1; G.kick = Math.max(G.kick, 0.5);     // a burst of speed through each ring
     vibrate(10);
     if (S.got === S.n) {
       addScore(LRING_PERFECT);
@@ -8063,8 +8082,24 @@ function lanePointerMove(e) {
 function lanePointerUp(e) { if (e.pointerId === LANE.pid) LANE.pid = -1; }
 
 // ---- Drawing the lane ----
-const LT_N = Math.ceil(LANE_FAR / LANE_RING_GAP) + 2;
-const LT_X = new Float32Array(LT_N * LANE_SIDES), LT_Y = new Float32Array(LT_N * LANE_SIDES), LT_Z = new Float32Array(LT_N);
+// The look (v0.12.1, after Adrian's first look): a LIT tunnel in cool hyperspace colours, with
+// DARK hazards edged in neon and BRIGHT pickups, so everything coming at you stands out from the
+// walls by shape and by colour. Danger keeps its usual colours (rocks orange like mines, lasers
+// red); the walls stay blue-violet whichever world you're heading to (that world's colour is
+// used for the rushing light pulses, the core and the exit).
+const LANE_PANEL = [[40, 28, 104], [58, 40, 140]];  // the wall's panels, two shades
+const LANE_LIT = [92, 76, 190];                    // what the walls fade to far off, lit by the core
+const LANE_SEAM = '#a8ecff';                        // the seams between panels
+const LANE_PULSE = [150, 136, 255];                // a pulse of light lightens the panels to this
+const LANE_WARP = 0.08;       // how much the walls ripple and warp (share of the radius; drawing only, never the gameplay)
+const LANE_STREAKS = 120;     // light-speed streaks on the walls
+const LT_PULSE = 72;          // a ring of light every this many units...
+const LT_PULSE_V = 80;        // ...rushing at you this much faster than you fly
+const LT_N = Math.ceil(LANE_FAR / LANE_RING_GAP) + 4;
+const LT_X = new Float32Array(LT_N * LANE_SIDES), LT_Y = new Float32Array(LT_N * LANE_SIDES), LT_Z = new Float32Array(LT_N), LT_D = new Float32Array(LT_N);
+let laneVig = null, laneVigKey = '';
+function mixC(a, b, t) { return 'rgb(' + ((a[0] + (b[0] - a[0]) * t) | 0) + ',' + ((a[1] + (b[1] - a[1]) * t) | 0) + ',' + ((a[2] + (b[2] - a[2]) * t) | 0) + ')'; }
+
 function drawLane() {
   const L = LANE;
   laneView();          // (again, in case the screen changed size while paused)
@@ -8085,161 +8120,317 @@ function drawLane() {
     else if (it.kind === 'player') drawLaneShip();
   }
   ctx.restore();
+  drawLaneScreenFx();
+}
+
+// one ring of the tube: N points at distance z (lane distance ld), turning slowly with depth
+function laneRing(n, z, ld) {
+  const N = LANE_SIDES, tw = LANE.twist + ld * 0.004;
+  LT_Z[n] = z; LT_D[n] = ld;
+  for (let k = 0; k < N; k++) {
+    const a = tw + k * 6.283185 / N, r = laneWallR(a, ld);
+    LT_X[n * N + k] = sx(Math.cos(a) * r, z);
+    LT_Y[n * N + k] = sy(Math.sin(a) * r, z);
+  }
+}
+// The walls ripple like a tunnel of light at light speed: waves running round and down the
+// tube. Drawing only: what can hit you never moves.
+function laneWallR(a, ld) {
+  const t = LANE.t;
+  return LANE_R * (1 + LANE_WARP * (0.55 * Math.sin(a * 3 + ld * 0.045 - t * 5.5) + 0.3 * Math.sin(a * 5 - ld * 0.08 + t * 3.7) + 0.15 * Math.sin(a * 2 + ld * 0.021 + t * 8.3)));
+}
+function laneRingPath(r, close) {
+  const N = LANE_SIDES, o = r * N;
+  ctx.moveTo(LT_X[o], LT_Y[o]);
+  for (let k = 1; k < N; k++) ctx.lineTo(LT_X[o + k], LT_Y[o + k]);
+  if (close) ctx.closePath();
 }
 function drawLaneTunnel() {
-  const L = LANE, N = LANE_SIDES, camD = VIEW_D, T = laneTint();
-  ctx.fillStyle = '#04010c';
+  const L = LANE, N = LANE_SIDES, camD = VIEW_D, T = laneTint(), form = L.form;
+  // beyond the end of the tube (only seen while it forms, or past the exit)
+  ctx.fillStyle = '#0a0420';
   ctx.fillRect(-OS, -OS, W + OS * 2, H + OS * 2);
   const end = L.exit ? Math.min(LANE_FAR, L.exit.d - camD) : LANE_FAR;
-  ctx.globalCompositeOperation = 'lighter';
-  // the bright core far down the tunnel
-  if (end > LANE_FAR * 0.6) {
-    const vx = sx(0, LANE_FAR), vy = sy(0, LANE_FAR), r = Math.min(W, H);
-    glow(SPR[T.spr], vx, vy, r * 0.9, r * 0.9, 0.2);
-    glow(SPR.violet, vx, vy, r * 0.5, r * 0.5, 0.3);
-    glow(SPR.white, vx, vy, r * 0.1, r * 0.1, 0.45);
-  }
-  // the tube: rings of points, turning slowly, so its lines spiral
   const gap = LANE_RING_GAP * (QUAL.name === 'Low' ? 1.5 : 1);
+  // the rings: one right at the camera (so the walls reach the edges of the screen), then every
+  // `gap` down the tube, and one at the far end
   let n = 0;
-  for (let ld = Math.ceil((camD + 0.4) / gap) * gap; ld - camD < end && n < LT_N; ld += gap) {
-    const z = ld - camD, tw = L.twist + ld * 0.004;
-    LT_Z[n] = z;
-    for (let k = 0; k < N; k++) {
-      const a = tw + k * 6.283185 / N;
-      LT_X[n * N + k] = sx(Math.cos(a) * LANE_R, z);
-      LT_Y[n * N + k] = sy(Math.sin(a) * LANE_R, z);
+  laneRing(n++, 0.6, camD + 0.6);
+  for (let ld = Math.ceil((camD + 1.2) / gap) * gap; ld - camD < end - 0.5 && n < LT_N - 1; ld += gap) laneRing(n++, ld - camD, ld);
+  laneRing(n++, end, camD + end);
+  ctx.globalAlpha = form;
+  // the walls: a band of panels between each pair of rings, far to near. Far bands are lit by
+  // the core; one band in nine is a pulse of light in the colour of the world ahead.
+  for (let r = n - 2; r >= 0; r--) {
+    const zm = (LT_Z[r] + LT_Z[r + 1]) / 2, dm = (LT_D[r] + LT_D[r + 1]) / 2;
+    const base = LANE_PANEL[Math.floor(dm / gap) & 1];
+    const far = Math.pow(clamp(zm / LANE_FAR, 0, 1), 1.4) * 0.8;
+    const ph = (((dm + L.t * LT_PULSE_V) % LT_PULSE) + LT_PULSE) % LT_PULSE;
+    const pulse = ph < gap * 1.3 ? 1 - ph / (gap * 1.3) : 0;
+    let c = base;
+    if (far > 0 || pulse > 0) {
+      const lit = [base[0] + (LANE_LIT[0] - base[0]) * far, base[1] + (LANE_LIT[1] - base[1]) * far, base[2] + (LANE_LIT[2] - base[2]) * far];
+      // (a pulse lightens the panels; its colour, the next world's, is in the seam drawn below,
+      // so the walls stay cool blue-violet whatever world is ahead)
+      c = [lit[0] + (LANE_PULSE[0] - lit[0]) * pulse * 0.5, lit[1] + (LANE_PULSE[1] - lit[1]) * pulse * 0.5, lit[2] + (LANE_PULSE[2] - lit[2]) * pulse * 0.5];
     }
-    n++;
-  }
-  if (n >= 2) {
-    // lines running down the tunnel, carried on right up to the camera (so the walls never
-    // blink in and out as the nearest ring slips behind you)
-    ctx.globalAlpha = 0.3;
-    ctx.strokeStyle = LANE_VIOLET;
-    ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')';
     ctx.beginPath();
-    const zn = 0.7, twn = L.twist + (camD + zn) * 0.004;
-    for (let k = 0; k < N; k++) {
-      ctx.moveTo(LT_X[(n - 1) * N + k], LT_Y[(n - 1) * N + k]);
-      for (let r = n - 2; r >= 0; r--) ctx.lineTo(LT_X[r * N + k], LT_Y[r * N + k]);
-      const a = twn + k * 6.283185 / N;
-      ctx.lineTo(sx(Math.cos(a) * LANE_R, zn), sy(Math.sin(a) * LANE_R, zn));
-    }
-    ctx.stroke();
-    // the rings: every fourth one bright, in the colour of the world ahead
-    for (let r = n - 1; r >= 0; r--) {
-      const z = LT_Z[r], ld = z + camD;
-      const fog = clamp((LANE_FAR - z) / 60, 0, 1) * clamp(z / 2, 0, 1);
-      const big = Math.round(ld / gap) % 4 === 0;
-      ctx.globalAlpha = fog * (big ? 0.9 : 0.4);
-      ctx.strokeStyle = big ? T.c : LANE_VIOLET;
-      ctx.lineWidth = clamp((big ? 0.07 : 0.035) * FOCAL / z, 1, big ? 7 : 3);
-      ctx.beginPath();
-      ctx.moveTo(LT_X[r * N], LT_Y[r * N]);
-      for (let k = 1; k < N; k++) ctx.lineTo(LT_X[r * N + k], LT_Y[r * N + k]);
-      ctx.closePath();
-      ctx.stroke();
-    }
+    laneRingPath(r, true);
+    laneRingPath(r + 1, true);
+    ctx.fill('evenodd');
   }
-  // speed lines streaming past along the walls
-  const ns = Math.min(L.streaks.length, QUAL.streaks), len = G.speed * 0.07;
-  ctx.strokeStyle = '#e4d8ff';
-  ctx.lineWidth = 1;
+  // every other strip of panels a shade lighter, so the walls read as tiles rushing past
+  ctx.fillStyle = 'rgba(190, 210, 255, 0.07)';
+  ctx.beginPath();
+  for (let k = 0; k < N; k += 2) {
+    const k2 = (k + 1) % N;
+    ctx.moveTo(LT_X[k], LT_Y[k]);
+    for (let r = 1; r < n; r++) ctx.lineTo(LT_X[r * N + k], LT_Y[r * N + k]);
+    for (let r = n - 1; r >= 0; r--) ctx.lineTo(LT_X[r * N + k2], LT_Y[r * N + k2]);
+    ctx.closePath();
+  }
+  ctx.fill();
+  ctx.globalCompositeOperation = 'lighter';
+  // the seams running down the tube
+  ctx.globalAlpha = 0.22 * form;
+  ctx.strokeStyle = LANE_SEAM;
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  for (let k = 0; k < N; k++) {
+    ctx.moveTo(LT_X[k], LT_Y[k]);
+    for (let r = 1; r < n; r++) ctx.lineTo(LT_X[r * N + k], LT_Y[r * N + k]);
+  }
+  ctx.stroke();
+  // ring seams, brighter for the pulses
+  for (let r = n - 2; r >= 1; r--) {
+    const z = LT_Z[r], fog = clamp((LANE_FAR - z) / 70, 0, 1);
+    const ph = (((LT_D[r] + L.t * LT_PULSE_V) % LT_PULSE) + LT_PULSE) % LT_PULSE;
+    const pulse = ph < gap * 1.3 ? 1 - ph / (gap * 1.3) : 0;
+    ctx.globalAlpha = form * fog * (0.16 + 0.75 * pulse);
+    ctx.strokeStyle = pulse > 0.05 ? T.c : LANE_SEAM;
+    ctx.lineWidth = clamp((0.03 + 0.09 * pulse) * FOCAL / z, 1, 9);
+    ctx.beginPath(); laneRingPath(r, true); ctx.stroke();
+  }
+  // the light at the far end
+  if (end > LANE_FAR * 0.6) {
+    const vx = sx(0, LANE_FAR), vy = sy(0, LANE_FAR), rr = Math.min(W, H);
+    glow(SPR[T.spr], vx, vy, rr * 0.4, rr * 0.4, 0.3 * form);
+    glow(SPR.white, vx, vy, rr * 0.07, rr * 0.07, 0.5 * form);
+  }
+  // star streaks through the tube, and dashes of energy racing along the seams. The faster you
+  // go (and just after you jump in, or as the exit nears) the longer they stretch.
+  const ez = L.exit ? L.exit.d - L.d : 1e9;
+  const stretch = (1 + 5 * (1 - form) * (1 - form)) * (1 + 2 * clamp(1 - ez / 70, 0, 1)) * (1 + 0.8 * L.boost);
+  const ns = Math.min(L.streaks.length, QUAL.streaks + 20);
+  ctx.lineCap = 'round';
   for (let i = 0; i < ns; i++) {
     const s = L.streaks[i], z = s.d - camD;
-    if (z < 3 || z > end) continue;
+    if (z < 2.5 || z > end) continue;
+    const wall = s.r > LANE_R * 0.9;
     const x = Math.cos(s.a) * s.r, y = Math.sin(s.a) * s.r;
-    ctx.globalAlpha = 0.55 * clamp((LANE_FAR - z) / 60, 0, 1);
-    ctx.beginPath(); ctx.moveTo(sx(x, z), sy(y, z)); ctx.lineTo(sx(x, z + len), sy(y, z + len)); ctx.stroke();
+    const z2 = z + G.speed * (wall ? 0.11 : 0.06) * stretch;
+    const fog = clamp((115 - z) / 50, 0, 1) * clamp((z - 2.5) / 4, 0, 1);
+    const X1 = sx(x, z), Y1 = sy(y, z), X2 = sx(x, z2), Y2 = sy(y, z2);
+    ctx.globalAlpha = fog * (wall ? 0.5 : 0.35);
+    ctx.strokeStyle = wall ? T.c : '#c8d6ff';
+    ctx.lineWidth = clamp((wall ? 0.09 : 0.05) * FOCAL / z, 1, 6);
+    ctx.beginPath(); ctx.moveTo(X1, Y1); ctx.lineTo(X2, Y2); ctx.stroke();
+    ctx.globalAlpha = fog * 0.8;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = clamp(0.02 * FOCAL / z, 0.6, 2);
+    ctx.stroke();
   }
+  // light speed: streaks of blue-white light pouring down the walls, curling round the tube as
+  // they come, flickering
+  ctx.lineCap = 'round';
+  const nw = Math.min(L.warp.length, QUAL.name === 'Low' ? 45 : LANE_STREAKS);
+  for (let i = 0; i < nw; i++) {
+    const w = L.warp[i], z = w.d - camD;
+    if (z < 1.5 || z > end) continue;
+    const len = w.len * stretch, z2 = Math.min(z + len, end), zm = (z + z2) / 2;
+    const a0 = w.a + L.twist + w.d * 0.004, a1 = a0 + w.curl * (z2 - z), am = (a0 + a1) / 2;
+    const r0 = laneWallR(a0, w.d) * w.rf, rm = laneWallR(am, w.d + (zm - z)) * w.rf, r1 = laneWallR(a1, w.d + (z2 - z)) * w.rf;
+    const fog = clamp((115 - z) / 50, 0, 1) * clamp((z - 1.5) / 5, 0, 1);    // (none far off: the middle stays clear for what's coming)
+    const fl = 0.55 + 0.45 * Math.sin(L.t * w.fq + i * 1.7);
+    const X0 = sx(Math.cos(a0) * r0, z), Y0 = sy(Math.sin(a0) * r0, z);
+    const XM = sx(Math.cos(am) * rm, zm), YM = sy(Math.sin(am) * rm, zm);
+    const X1 = sx(Math.cos(a1) * r1, z2), Y1 = sy(Math.sin(a1) * r1, z2);
+    ctx.beginPath(); ctx.moveTo(X0, Y0); ctx.quadraticCurveTo(2 * XM - (X0 + X1) / 2, 2 * YM - (Y0 + Y1) / 2, X1, Y1);
+    ctx.globalAlpha = fog * fl * 0.35 * form;
+    ctx.strokeStyle = w.c;
+    ctx.lineWidth = clamp(w.w * 2.6 * FOCAL / z, 1, 14);
+    ctx.stroke();
+    ctx.globalAlpha = fog * fl * 0.9 * form;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = clamp(w.w * FOCAL / z, 0.7, 4);
+    ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
 }
+// a light-speed streak on the walls: where it is round the tube and how long, bright and curly
+const LANE_WARP_C = ['#9fdcff', '#c8ecff', '#7ab8ff', '#e2d4ff'];
+function laneWarpStreak(w, d) {
+  w.d = d;
+  w.a = rand(0, 6.2832);
+  w.len = rand(18, 60);
+  w.w = rand(0.025, 0.06);
+  w.rf = rand(0.9, 0.99);
+  w.curl = rand(-0.012, 0.012);
+  w.fq = rand(8, 22);
+  w.c = Math.random() < 0.2 ? laneTint().c : pick(LANE_WARP_C);
+  return w;
+}
+// Screen effects that don't turn with the camera: the dark frame round the edges, and the burst
+// of light lines as you drop into hyperspace.
+function drawLaneScreenFx() {
+  const L = LANE;
+  const key = W + 'x' + H;
+  if (laneVigKey !== key) {
+    laneVigKey = key;
+    laneVig = ctx.createRadialGradient(CX, H * 0.46, Math.min(W, H) * 0.32, CX, H * 0.46, Math.hypot(W, H) * 0.62);
+    laneVig.addColorStop(0, 'rgba(4, 1, 14, 0)');
+    laneVig.addColorStop(1, 'rgba(4, 1, 14, 0.62)');
+  }
+  ctx.fillStyle = laneVig;
+  ctx.fillRect(0, 0, W, H);
+  if (L.form < 1) {
+    const k = 1 - L.form, cx = sx(0, LANE_FAR), cy = sy(0, LANE_FAR), R = Math.hypot(W, H);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 48; i++) {
+      const a = i * 2.39996 + 0.3, sp = 0.35 + 0.65 * Math.abs(Math.sin(i * 7.13));
+      const r1 = R * Math.pow(L.form, 0.6) * sp, r2 = r1 + R * (0.12 + 0.3 * k) * sp;
+      ctx.globalAlpha = k * 0.7;
+      ctx.strokeStyle = i % 3 ? '#e8f0ff' : laneTint().c;
+      ctx.lineWidth = 1 + 2.5 * sp * k;
+      ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); ctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2); ctx.stroke();
+    }
+    ctx.lineCap = 'butt';
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+}
+// things on a collision course get a pair of red target brackets
+function laneBrackets(px, py, r, a) {
+  const k = 0.75 + 0.25 * Math.sin(G.t * 18), q = r * 0.45;
+  ctx.globalAlpha = a * k;
+  ctx.strokeStyle = COLORS.red;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (const [sxn, syn] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+    const cx = px + sxn * r, cy = py + syn * r;
+    ctx.moveTo(cx - sxn * q, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy - syn * q);
+  }
+  ctx.stroke();
+}
 function drawLaneObj(o) {
-  const z = o._z, a = clamp((LANE_FAR - z) / 50, 0, 1);
+  const L = LANE, z = o._z, a = clamp((LANE_FAR - z) / 50, 0, 1) * L.form;
   if (a <= 0.01) return;
   const s = FOCAL / z;
   if (o.type === 'rock') {
     if (z < 0.8) return;
+    const px = sx(o.x, z), py = sy(o.y, z), rr = o.r * s;
+    // a hot orange haze behind a near-black rock with bright edges: a silhouette against the walls
     ctx.globalCompositeOperation = 'lighter';
-    glow(SPR.orange, sx(o.x, z), sy(o.y, z), o.r * 1.9 * s, o.r * 1.9 * s, a * 0.16);
+    glow(SPR.orange, px, py, rr * 2.1, rr * 2.1, a * 0.38);
     ctx.globalCompositeOperation = 'source-over';
     MT.x = o.x; MT.y = o.y; MT.z = z; MT.roll = o.rot; MT.pitch = o.rot * 0.7; MT.yaw = o.rot * 0.4; MT.scale = o.r;
-    MESH_TINT = o.flashT > 0 ? 0.6 : 0;
-    drawMesh(ROCK_MESH, MT, a, 0.025);
+    MESH_TINT = o.flashT > 0 ? 0.65 : 0;
+    drawMesh(ROCK_MESH, MT, a, 0.04);
     MESH_TINT = 0;
+    if (z > VIEW_Z + 1.5 && z < 130 && Math.hypot(o.x - L.x, o.y - L.y) < o.r + LANE_HIT_R) laneBrackets(px, py, rr * 1.25 + 5, a);
   } else if (o.type === 'laser') {
     const c = Math.cos(o.ang), sn = Math.sin(o.ang), h = Math.sqrt(Math.max(0, LANE_R * LANE_R - o.off * o.off));
     const mx = -sn * o.off, my = c * o.off;
     const X1 = sx(mx + c * h, z), Y1 = sy(my + sn * h, z), X2 = sx(mx - c * h, z), Y2 = sy(my - sn * h, z);
-    const fl = 0.85 + 0.15 * Math.sin(o.t * 40);
-    ctx.globalCompositeOperation = 'lighter';
+    const onLine = z > VIEW_Z + 1.5 && z < 130 && Math.abs(-sn * L.x + c * L.y - o.off) < LASER_HALF + LANE_HIT_R;
+    const fl = (0.85 + 0.15 * Math.sin(o.t * 40)) * (onLine ? 0.8 + 0.4 * Math.sin(G.t * 18) : 1);
     ctx.lineCap = 'round';
-    ctx.globalAlpha = a * 0.3 * fl;
-    ctx.strokeStyle = COLORS.red;
-    ctx.lineWidth = clamp(0.55 * s, 2, 40);
+    // a dark band under the beam keeps it sharp against the lit wall
+    ctx.globalAlpha = a * 0.55;
+    ctx.strokeStyle = '#12000a';
+    ctx.lineWidth = clamp(0.45 * s, 3, 34);
     ctx.beginPath(); ctx.moveTo(X1, Y1); ctx.lineTo(X2, Y2); ctx.stroke();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = a * 0.45 * fl;
+    ctx.strokeStyle = COLORS.red;
+    ctx.lineWidth = clamp(0.6 * s, 3, 44);
+    ctx.stroke();
     ctx.globalAlpha = a * fl;
-    ctx.strokeStyle = '#ff8a9c';
-    ctx.lineWidth = clamp(LASER_HALF * 2 * s, 1, 14);
+    ctx.strokeStyle = '#ff6a82';
+    ctx.lineWidth = clamp(LASER_HALF * 2 * s, 1.5, 14);
     ctx.stroke();
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = clamp(0.06 * s, 0.8, 4);
+    ctx.lineWidth = clamp(0.07 * s, 1, 5);
     ctx.stroke();
     ctx.lineCap = 'butt';
-    glow(SPR.red, X1, Y1, 0.7 * s, 0.7 * s, a);
-    glow(SPR.red, X2, Y2, 0.7 * s, 0.7 * s, a);
+    glow(SPR.red, X1, Y1, 0.9 * s, 0.9 * s, a);
+    glow(SPR.red, X2, Y2, 0.9 * s, 0.9 * s, a);
+    glow(SPR.white, X1, Y1, 0.25 * s, 0.25 * s, a);
+    glow(SPR.white, X2, Y2, 0.25 * s, 0.25 * s, a);
   } else if (o.type === 'iris') {
     drawIris(o, z, a, s);
   } else if (o.type === 'ring') {
     if (z < 1.05) return;
     const px = sx(o.x, z), py = sy(o.y, z), r = LRING_R * s, next = o.i === o.set.passed;
     const fa = a * (o.done ? 0.3 : 1);
-    ctx.globalCompositeOperation = 'lighter';
-    glow(SPR.yellow, px, py, r * 1.7, r * 1.7, fa * (next ? 0.5 : 0.25));
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = fa;
-    ctx.lineWidth = clamp(0.15 * s, 1.5, 10);
-    ctx.strokeStyle = next ? '#fffbe0' : COLORS.yellow;
+    ctx.globalAlpha = fa * 0.5;
+    ctx.strokeStyle = '#140820';
+    ctx.lineWidth = clamp(0.3 * s, 3, 18);
     ctx.beginPath(); ctx.arc(px, py, r, 0, 6.2832); ctx.stroke();
-    ctx.lineWidth = clamp(0.045 * s, 1, 3);
-    ctx.strokeStyle = laneTint().c;
-    ctx.beginPath(); ctx.arc(px, py, r * 0.8, 0, 6.2832); ctx.stroke();
+    ctx.globalCompositeOperation = 'lighter';
+    glow(SPR.yellow, px, py, r * 1.8, r * 1.8, fa * (next ? 0.6 : 0.3));
+    ctx.globalAlpha = fa;
+    ctx.lineWidth = clamp(0.16 * s, 2, 11);
+    ctx.strokeStyle = next ? '#fff6c0' : COLORS.yellow;
+    ctx.beginPath(); ctx.arc(px, py, r, 0, 6.2832); ctx.stroke();
+    ctx.lineWidth = clamp(0.05 * s, 1, 3);
+    ctx.strokeStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(px, py, r * 0.82, 0, 6.2832); ctx.stroke();
   } else if (o.type === 'cell') {
     if (z < 1.05) return;
-    const px = sx(o.x, z), py = sy(o.y, z), r = clamp(0.24 * s, 2.5, 40);
+    const px = sx(o.x, z), py = sy(o.y, z), r = clamp(0.28 * s, 2.5, 44);
+    const w = r * Math.abs(Math.cos(o.t * 3)) * 0.75 + r * 0.25;
+    ctx.globalAlpha = a * 0.6;
+    ctx.fillStyle = '#04140a';
+    ctx.beginPath(); ctx.arc(px, py, r * 1.3, 0, 6.2832); ctx.fill();
     ctx.globalCompositeOperation = 'lighter';
-    glow(SPR.teal, px, py, r * 2.6, r * 2.6, a * 0.8);
+    glow(SPR.teal, px, py, r * 2.8, r * 2.8, a * 0.85);
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = a;
-    const w = r * Math.abs(Math.cos(o.t * 3)) * 0.75 + r * 0.25;
-    ctx.fillStyle = '#6dff7a';
+    ctx.fillStyle = '#7dff8a';
     ctx.beginPath(); ctx.moveTo(px, py - r); ctx.lineTo(px + w, py); ctx.lineTo(px, py + r); ctx.lineTo(px - w, py); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = '#eaffea';
-    ctx.lineWidth = clamp(0.03 * s, 1, 2.5);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = clamp(0.035 * s, 1, 3);
     ctx.stroke();
   } else if (o.type === 'orb') {
     if (z < 1.05) return;
-    const P = POWERS[o.power], px = sx(o.x, z), py = sy(o.y + Math.sin(o.t * 3) * 0.06, z), r = clamp(0.5 * s, 3, 120);
+    const P = POWERS[o.power], px = sx(o.x, z), py = sy(o.y + Math.sin(o.t * 3) * 0.06, z), r = clamp(0.55 * s, 3, 130);
     ctx.globalCompositeOperation = 'lighter';
-    glow(o.power === 'shield' ? SPR.cyan : SPR.white, px, py, r * 2.5, r * 2.5, a * 0.5);
+    glow(o.power === 'shield' ? SPR.cyan : SPR.white, px, py, r * 2.8, r * 2.8, a * 0.6);
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = a;
-    ctx.fillStyle = 'rgba(11, 4, 32, 0.88)';
+    ctx.fillStyle = 'rgba(8, 3, 24, 0.92)';
     ctx.beginPath(); ctx.arc(px, py, r, 0, 6.2832); ctx.fill();
     ctx.strokeStyle = P.color;
-    ctx.lineWidth = clamp(0.06 * s, 1.5, 6);
+    ctx.lineWidth = clamp(0.08 * s, 2, 8);
     ctx.stroke();
-    ctx.beginPath(); ctx.arc(px, py, r * 1.25, o.t * 3, o.t * 3 + 2); ctx.stroke();
-    powerIcon(o.power, px, py, r * 0.55, P.color, clamp(0.05 * s, 1.5, 5));
+    ctx.lineWidth = clamp(0.04 * s, 1, 4);
+    ctx.beginPath(); ctx.arc(px, py, r * 1.28, o.t * 3, o.t * 3 + 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(px, py, r * 1.28, o.t * 3 + 3.14, o.t * 3 + 5.14); ctx.stroke();
+    powerIcon(o.power, px, py, r * 0.55, P.color, clamp(0.06 * s, 1.5, 6));
     if (z < 90) {
       ctx.globalAlpha = a * clamp((90 - z) / 30, 0, 1);
-      ctx.font = '800 ' + Math.round(clamp(0.3 * s, 9, 16)) + 'px ' + FONT;
+      ctx.font = '800 ' + Math.round(clamp(0.3 * s, 10, 16)) + 'px ' + FONT;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
+      ctx.fillStyle = 'rgba(4, 1, 14, 0.7)';
+      ctx.fillText(powerLabel(o.power), px + 1, py + r * 1.45 + 1);
       ctx.fillStyle = P.color;
-      ctx.fillText(powerLabel(o.power), px, py + r * 1.35);
+      ctx.fillText(powerLabel(o.power), px, py + r * 1.45);
     }
   } else if (o.type === 'exit') {
     drawLaneExit(o, z, s);
@@ -8247,46 +8438,58 @@ function drawLaneObj(o) {
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
 }
-// A wall right across the tunnel with one way through.
+// A wall right across the tunnel with one way through: a dark slab, so the hole (showing the lit
+// tunnel beyond, with a bright rim) is the brightest thing in it.
 function drawIris(o, z, a, s) {
   if (z < 0.5) return;
   const cx = sx(0, z), cy = sy(0, z), R = LANE_R * 1.02 * s;
   const hx = sx(o.x, z), hy = sy(o.y, z), hr = o.hr * s;
   const near = clamp((z - VIEW_Z + 1) / 3, 0, 1);      // fades as you pass, so a hit never blinds you
-  ctx.globalAlpha = a * (0.25 + 0.6 * near);
+  ctx.globalAlpha = a * (0.3 + 0.62 * near);
   ctx.beginPath();
   ctx.arc(cx, cy, R, 0, 6.2832);
   ctx.moveTo(hx + hr, hy);
   ctx.arc(hx, hy, hr, 0, 6.2832, true);
-  ctx.fillStyle = '#1c0628';
+  ctx.fillStyle = '#0e0418';
   ctx.fill('evenodd');
   ctx.globalCompositeOperation = 'lighter';
   // spokes out from the hole, so it reads as one solid wall
-  ctx.globalAlpha = a * 0.3 * (0.4 + 0.6 * near);
+  ctx.globalAlpha = a * 0.35 * (0.4 + 0.6 * near);
   ctx.strokeStyle = '#ff5fe0';
-  ctx.lineWidth = clamp(0.03 * s, 1, 3);
+  ctx.lineWidth = clamp(0.035 * s, 1, 3);
   ctx.beginPath();
   const ox = hx - cx, oy = hy - cy, oo = ox * ox + oy * oy - R * R;
-  for (let k = 0; k < 12; k++) {
-    const t = k * 0.5236 + o.t * 0.4, ux = Math.cos(t), uy = Math.sin(t), b = ux * ox + uy * oy;
+  for (let k = 0; k < 16; k++) {
+    const t = k * 0.3927 + o.t * 0.4, ux = Math.cos(t), uy = Math.sin(t), b = ux * ox + uy * oy;
     const far = -b + Math.sqrt(Math.max(0, b * b - oo));
     if (far <= hr) continue;
-    ctx.moveTo(hx + ux * hr * 1.15, hy + uy * hr * 1.15); ctx.lineTo(hx + ux * far, hy + uy * far);
+    ctx.moveTo(hx + ux * hr * 1.2, hy + uy * hr * 1.2); ctx.lineTo(hx + ux * far, hy + uy * far);
   }
   ctx.stroke();
-  ctx.globalAlpha = a * (0.4 + 0.5 * near);
-  ctx.lineWidth = clamp(0.08 * s, 1, 7);
+  ctx.globalAlpha = a * (0.5 + 0.5 * near);
+  ctx.lineWidth = clamp(0.1 * s, 1.5, 9);
   ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.stroke();
-  // the way through: a bright rim
+  // the way through
   const pulse = 0.8 + 0.2 * Math.sin(o.t * 8);
-  glow(SPR.cyan, hx, hy, hr * 1.5, hr * 1.5, a * 0.35);
+  glow(SPR.cyan, hx, hy, hr * 1.6, hr * 1.6, a * 0.45);
   ctx.globalAlpha = a * pulse;
   ctx.strokeStyle = COLORS.cyan;
-  ctx.lineWidth = clamp(0.12 * s, 1.5, 10);
+  ctx.lineWidth = clamp(0.16 * s, 2, 13);
   ctx.beginPath(); ctx.arc(hx, hy, hr, 0, 6.2832); ctx.stroke();
   ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = clamp(0.035 * s, 1, 3);
+  ctx.lineWidth = clamp(0.045 * s, 1, 4);
   ctx.stroke();
+  // four arrows pointing into it
+  ctx.globalAlpha = a * pulse * 0.9;
+  ctx.fillStyle = '#e8ffff';
+  for (let k = 0; k < 4; k++) {
+    const t = k * 1.5708 + 0.785, ux = Math.cos(t), uy = Math.sin(t), d0 = hr * (1.35 + 0.12 * Math.sin(o.t * 8)), q = hr * 0.22;
+    ctx.beginPath();
+    ctx.moveTo(hx + ux * d0, hy + uy * d0);
+    ctx.lineTo(hx + ux * (d0 + q * 1.4) - uy * q, hy + uy * (d0 + q * 1.4) + ux * q);
+    ctx.lineTo(hx + ux * (d0 + q * 1.4) + uy * q, hy + uy * (d0 + q * 1.4) - ux * q);
+    ctx.closePath(); ctx.fill();
+  }
 }
 // The way out: a disc across the end of the tunnel, showing the world it leads to.
 function drawLaneExit(o, z, s) {
@@ -8305,14 +8508,14 @@ function drawLaneExit(o, z, s) {
   glow(SPR[T.spr], cx, cy + R * 0.2, R, R * 0.35, 0.5);
   ctx.restore();
   ctx.globalCompositeOperation = 'lighter';
-  glow(SPR.white, cx, cy, R * 1.4, R * 1.4, 0.25 + 0.35 * clamp(1 - z / 80, 0, 1));
-  ctx.globalAlpha = 0.85;
+  glow(SPR.white, cx, cy, R * 1.5, R * 1.5, 0.3 + 0.4 * clamp(1 - z / 80, 0, 1));
+  ctx.globalAlpha = 0.9;
   ctx.strokeStyle = rgba(T.rail, 1);
-  ctx.lineWidth = clamp(0.25 * s, 2, 30);
+  ctx.lineWidth = clamp(0.3 * s, 2, 36);
   ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.stroke();
   ctx.globalAlpha = 1;
   ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = clamp(0.06 * s, 1, 6);
+  ctx.lineWidth = clamp(0.07 * s, 1, 7);
   ctx.stroke();
   ctx.globalCompositeOperation = 'source-over';
 }
@@ -8325,31 +8528,27 @@ function drawLaneShip() {
   MT.x = L.x; MT.y = L.y + bob; MT.z = z;
   MT.roll = L.roll + L.spin; MT.pitch = L.pitch; MT.yaw = L.yaw; MT.scale = SHIP_SCALE;
   drawLaneTrail(bob);
-  // a soft light behind it, so it stands out from the dark tunnel
-  ctx.globalCompositeOperation = 'lighter';
-  glow(SPR.cyan, sx(L.x, z), sy(L.y + bob, z), 0.95 * s, 0.7 * s, 0.22 * baseA);
-  ctx.globalCompositeOperation = 'source-over';
-  drawMesh(SHIP, MT, baseA, 0.013);
+  drawMesh(SHIP, MT, baseA, 0.016);
   ctx.globalCompositeOperation = 'lighter';
   // the cockpit light
   let p = shipPoint(MT, 0, 0.2, 0.12);
   const cr = 0.32 * s * (0.9 + 0.1 * Math.sin(G.t * 3));
   glow(SPR.pink, sx(p[0], p[2]), sy(p[1], p[2]), cr, cr * 0.8, baseA * 0.45);
-  // engines, burning long in here
+  // engines, burning long in here (longer still on a boost)
   for (let i = 0; i < SHIP_ENGINES.length; i++) {
     const E = SHIP_ENGINES[i];
     p = shipPoint(MT, E[0], E[1], E[2]);
     const ex = sx(p[0], p[2]), ey = sy(p[1], p[2]), r = E[3] * SHIP_SCALE * FOCAL / p[2];
-    const len = 0.55 + G.kick * 0.35 + Math.sin(G.t * 47 + i * 2.1) * 0.05 + Math.random() * 0.08;
+    const len = 0.6 + G.kick * 0.4 + L.boost * 0.5 + Math.sin(G.t * 47 + i * 2.1) * 0.05 + Math.random() * 0.08;
     p = shipPoint(MT, E[0], E[1], E[2] - len);
     const fx = sx(p[0], p[2]), fy = sy(p[1], p[2]);
-    ctx.globalAlpha = baseA * 0.55;
+    ctx.globalAlpha = baseA * 0.6;
     ctx.fillStyle = i === 2 ? '#ff4fdc' : '#29f3ff';
-    flame(ex, ey, fx, fy, r * 1.15);
+    flame(ex, ey, fx, fy, r * 1.25);
     ctx.globalAlpha = baseA * 0.95;
     ctx.fillStyle = '#e8ffff';
-    flame(ex, ey, ex + (fx - ex) * 0.55, ey + (fy - ey) * 0.55, r * 0.55);
-    glow(i === 2 ? SPR.pink : SPR.cyan, ex, ey, r * 1.9, r * 1.9, baseA * (0.6 + G.kick * 0.3));
+    flame(ex, ey, ex + (fx - ex) * 0.55, ey + (fy - ey) * 0.55, r * 0.6);
+    glow(i === 2 ? SPR.pink : SPR.cyan, ex, ey, r * 2.4, r * 2.4, baseA * (0.7 + G.kick * 0.3));
     ctx.globalAlpha = baseA;
     ctx.fillStyle = '#ffffff';
     ctx.beginPath(); ctx.arc(ex, ey, r * 0.5, 0, 6.2832); ctx.fill();
@@ -8357,7 +8556,7 @@ function drawLaneShip() {
   const tip = Math.sin(G.t * 5) > 0;
   for (const side of [-1, 1]) {
     p = shipPoint(MT, side * (SHIP_POD_X + 0.11), 0.42, -0.62);
-    glow((side < 0) === tip ? SPR.pink : SPR.cyan, sx(p[0], p[2]), sy(p[1], p[2]), 0.1 * s, 0.1 * s, baseA);
+    glow((side < 0) === tip ? SPR.pink : SPR.cyan, sx(p[0], p[2]), sy(p[1], p[2]), 0.12 * s, 0.12 * s, baseA);
   }
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
@@ -8376,63 +8575,73 @@ function drawLaneShip() {
 }
 // Light trails from the two engine pods: the last fifth of a second of movement, squeezed into
 // the few units between the speeder and the camera, so every swerve and roll leaves a curve.
+// Drawn as smooth ribbons: a wide soft one, then a thin bright core.
 function drawLaneTrail(bob) {
   const T = LANE.trail, n = T.length;
   if (n < 2 || !QUAL.trails) return;
   ctx.globalCompositeOperation = 'lighter';
   ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
   for (const side of [-1, 1]) {
-    for (let i = 0; i < n - 1; i++) {
-      const z0 = VIEW_Z - 0.55 - i * 0.3, z1 = z0 - 0.3;
-      if (z1 < 2) break;
-      const p = T[i], q = T[i + 1], o = side * SHIP_POD_X;
-      const f = 1 - i / (n - 1);
-      ctx.globalAlpha = 0.6 * f;
-      ctx.strokeStyle = i < 3 ? '#e8ffff' : side < 0 ? COLORS.cyan : '#ff4fdc';
-      ctx.lineWidth = clamp(0.07 * FOCAL / z0 * (0.4 + 0.6 * f), 1, 9);
-      ctx.beginPath();
-      ctx.moveTo(sx(p.x + o * p.c, z0), sy(p.y + bob + o * p.s, z0));
-      ctx.lineTo(sx(q.x + o * q.c, z1), sy(q.y + bob + o * q.s, z1));
-      ctx.stroke();
+    const o = side * SHIP_POD_X;
+    ctx.beginPath();
+    let m = 0;
+    for (let i = 0; i < n; i++) {
+      const zz = VIEW_Z - 0.55 - i * 0.18;
+      if (zz < VIEW_Z - 2.2) break;
+      const q = T[i], X = sx(q.x + o * q.c, zz), Y = sy(q.y + bob + o * q.s, zz);
+      if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+      m++;
     }
+    if (m < 2) continue;
+    const w = 0.06 * FOCAL / VIEW_Z;
+    ctx.globalAlpha = 0.22;
+    ctx.strokeStyle = side < 0 ? COLORS.cyan : '#ff4fdc';
+    ctx.lineWidth = w * 2;
+    ctx.stroke();
+    ctx.globalAlpha = 0.45;
+    ctx.strokeStyle = '#eaffff';
+    ctx.lineWidth = w * 0.5;
+    ctx.stroke();
   }
   ctx.lineCap = 'butt';
+  ctx.lineJoin = 'miter';
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
 }
-// The view through a world gate when HYPERLANE is on: the tunnel, not the next world.
+// The view through a world gate when HYPERLANE is on: the lit tunnel, not the next world.
 function drawLaneWindow(xl, xr, yt, yb, a) {
   const T = LANE_TINTS[(WP.sec + 1) % SKINS.length];
   ctx.globalAlpha = a;
-  ctx.fillStyle = '#04010c';
+  ctx.fillStyle = mixC(LANE_PANEL[0], LANE_PANEL[1], 0.5);
   ctx.fillRect(xl, yt, xr - xl, yb - yt);
   const cx = sx(0, FAR), cy = HZ;
   const R = Math.max(Math.hypot(xl - cx, yt - cy), Math.hypot(xr - cx, yt - cy), Math.hypot(xl - cx, yb - cy), Math.hypot(xr - cx, yb - cy));
+  // bands of panels rushing out at you, lighter toward the middle, every fourth one a pulse
+  const bands = [];
+  for (let i = 0; i < 14; i++) bands.push([((i + G.t * 1.8) % 14) / 14, i]);
+  bands.sort((p, q) => q[0] - p[0]);
+  for (const [f, i] of bands) {
+    const r = R * Math.pow(f, 2.4) * 1.15;
+    if (r < 1) continue;
+    const pulse = i % 4 === 0;
+    ctx.fillStyle = pulse ? T.c : mixC(LANE_PANEL[i & 1], LANE_LIT, Math.pow(1 - f, 2) * 0.85);
+    ctx.globalAlpha = a * (pulse ? 0.25 + 0.4 * f : 1);
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.2832); ctx.fill();
+  }
   ctx.globalCompositeOperation = 'lighter';
-  glow(SPR.violet, cx, cy, R * 0.8, R * 0.8, a * 0.45);
-  glow(SPR[T.spr], cx, cy, R * 0.4, R * 0.4, a * 0.4);
-  glow(SPR.white, cx, cy, R * 0.12, R * 0.12, a * 0.85);
-  // lines down the tunnel, turning slowly
-  ctx.globalAlpha = a * 0.3;
-  ctx.strokeStyle = LANE_VIOLET;
+  ctx.globalAlpha = a * 0.25;
+  ctx.strokeStyle = LANE_SEAM;
   ctx.lineWidth = 1;
   ctx.beginPath();
   for (let k = 0; k < LANE_SIDES; k++) {
     const t = k * 6.283185 / LANE_SIDES + G.t * 0.22;
-    ctx.moveTo(cx + Math.cos(t) * R * 0.03, cy + Math.sin(t) * R * 0.03);
-    ctx.lineTo(cx + Math.cos(t) * R * 1.1, cy + Math.sin(t) * R * 1.1);
+    ctx.moveTo(cx + Math.cos(t) * R * 0.02, cy + Math.sin(t) * R * 0.02);
+    ctx.lineTo(cx + Math.cos(t) * R * 1.15, cy + Math.sin(t) * R * 1.15);
   }
   ctx.stroke();
-  // rings rushing out at you
-  for (let i = 0; i < 12; i++) {
-    const f = ((i + G.t * 1.8) % 12) / 12, r = R * Math.pow(f, 2.4) * 1.1;
-    if (r < 2) continue;
-    const big = i % 4 === 0;
-    ctx.globalAlpha = a * f * (big ? 0.9 : 0.45);
-    ctx.strokeStyle = big ? T.c : LANE_VIOLET;
-    ctx.lineWidth = Math.max(1, f * f * (big ? 8 : 3));
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.2832); ctx.stroke();
-  }
+  glow(SPR[T.spr], cx, cy, R * 0.45, R * 0.45, a * 0.45);
+  glow(SPR.white, cx, cy, R * 0.12, R * 0.12, a * 0.8);
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
 }

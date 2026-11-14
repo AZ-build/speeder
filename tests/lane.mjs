@@ -60,7 +60,7 @@ const steer = await S(() => {
 });
 ok('steer: dragging right and up moves the target right and up, at road steering speed', Math.abs(steer.dx - steer.sens) < 0.01 && Math.abs(steer.dy - 40 * 11 / 390) < 0.01, steer);
 ok('steer: the speeder glides to the thumb', Math.abs(steer.at.x - (steer.ax + steer.dx)) < 0.05 && Math.abs(steer.at.y - (steer.ay + steer.dy)) < 0.05, steer);
-ok('steer: held inside the tunnel, and pulling back responds at once', Math.abs(steer.edge - (3.4 - 0.6)) < 0.001 && steer.back < steer.edge - 0.3, steer);
+ok('steer: held inside the tunnel, and pulling back responds at once', Math.abs(steer.edge - (4 - 0.7)) < 0.001 && steer.back < steer.edge - 0.3, steer);
 
 // --- how the speeder rolls ---
 const attitude = (feel) => S((feel) => {
