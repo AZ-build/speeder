@@ -187,6 +187,10 @@ power-ups, with the speeder rolling and flipping naturally as you move.
   `laneWarpStreak()`, `drawLaneWarp()`; Adrian found the first ones too striking, v0.12.2
   softened them and v0.12.3 blended them into the walls). The camera sits above the speeder (`LANE_CAM_UP`) and
   follows more of its up-and-down (`LANE_FOLLOW_Y`) so the speeder stays below the far end.
+- **Coming out (v0.12.5):** `exitLane()` drops you onto the road in the air, still rolled
+  however you were (`LANE.land`); `updateLaneLanding()` / `laneLandTilt()` ease the roll back to
+  level the short way round over `LAND_T` (0.6 s) while the road's own gravity brings you down to
+  a normal landing. One guarded line in `drawPlayer` adds the leftover roll.
 - **How it plugs in:** `startLane()` is called from the world gate (one guarded line in
   `updateWarpObj`), and while `LANE.on` the game's `update()` and `render()` hand over to
   `updateLane()` / `drawLane()` (one guarded line each). The lane writes its own camera into the

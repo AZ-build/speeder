@@ -745,7 +745,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.12.4';
+const VERSION = '0.12.5';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -4828,6 +4828,7 @@ function drawPlayer() {
   MT.x = player.x; MT.y = 0.42 + bob + player.y; MT.z = z;
   MT.roll = -player.bank; MT.yaw = player.bank * EDGE_YAW;
   MT.pitch = SHIP_TILT - clamp(player.vy * 0.03, -0.18, 0.28);
+  if (LANE.land) { MT.roll += laneLandTilt('roll'); MT.pitch += laneLandTilt('pitch'); }   // (Lab: righting itself after a hyperlane)
   MT.scale = SHIP_SCALE;
   const baseA = blink ? 0.35 : 1;
   // hover pads glowing on the road under each engine pod
@@ -4876,7 +4877,7 @@ function drawPlayer() {
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
   // shield bubble: a glassy dome, brightest at its rim, with a honeycomb and a sweeping glint
-  if (G.shield > 0 || G.shHit > 0) drawShield(px, sy(0.5 + bob + player.y, z), s);
+  if (G.shield > 0 || G.shHit > 0) drawShield(sx(player.x, z), sy(0.46 + bob + player.y, z), s, MT.roll);
 
   // power-up ring bursting off the speeder
   if (G.pulse > 0) {
@@ -4890,71 +4891,54 @@ function drawPlayer() {
     ctx.globalCompositeOperation = 'source-over';
   }
 }
-const SHIELD_HEX = (() => {
-  const out = [];
-  for (let gy2 = -1; gy2 <= 1; gy2 += 0.28) {
-    const row = Math.round(gy2 / 0.28);
-    for (let gx2 = -1.1; gx2 <= 1.1; gx2 += 0.32) {
-      const cx = gx2 + (row & 1 ? 0.16 : 0);
-      if (cx * cx + gy2 * gy2 < 0.82) out.push(cx, gy2);
-    }
-  }
-  return out;
-})();
-function drawShield(px, by, s) {
-  const rx = 0.7 * s, ry = 0.46 * s;
+// The shield (v0.12.5): a light, glowing outline round the speeder rather than a honeycomb dome.
+// It tilts and rolls with the speeder (`roll`, the model's roll), so it always hugs the ship,
+// whether it is banking on the road or spinning in a Lab hyperlane. `round` is how tall the
+// bubble is for its width (the hyperlane uses a rounder one, since the speeder turns every way).
+const SHIELD_RX = 0.72;    // half-width of the bubble, in world units at the speeder
+function drawShield(px, by, s, roll, round) {
   const hit = G.shHit;
-  const pulse = 0.6 + 0.4 * Math.sin(G.t * 5);
+  const R = SHIELD_RX * s * (1 + hit * 0.08), k = round || 0.62;
+  const breathe = 0.5 + 0.5 * Math.sin(G.t * 2.2);          // a slow swell, not a flicker
   ctx.save();
   ctx.translate(px, by);
-  ctx.scale(1, ry / rx);
-  const grow = 1 + hit * 0.08;
-  const R = rx * grow;
+  ctx.rotate(-(roll || 0));
+  ctx.scale(1, k);
   ctx.globalCompositeOperation = 'lighter';
   if (G.shield > 0) {
-    const g = ctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R);
-    g.addColorStop(0, 'rgba(41, 243, 255, 0.02)');
-    g.addColorStop(0.72, 'rgba(41, 243, 255, ' + (0.06 + 0.04 * pulse).toFixed(3) + ')');
-    g.addColorStop(1, 'rgba(41, 243, 255, ' + (0.32 + 0.1 * pulse).toFixed(3) + ')');
+    // the faintest fill, brighter toward the rim
+    const g = ctx.createRadialGradient(0, 0, R * 0.55, 0, 0, R);
+    g.addColorStop(0, 'rgba(41, 243, 255, 0)');
+    g.addColorStop(1, 'rgba(41, 243, 255, ' + (0.08 + 0.04 * breathe).toFixed(3) + ')');
     ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill();
-    // honeycomb, faint, with a bright band drifting through it
-    const hr = R * 0.15;
-    const band = Math.sin(G.t * 1.7) * R;
-    ctx.lineWidth = 1;
-    for (let pass = 0; pass < 2; pass++) {
-      ctx.strokeStyle = pass ? 'rgba(180, 255, 255, 0.4)' : 'rgba(41, 243, 255, 0.13)';
-      ctx.beginPath();
-      for (let i = 0; i < SHIELD_HEX.length; i += 2) {
-        const cx = SHIELD_HEX[i] * R, cy = SHIELD_HEX[i + 1] * R;
-        if (pass && Math.abs(cx - band) > R * 0.18) continue;
-        for (let k = 0; k < 6; k++) {
-          const a = Math.PI / 6 + k * Math.PI / 3;
-          const x = cx + Math.cos(a) * hr, y = cy + Math.sin(a) * hr;
-          if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-      }
-      ctx.stroke();
-    }
-    // rim (doubled when you hold two shields) and a glint racing round it
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, 6.2832); ctx.fill();
+    // a soft halo, then a thin bright line on top
     ctx.strokeStyle = COLORS.cyan;
-    ctx.globalAlpha = 0.8;
-    ctx.lineWidth = Math.max(1.5, (G.shield > 1 ? 0.03 : 0.018) * s);
-    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 0.14 + 0.06 * breathe;
+    ctx.lineWidth = Math.max(4, 0.1 * s);
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, 6.2832); ctx.stroke();
+    ctx.globalAlpha = 0.5 + 0.15 * breathe;
+    ctx.strokeStyle = '#b8fbff';
+    ctx.lineWidth = Math.max(1.2, 0.014 * s);
+    ctx.stroke();
     if (G.shield > 1) {
-      ctx.globalAlpha = 0.45;
-      ctx.beginPath(); ctx.arc(0, 0, R * 1.1, 0, Math.PI * 2); ctx.stroke();
+      // two shields: a second, fainter outline just outside the first
+      ctx.globalAlpha = 0.3 + 0.1 * breathe;
+      ctx.strokeStyle = COLORS.cyan;
+      ctx.beginPath(); ctx.arc(0, 0, R * 1.12, 0, 6.2832); ctx.stroke();
     }
-    const ga = G.t * 2.4;
-    ctx.globalAlpha = 0.85;
-    ctx.strokeStyle = '#eaffff';
-    ctx.lineWidth = Math.max(2, 0.03 * s);
+    // a glint gliding slowly round the rim
+    const ga = G.t * 1.3;
+    ctx.globalAlpha = 0.75;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(1.6, 0.022 * s);
     ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.arc(0, 0, R, ga, ga + 0.7); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R, ga, ga + 0.55); ctx.stroke();
+    ctx.globalAlpha = 0.35;
+    ctx.beginPath(); ctx.arc(0, 0, R, ga + 3.14, ga + 3.5); ctx.stroke();
     ctx.lineCap = 'butt';
   }
-  // just hit: the bubble flares white and cracks
+  // just hit: the outline flares white and cracks
   if (hit > 0 && G.cracks) {
     ctx.globalAlpha = hit;
     ctx.strokeStyle = '#ffffff';
@@ -4965,9 +4949,9 @@ function drawShield(px, by, s) {
       for (let i = 2; i < c.length; i += 2) ctx.lineTo(c[i] * R, c[i + 1] * R);
     }
     ctx.stroke();
-    ctx.globalAlpha = hit * 0.6;
+    ctx.globalAlpha = hit * 0.7;
     ctx.lineWidth = Math.max(2, 0.06 * s * hit);
-    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, 6.2832); ctx.stroke();
   }
   ctx.restore();
   ctx.globalAlpha = 1;
@@ -6957,6 +6941,7 @@ function labStartOnLoop(loop) {
   toast('LOOP ' + loop, COLORS.yellow, 'score x' + loop);
 }
 function updateLab(dt) {
+  if (LANE.land) updateLaneLanding(dt);
   if (labOn('jump')) updateJump(dt);
   if (labOn('ramps')) updateSky(dt);
 }
@@ -7497,6 +7482,7 @@ const LANE = {
   roll: 0, pitch: 0, yaw: 0, spin: 0, spinT: 0, spinDir: 1, spinCool: 0,
   camX: 0, camY: 0, hz0: 0, hz: -1, form: 1, boost: 0,
   pid: -1, ax: 0, ay: 0, atx: 0, aty: 0, anchored: false, cx: -1,
+  land: null,         // coming out of a lane: { t, roll, pitch } while the speeder rights itself
   objs: [], shots: [], streaks: [], warp: [], trail: [], trailT: 0, exit: null, nextD: 0, segs: 0, last: '', fireT: 0,
   // counters (analytics and the game-over line)
   runs: 0, rings: 0, ringsSeen: 0, hits: 0, orbs: 0, rolls: 0, diedIn: false, movedY: false,
@@ -7520,7 +7506,7 @@ const ROCK_MESH = (() => {
 function resetLane() {
   const L = LANE;
   if (L.on && L.hz >= 0) { HORIZON = L.hz0; ROLL = 0; }   // (quitting from inside a lane: give the road its camera back)
-  L.on = false; L.hz = -1; L.exit = null; L.pid = -1;
+  L.on = false; L.hz = -1; L.exit = null; L.pid = -1; L.land = null;
   L.objs.length = 0; L.shots.length = 0; L.trail.length = 0;
   L.runs = 0; L.rings = 0; L.ringsSeen = 0; L.hits = 0; L.orbs = 0; L.rolls = 0; L.diedIn = false; L.movedY = false;
 }
@@ -7588,13 +7574,18 @@ function exitLane() {
   HORIZON = L.hz0; L.hz = -1;
   ROLL = 0;
   player.x = clamp(L.x, -(TRACK_HALF - 0.45), TRACK_HALF - 0.45); player.tx = player.x;
-  player.vx = 0; player.lean = 0; player.bank = 0; player.y = 0; player.vy = 0;
+  player.vx = 0; player.lean = 0; player.bank = 0;
+  // You come out in the air, higher if you were high in the tunnel, still rolled however you
+  // were; the speeder rights itself the short way round as it falls and lands on the road (the
+  // road's own landing: a bump, sparks and the landing sound). See updateLaneLanding().
+  player.y = clamp(1.6 + 0.35 * L.y, 0.9, 2.6); player.vy = 2; player.hop = false; player.mega = false;
+  L.land = { t: 0, roll: wrapPi(L.roll + L.spin), pitch: L.pitch - SHIP_TILT };
   cam.x = player.x * CAM_TRACK;
   if (drag && L.cx >= 0) { drag.x0 = L.cx; drag.t0 = player.tx; }   // a thumb still down carries on steering from where it is
   L.objs.length = 0; L.shots.length = 0; L.trail.length = 0; L.exit = null; parts.length = 0;
   resetTrail();
   for (const st of streaks) resetStreak(st, true);
-  WP.exit = Math.max(WP.exit, 0.7);       // out into the light
+  WP.exit = Math.max(WP.exit, 0.35);      // out into the light (soft, so you see yourself land)
   if (L.then === 'enter') {
     enterWorld();
   } else {
@@ -7867,6 +7858,22 @@ function updateLane(dt) {
   audioEngine();
 }
 
+// Just out of a lane: the speeder eases from however it was rolled back to level, the short way
+// round (so upside down becomes a half roll), gathering, swinging over and settling, as it
+// falls to the road. The leftover roll and pitch are added to the road speeder's own in
+// drawPlayer (one guarded line, laneLandTilt).
+const LAND_T = 0.6;          // seconds to right itself
+function updateLaneLanding(dt) {
+  const F = LANE.land;
+  F.t += dt;
+  if (F.t >= LAND_T && player.y <= 0.02) LANE.land = null;
+}
+function laneLandTilt(which) {
+  const F = LANE.land;
+  if (!F) return 0;
+  const u = clamp(F.t / LAND_T, 0, 1), e = u * u * (3 - 2 * u);    // a smooth half roll: gathers, swings over, settles
+  return (which === 'roll' ? F.roll : F.pitch) * (1 - e);
+}
 // The speeder's roll, pitch and yaw in the lane (see 'feel' at the top of this block).
 function laneAttitude(dt) {
   const L = LANE, k = Math.tanh(L.vx / ROLL_V), q = Math.tanh(L.vy / ROLL_V);
@@ -8588,7 +8595,7 @@ function drawLaneShip() {
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
   const px = sx(L.x, z), py = sy(L.y + bob, z);
-  if (G.shield > 0 || G.shHit > 0) drawShield(px, py, s);
+  if (G.shield > 0 || G.shHit > 0) drawShield(px, py, s, L.roll + L.spin, 0.72);
   if (G.pulse > 0) {
     const r = (0.45 + (1 - G.pulse) * 1.5) * s;
     ctx.globalCompositeOperation = 'lighter';

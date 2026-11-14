@@ -287,6 +287,24 @@ const quit = await S(() => {
 });
 ok('ride again from a lane: a fresh run, counters reset', quit.again.on && quit.again.runs === 1, quit);
 
+// --- coming out upside down: in the air, rights itself, lands (v0.12.5) ---
+const landing = await S(() => {
+  const P = SPEEDER, L = P.LANE, G = P.G;
+  P.labSet('setup', 'lane', true); P.setMode('lab'); P.startGame();
+  G.invuln = 999; P.step(1 / 60, 30);
+  L.objs.splice(0, L.objs.length, L.exit); L.nextD = 1e9; L.exit.d = L.d + 40;
+  L.roll = 3.0;                                    // upside down
+  L.tx = L.x; L.ty = L.y;
+  let n = 0;
+  while (L.on && n < 300) { L.roll = 3.0; P.step(1 / 60, 1); n++; }
+  const out = { y: P.player.y, land: !!L.land, roll0: L.land && L.land.roll };
+  let peakShake = 0, frames = 0;
+  while ((P.player.y > 0 || L.land) && frames < 120) { P.step(1 / 60, 1); frames++; peakShake = Math.max(peakShake, G.shake); }
+  return Object.assign(out, { secs: frames / 60, yAfter: P.player.y, landAfter: !!L.land, peakShake });
+});
+ok('out of a lane upside down: you come out in the air, still rolled, right yourself and land with a bump', landing.y > 0.8 && landing.land && Math.abs(landing.roll0) > 2.5 && landing.yAfter === 0 && !landing.landAfter && landing.secs < 1.2 && landing.peakShake > 0.1, landing);
+await S(() => SPEEDER.labSet('setup', 'lane', false));
+
 ok('v0.12 lane tests: no page errors', errors.length === 0, errors);
 await browser.close();
 console.log(results.join('\n'));

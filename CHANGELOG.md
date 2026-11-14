@@ -4,6 +4,29 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.12.5] — 2026-11-13
+
+### Session 13h — Landing out of the hyperlane, and a new shield
+
+Adrian: make the way back from the hyperlane to the real world realistic (if the speeder is
+upside down it should flip and land properly), and improve the shield: it looks weird and
+doesn't work with the spinning speeder; it should look more like a shield round the ship, a
+soft or light outline.
+
+- **Coming out of a hyperlane:** you burst out of the exit in the air (higher if you were high
+  in the tunnel), still banked or upside down however you were, and the speeder rights itself the
+  short way round in a smooth half roll as it falls (0.6 s), then lands on the road with the
+  usual bump, sparks and landing sound. The white wash on the way out is lighter, so you can see
+  it happen.
+- **New shield (every mode, looks only):** the flat honeycomb oval is gone. The shield is now a
+  light, glowing outline round the speeder, with a faint fill toward its edge, a slow swell, and a
+  glint gliding round the rim (a second, fainter outline when you hold two). It tilts and rolls
+  with the speeder, so it hugs the ship when it banks at a rail on the road, and when it spins
+  in a hyperlane. Hits still flare and crack it.
+- Classic and Warp Run play exactly as before (only the shield's look changed there).
+
+---
+
 ## [v0.12.4] — 2026-11-13
 
 ### Session 13g — Slower lanes, solid walls, easier to see what's coming
