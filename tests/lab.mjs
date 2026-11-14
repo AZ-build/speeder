@@ -150,7 +150,7 @@ const ok = (name, cond, extra) => { results.push((cond ? 'PASS ' : 'FAIL ') + na
     local: localStorage.getItem('speeder.w.local'), localC: localStorage.getItem('speeder.local'), pend: localStorage.getItem('speeder.pendingRuns'), wbest: localStorage.getItem('speeder.w.best'), cbest: localStorage.getItem('speeder.best'), my: localStorage.getItem('speeder.w.myRuns'),
     labBest: localStorage.getItem('speeder.lab.best'),
   }));
-  ok('game over: vote box shown, share and name hidden', over.state === 'over' && over.vote && over.rows === 2 && over.share && over.name && over.labBtn, over);
+  ok('game over: vote box shown (one row per experiment that was on), share and name hidden', over.state === 'over' && over.vote && over.rows === 3 && over.share && over.name && over.labBtn, over);
   ok('game over: nothing written to any leaderboard store', ['local', 'localC', 'pend', 'wbest', 'cbest', 'my'].every((k2) => over[k2] === before[k2]) && over.labBest === '54321');
   await page.screenshot({ path: 'tests/shots/06-lab-over.png' });
   await page.tap('.labvote button[data-vote="up"]');

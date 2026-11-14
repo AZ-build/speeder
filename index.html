@@ -660,7 +660,8 @@
     <p class="hnote">Where new ideas get tried out before they go into the real game. Open it from the title screen, switch on what you want to test, and take a run. Lab runs play by Warp Run&rsquo;s rules, stay off the world leaderboard, and end by asking for a thumbs up or down.</p>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M6 36 H38" stroke="#b6ff2e" stroke-width="2"/><path d="M8 34 Q22 2 36 34" stroke="#b6ff2e" stroke-width="2" fill="none" stroke-dasharray="3 3"/><path d="M22 22 l-6 8 h12 z" fill="#b6ff2e"/></svg><div class="htxt"><div class="hname">Experiment: Jump</div><div>Jump without a ramp. Choose how in the Lab: <b>flick</b> your steering thumb up, or <b>tap with a second finger</b> (Space on a computer). It&rsquo;s a little bigger than a ramp jump and clears the same things: mines, walls, lasers, trucks, craters and ram bikes. Pylons and crystals are too tall. The lime arrows in the top bar are your jump charges.</div><div class="hlim">Hold 2 · every 2 close calls earn one back (or switch to unlimited) · AIR +150 per thing you fly over</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M4 38 L20 38 L20 28 Z" fill="#2c4a0c" stroke="#b6ff2e" stroke-width="2" stroke-linejoin="round"/><circle cx="30" cy="14" r="8" fill="none" stroke="#ffd23c" stroke-width="3"/><circle cx="30" cy="14" r="5.5" fill="none" stroke="#b6ff2e" stroke-width="1"/><path d="M18 26 Q24 18 27 16" stroke="#fff" stroke-width="1.5" fill="none" stroke-dasharray="2 3"/></svg><div class="htxt"><div class="hname">Experiment: Sky ramps</div><div>A big lime ramp throws you into a long, floaty flight with <b>five rings</b> in the sky. Steer through them: the brightest one is next. The road underneath is kept clear, so you can also stay down and skip it.</div><div class="hlim">Rings +200, +400, +600, +800, +1,000 · all five: +1,000, 2 power cells and a jump charge</div></div></div>
-<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 30 a14 14 0 1 1 28 0" fill="none" stroke="#29f3ff" stroke-width="2.5"/><path d="M22 30 L32 16" stroke="#ffd23c" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="30" r="3" fill="#fff"/></svg><div class="htxt"><div class="hname">Test setup</div><div>For trying things at speed without playing for 20 minutes first. <b>Start on</b> a later loop (faster, tougher, score multiplied) and switch on <b>Fully loaded</b> to begin with guns at level 8 and 2 shields.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" fill="#04010c" stroke="#a64cff" stroke-width="1.5"/><circle cx="22" cy="22" r="12" fill="none" stroke="#29b4ff" stroke-width="1.5"/><circle cx="22" cy="22" r="5" fill="none" stroke="#a64cff" stroke-width="1"/><circle cx="22" cy="22" r="2" fill="#fff"/><path d="M22 3 V41 M3 22 H41 M8.6 8.6 L35.4 35.4 M35.4 8.6 L8.6 35.4" stroke="#a64cff" stroke-width="0.7" opacity="0.6"/><path d="M15 31 l7 -4 7 4 -7 -2 z" fill="#29f3ff"/></svg><div class="htxt"><div class="hname">Experiment: Hyperlane</div><div>Every world gate drops you into a <b>hyperspace tunnel</b> for about 16 seconds before the next world. No gravity: drag <b>up and down</b> as well as left and right (arrow keys or WASD on a computer). Shoot or dodge the <b>rocks</b>, slip past the red <b>lasers</b>, fly through the hole in each <b>wall</b>, thread the <b>rings</b>, and grab the green cells and the <b>power-up orb</b>. Two flying styles to try: <b>Barrel rolls</b> (it rolls to face where it&rsquo;s heading and a fast swipe spins it right round) or <b>Smooth banks</b> (always the right way up).</div><div class="hlim">Rocks +60 · rings +150, +300, ... · all six: +800 and 2 cells · the road waits for you while you&rsquo;re in the lane</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 30 a14 14 0 1 1 28 0" fill="none" stroke="#29f3ff" stroke-width="2.5"/><path d="M22 30 L32 16" stroke="#ffd23c" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="30" r="3" fill="#fff"/></svg><div class="htxt"><div class="hname">Test setup</div><div>For trying things at speed without playing for 20 minutes first. <b>Start on</b> a later loop (faster, tougher, score multiplied) and switch on <b>Fully loaded</b> to begin with guns at level 8 and 2 shields. With the hyperlane on, <b>Start in a hyperlane</b> drops you straight into one.</div></div></div>
     <h3>Score</h3>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 l5 11 12 1 -9 8 3 12 -11 -7 -11 7 3 -12 -9 -8 12 -1 z" fill="none" stroke="#ffd23c" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Points</div><div>You score for distance (faster = more), plus points for everything you destroy and AIR bonuses. Each mode has its own world leaderboard, which keeps the top 50 runs, and one player can hold several spots. Share a run to challenge a friend.</div></div></div>
     <h3 id="helpInstall">Put it on your Home Screen</h3>
@@ -744,7 +745,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.11.0';
+const VERSION = '0.12.0';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -3610,6 +3611,7 @@ function update(dt) {
   if (G.toastT > 0) G.toastT -= dt;
   if (WP.exit > 0) WP.exit = Math.max(0, WP.exit - dt * 1.7);
   if (WP.nmShow > 0) WP.nmShow -= dt;
+  if (LANE.on) { updateLane(dt); return; }      // (Lab: flying a hyperlane between two worlds)
 
   if (G.state === 'title') {
     G.speed = 34;
@@ -4708,7 +4710,7 @@ function drawPart(p) {
     const t = 1 - f, e = 1 - (1 - t) * (1 - t) * (1 - t);
     const rx = p.size * e * s;
     if (rx < 1) return;
-    const ry = rx * clamp((CAM_H + CAM_LIFT - p.y) / z, 0.18, 1);
+    const ry = LANE.on ? rx : rx * clamp((CAM_H + CAM_LIFT - p.y) / z, 0.18, 1);   // (lying on the road; in a Lab hyperlane they face you)
     ctx.globalCompositeOperation = 'lighter';
     ctx.globalAlpha = f * 0.9;
     ctx.strokeStyle = p.color;
@@ -6052,7 +6054,7 @@ function updateWarpObj(o, rel, dt, playing) {
     // The world changes once the gate's window fills the whole screen, a moment after the
     // speeder itself has gone through (so there is never a visible cut).
     const fill = VIEW_Z * (SHIP_Y - HORIZON) / Math.max(1, H - HORIZON) * 0.9;
-    if (playing && o.d + GATE_DEP - VIEW_D <= fill) { o.dead = true; enterWorld(); }
+    if (playing && o.d + GATE_DEP - VIEW_D <= fill) { o.dead = true; if (labOn('lane')) startLane('enter'); else enterWorld(); }   // (Lab: a hyperlane first)
     return true;
   }
   if (o.type === 'gap') {
@@ -6263,52 +6265,55 @@ function drawPortal(o, z, a) {
   // ---- the window ----
   ctx.save();
   ctx.beginPath(); ctx.rect(xl, yt, xr - xl, yb - yt); ctx.clip();
-  ctx.globalAlpha = a;
-  ctx.save();
-  ctx.translate(0, HZ - HORIZON);
-  ctx.fillStyle = G2.sky;
-  ctx.fillRect(-OS, -OS - 200, W + OS * 2, HORIZON + OS + 202);
-  ctx.fillStyle = G2.ground;
-  ctx.fillRect(-OS, HORIZON - 1, W + OS * 2, H + OS * 2);
-  ctx.fillStyle = G2.haze;
-  ctx.fillRect(-OS, HORIZON - H * 0.03, W + OS * 2, H * 0.12);
-  ctx.restore();
-  // the road carrying on into the next world, in its colors
-  ctx.globalAlpha = a;
-  ctx.beginPath();
-  traceLine(-TRACK_HALF, 0, true, FAR, true);
-  traceLineBack(TRACK_HALF, 0, FAR);
-  ctx.closePath();
-  ctx.fillStyle = rgba(N.road, 0.96);
-  ctx.fill();
-  const camD = VIEW_D;
-  const gridC = rgba(N.grid, 1);
-  ctx.strokeStyle = gridC;
-  for (let ld = Math.ceil((camD + zf) / 4) * 4; ld < camD + FAR; ld += 4) {
-    const zz = ld - camD;
-    ctx.globalAlpha = a * clamp((1 - zz / FAR) * 1.3, 0, 1) * 0.6;
-    ctx.lineWidth = clamp(0.035 * FOCAL / zz, 0.5, 3);
-    const y = sy(0, zz);
-    ctx.beginPath(); ctx.moveTo(sx(-TRACK_HALF, zz), y); ctx.lineTo(sx(TRACK_HALF, zz), y); ctx.stroke();
-  }
-  for (const side of [-1, 1]) {
+  if (labOn('lane')) drawLaneWindow(xl, xr, yt, yb, a);   // (Lab: the gate opens onto a hyperlane)
+  else {
+    ctx.globalAlpha = a;
+    ctx.save();
+    ctx.translate(0, HZ - HORIZON);
+    ctx.fillStyle = G2.sky;
+    ctx.fillRect(-OS, -OS - 200, W + OS * 2, HORIZON + OS + 202);
+    ctx.fillStyle = G2.ground;
+    ctx.fillRect(-OS, HORIZON - 1, W + OS * 2, H + OS * 2);
+    ctx.fillStyle = G2.haze;
+    ctx.fillRect(-OS, HORIZON - H * 0.03, W + OS * 2, H * 0.12);
+    ctx.restore();
+    // the road carrying on into the next world, in its colors
+    ctx.globalAlpha = a;
     ctx.beginPath();
-    traceLine(side * TRACK_HALF, 0.42, true, FAR, true);
-    ctx.globalAlpha = a * 0.35; ctx.strokeStyle = railC; ctx.lineWidth = 6; ctx.stroke();
-    ctx.globalAlpha = a; ctx.strokeStyle = 'rgba(225, 255, 255, 0.95)'; ctx.lineWidth = 1.6; ctx.stroke();
+    traceLine(-TRACK_HALF, 0, true, FAR, true);
+    traceLineBack(TRACK_HALF, 0, FAR);
+    ctx.closePath();
+    ctx.fillStyle = rgba(N.road, 0.96);
+    ctx.fill();
+    const camD = VIEW_D;
+    const gridC = rgba(N.grid, 1);
+    ctx.strokeStyle = gridC;
+    for (let ld = Math.ceil((camD + zf) / 4) * 4; ld < camD + FAR; ld += 4) {
+      const zz = ld - camD;
+      ctx.globalAlpha = a * clamp((1 - zz / FAR) * 1.3, 0, 1) * 0.6;
+      ctx.lineWidth = clamp(0.035 * FOCAL / zz, 0.5, 3);
+      const y = sy(0, zz);
+      ctx.beginPath(); ctx.moveTo(sx(-TRACK_HALF, zz), y); ctx.lineTo(sx(TRACK_HALF, zz), y); ctx.stroke();
+    }
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      traceLine(side * TRACK_HALF, 0.42, true, FAR, true);
+      ctx.globalAlpha = a * 0.35; ctx.strokeStyle = railC; ctx.lineWidth = 6; ctx.stroke();
+      ctx.globalAlpha = a; ctx.strokeStyle = 'rgba(225, 255, 255, 0.95)'; ctx.lineWidth = 1.6; ctx.stroke();
+    }
+    // a soft light where the new road meets its horizon, and a shimmer drifting up the opening:
+    // just enough to read as a field you pass through
+    ctx.globalCompositeOperation = 'lighter';
+    glow(SPR[N.spr], sx(0, FAR), HZ, (xr - xl) * 0.5, (yb - yt) * 0.28, a * 0.55);
+    ctx.fillStyle = railC;
+    const hh = yb - yt;
+    for (let i = 0; i < 4; i++) {
+      const f = (G.t * 0.35 + i / 4) % 1;
+      ctx.globalAlpha = a * 0.07 * Math.sin(f * Math.PI);
+      ctx.fillRect(xl, yb - hh * f, xr - xl, Math.max(2, hh * 0.05));
+    }
+    ctx.globalCompositeOperation = 'source-over';
   }
-  // a soft light where the new road meets its horizon, and a shimmer drifting up the opening:
-  // just enough to read as a field you pass through
-  ctx.globalCompositeOperation = 'lighter';
-  glow(SPR[N.spr], sx(0, FAR), HZ, (xr - xl) * 0.5, (yb - yt) * 0.28, a * 0.55);
-  ctx.fillStyle = railC;
-  const hh = yb - yt;
-  for (let i = 0; i < 4; i++) {
-    const f = (G.t * 0.35 + i / 4) % 1;
-    ctx.globalAlpha = a * 0.07 * Math.sin(f * Math.PI);
-    ctx.fillRect(xl, yb - hh * f, xr - xl, Math.max(2, hh * 0.05));
-  }
-  ctx.globalCompositeOperation = 'source-over';
   ctx.restore();
   // bright inner edge of the opening
   ctx.globalCompositeOperation = 'lighter';
@@ -6802,13 +6807,26 @@ const LAB_EXPERIMENTS = [
     blurb: 'Big lime ramps launch you into a long, floaty flight. Steer through the rings in the sky: each one is worth more than the last, and all five is a perfect flight.',
     opts: [],
   },
+  {
+    id: 'lane',
+    name: 'HYPERLANE',
+    since: '0.12.0',
+    on: true,
+    blurb: 'Every world gate drops you into a zero-gravity hyperspace tunnel for about 16 seconds on the way to the next world. Drag up and down as well as left and right: dodge rocks, lasers and walls, fly through rings, grab cells and a power-up.',
+    opts: [
+      { id: 'feel', name: 'Flying style', def: 'roll', choices: [
+        { id: 'roll', name: 'Barrel rolls', hint: 'The speeder rolls to point its top the way it\'s heading, flips over on a fast dive, and a quick swipe throws in a full barrel roll.' },
+        { id: 'bank', name: 'Smooth banks', hint: 'It banks into turns and tips its nose up and down, but always stays the right way up.' },
+      ] },
+    ],
+  },
 ];
 // Test setup: not experiments (no vote), just ways to get to the interesting part of a run
 // quickly. Saved on the device like the switches.
 const LAB_LOOPS = 6;      // the highest loop a Lab run can start on (loop 6 starts at top speed)
 function loadLabSetup() {
   const sv = readJSON('speeder.lab.setup', null) || {};
-  return { loop: clamp(parseInt(sv.loop, 10) || 1, 1, LAB_LOOPS), loaded: sv.loaded === true };
+  return { loop: clamp(parseInt(sv.loop, 10) || 1, 1, LAB_LOOPS), loaded: sv.loaded === true, lane: sv.lane === true };
 }
 function saveLabSetup() { storeSet('speeder.lab.setup', JSON.stringify(LAB.setup)); }
 
@@ -6838,7 +6856,7 @@ const LAB = {
   on: false,            // true during a Lab run (and on its game-over screen)
   cfg: loadLabCfg(),    // the switches in the Lab panel, saved on this device
   run: {},              // the experiments in play this run: { id: { its options } }
-  setup: loadLabSetup(),   // test setup: { loop: which loop a run starts on, loaded: start with full guns and shields }
+  setup: loadLabSetup(),   // test setup: { loop: which loop a run starts on, loaded: start with full guns and shields, lane: start in a hyperlane }
   d0: 0,                // where this run started along the track (not 0 when it started on a later loop)
 };
 const LAB_LINK = (function () { try { return new URLSearchParams(location.search).has('lab'); } catch (e) { return false; } })();
@@ -6887,6 +6905,7 @@ function resetLab() {
   LAB.d0 = 0;
   resetJump();
   resetSky();
+  resetLane();
 }
 function startLabRun() {
   LAB.on = true;
@@ -6899,8 +6918,10 @@ function startLabRun() {
   if (S.loop > 1) labStartOnLoop(S.loop);
   else startWarpRun();
   if (S.loaded) { G.weapon = GUN_MAX; G.shield = 2; }
-  if (S.loop > 1 || S.loaded) track('lab/setup/loop' + S.loop + (S.loaded ? '-loaded' : ''), 'Lab run started on loop ' + S.loop + (S.loaded ? ', fully loaded' : ''));
+  const inLane = S.lane && labOn('lane');
+  if (S.loop > 1 || S.loaded || inLane) track('lab/setup/loop' + S.loop + (S.loaded ? '-loaded' : '') + (inLane ? '-lane' : ''), 'Lab run started on loop ' + S.loop + (S.loaded ? ', fully loaded' : '') + (inLane ? ', in a hyperlane' : ''));
   if (labOn('ramps')) startSky();
+  if (inLane) startLane('resume');
 }
 // Start a run at the beginning of a later loop, already moving fast. The run is placed as far
 // along the track as a real run would be by then (worked out world by world), because speed
@@ -6966,7 +6987,9 @@ function labCloseCall() {
 }
 // extra chips on the HUD's timers row, after the CELLS bar. Returns the width used.
 function labChips(x, y) {
-  return labOn('jump') ? hopChip(x, y) : 0;
+  let w = labOn('jump') ? hopChip(x, y) : 0;
+  if (LANE.on) w += laneChip(x + w, y);
+  return w;
 }
 function drawLabHints() {
   // a small tag on the world-pips row, so a screenshot always shows it was a Lab run
@@ -6978,6 +7001,7 @@ function drawLabHints() {
     ctx.fillText('LAB', W - 16 - 62, SAFE_TOP + 12 + 91);
   }
   if (labOn('jump')) drawJumpHint();
+  if (LANE.on) drawLaneHint();
 }
 // analytics when a Lab run ends
 function labRunEnded(km) {
@@ -6994,13 +7018,29 @@ function labRunEnded(km) {
     track('lab/ramps/' + tb, 'Lab: sky ramps, ' + tb);
     track('lab/ramps/' + rb, 'Lab: sky ramps, ' + rb + ' per flight');
   }
+  if (labOn('lane')) {
+    // how people get on in the lane: rings threaded, hits taken, barrel rolls, and dying in there
+    const L = LANE, v = labVariant('lane'), words = ' (' + labChoices('lane') + ')';
+    if (!L.runs) {
+      track('lab/lane/' + v + '/no-lanes', 'Lab: hyperlane, run ended before the first one' + words);
+    } else {
+      const share = L.ringsSeen ? L.rings / L.ringsSeen : 0, rb = share >= 0.7 ? 'rings-most' : share >= 0.35 ? 'rings-some' : 'rings-few';
+      const hp = L.hits / L.runs, hb = hp < 0.5 ? 'hits-0' : hp < 1.5 ? 'hits-1' : 'hits-2plus';
+      track('lab/lane/' + v + '/' + rb, 'Lab: hyperlane, ' + rb + words);
+      track('lab/lane/' + v + '/' + hb + '-per-lane', 'Lab: hyperlane, ' + hb + ' per lane' + words);
+      if (labOpt('lane', 'feel') === 'roll') { const rr = L.rolls === 0 ? '0' : L.rolls < 5 ? '1-4' : '5+'; track('lab/lane/' + v + '/' + rr + '-barrel-rolls', 'Lab: hyperlane, ' + rr + ' barrel rolls'); }
+      if (L.diedIn) track('lab/lane/' + v + '/died-in-lane', 'Lab: hyperlane, the run ended in a lane' + words);
+    }
+  }
 }
 // extra lines for the game-over stats
 function labStatsLine() {
   let t = '';
   if (labOn('jump')) t += '<br>Jumps <b>' + JUMP.hops + '</b>';
   if (labOn('ramps')) t += '<br>Rings <b>' + SKY.rings + '</b> in <b>' + SKY.flights + '</b> ' + (SKY.flights === 1 ? 'flight' : 'flights') + (SKY.perfect ? ' · Perfect <b>' + SKY.perfect + '</b>' : '');
-  if (LAB.setup.loop > 1 || LAB.setup.loaded) t += '<br>Test setup <b>' + [LAB.setup.loop > 1 ? 'started on loop ' + LAB.setup.loop : '', LAB.setup.loaded ? 'fully loaded' : ''].filter(Boolean).join(' · ') + '</b>';
+  if (labOn('lane')) t += '<br>Hyperlanes <b>' + LANE.runs + '</b> · lane rings <b>' + LANE.rings + '</b> of ' + LANE.ringsSeen + ' · hits <b>' + LANE.hits + '</b>' + (labOpt('lane', 'feel') === 'roll' ? ' · barrel rolls <b>' + LANE.rolls + '</b>' : '');
+  const inLane = LAB.setup.lane && labOn('lane');
+  if (LAB.setup.loop > 1 || LAB.setup.loaded || inLane) t += '<br>Test setup <b>' + [LAB.setup.loop > 1 ? 'started on loop ' + LAB.setup.loop : '', LAB.setup.loaded ? 'fully loaded' : '', inLane ? 'started in a hyperlane' : ''].filter(Boolean).join(' · ') + '</b>';
   return t;
 }
 
@@ -7071,6 +7111,15 @@ function renderLab() {
   sw.addEventListener('change', () => { S.loaded = sw.checked; saveLabSetup(); });
   r2.append(l2, sw);
   card.append(r2, el('p', 'hnote', 'Start with guns at level 8 and 2 shields.'));
+  if (LAB.cfg.lane && LAB.cfg.lane.on) {
+    const r3 = el('div', 'setting');
+    const l3 = el('label', '', 'Start in a hyperlane');
+    const sw3 = el('input', 'switch');
+    sw3.type = 'checkbox'; sw3.id = 'labLane'; sw3.checked = S.lane; l3.htmlFor = sw3.id;
+    sw3.addEventListener('change', () => { S.lane = sw3.checked; saveLabSetup(); });
+    r3.append(l3, sw3);
+    card.append(r3, el('p', 'hnote', 'Begin the run inside a hyperlane, so you can try it straight away.'));
+  }
   box.appendChild(card);
 }
 
@@ -7153,7 +7202,7 @@ function hopCharge(n) {
 }
 // `how` is 'flick', 'tap' or 'key'. Returns true if the speeder left the ground.
 function tryHop(how) {
-  if (!labOn('jump') || G.state !== 'play' || paused || !player.alive) return false;
+  if (!labOn('jump') || G.state !== 'play' || paused || !player.alive || LANE.on) return false;
   if (player.y > 0.02 || player.vy > 0 || player.ramp) return false;   // only from the road
   if (!hopFree()) {
     if (JUMP.n < 1) {
@@ -7177,6 +7226,7 @@ function labKey() { tryHop('key'); }   // Space, Up arrow or W on a computer
 // A finger touched down during a Lab run. Returns true if the Lab used the touch itself,
 // so it must not take over the steering.
 function labPointerDown(e) {
+  if (LANE.on) { lanePointerDown(e); return false; }     // (Lab: in a hyperlane every finger steers, and there are no jumps)
   if (!labOn('jump')) return false;
   if (labOpt('jump', 'gesture') === 'tap' && drag && e.pointerId !== drag.id) {
     tryHop('tap');      // a second finger while the first is steering
@@ -7187,6 +7237,7 @@ function labPointerDown(e) {
   return false;
 }
 function labPointerMove(e) {
+  if (LANE.on) { lanePointerMove(e); return; }
   if (e.pointerId !== FL.id || !labOn('jump')) return;
   if (Math.abs(e.clientX - FL.x0) > TAP_PX || Math.abs(e.clientY - FL.y0) > TAP_PX) FL.far = true;
   if (labOpt('jump', 'gesture') !== 'flick') return;
@@ -7202,6 +7253,7 @@ function labPointerMove(e) {
   }
 }
 function labPointerUp(e) {
+  if (LANE.on) lanePointerUp(e);
   if (e.pointerId !== FL.id) return;
   FL.id = -1; FL.pts.length = 0;
   if (!labOn('jump') || labOpt('jump', 'gesture') !== 'tap') return;
@@ -7378,7 +7430,7 @@ function drawRing(o, z) {
 
 // until your first jump of the run: how to do it
 function drawJumpHint() {
-  if (G.state !== 'play' || JUMP.hops > 0 || G.runT < 1.5 || G.runT > 16 || !(G.dragged || G.runT >= 6)) return;
+  if (G.state !== 'play' || JUMP.hops > 0 || G.runT < 1.5 || G.runT > 16 || !(G.dragged || G.runT >= 6) || LANE.on) return;
   const text = !TOUCH ? 'PRESS SPACE TO JUMP' : labOpt('jump', 'gesture') === 'flick' ? '▲  FLICK UP TO JUMP  ▲' : 'TAP A 2ND FINGER TO JUMP';
   ctx.globalAlpha = 0.6 + 0.4 * Math.sin(G.t * 5);
   ctx.font = '800 14px ' + FONT;
@@ -7387,6 +7439,1020 @@ function drawJumpHint() {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
   ctx.fillText(text, CX + 1, H * 0.88 + 2);
   ctx.fillStyle = RAMP_C;
+  ctx.fillText(text, CX, H * 0.88);
+  ctx.globalAlpha = 1;
+}
+
+// ---- Experiment: HYPERLANE ----
+// Fly through a world gate and, instead of arriving straight away, you drop into a hyperspace
+// tunnel for about LANE_T seconds on the way to the next world. There's no gravity in here, so
+// the same drag steers up and down as well as left and right. Dodge rocks (shoot them), laser
+// beams and iris walls (fly through the hole), thread the rings, grab cells and a power-up orb,
+// then burst out through the exit into the next world, which loads in around you as usual.
+// While you're in the lane the road waits exactly where the gate was: nothing on it moves, and
+// it carries on from there when you come out.
+// How the speeder moves is the thing being compared (option 'feel'):
+//   'roll' = it rolls so its top faces the way it's moving, like a fighter pulling a turn: going
+//            up it stays upright, sideways it banks right over, diving fast it flips upside down,
+//            and a fast swipe throws in a full barrel roll;
+//   'bank' = it only banks into sideways moves and tips its nose up and down: never upside down.
+// Everything here runs only while LANE.on, which only a Lab run with HYPERLANE switched on sets.
+// The lane has its own distance (LANE.d) and its own camera; while it's on, the shared camera
+// values (VIEW_D, VIEW_Z, FOCAL, HORIZON, cam.x, CAM_LIFT, the bend tables) describe the lane,
+// so the game's usual drawing helpers (sx/sy, drawMesh, particles, popups) all work in here.
+const LANE_T = 16;             // seconds in the lane, entry to exit
+const LANE_R = 3.4;            // tunnel radius
+const LANE_LIM = LANE_R - 0.6; // how far from the middle the speeder can go
+const LANE_HIT_R = 0.3;        // the speeder's size for collisions (a circle, seen down the tunnel)
+const LANE_SPEEDUP = 1.25;     // faster than the road you came off...
+const LANE_MIN_V = 70;         // ...and never slower than this (about 350 km/h)
+const LANE_CAM_Z = 5.2;        // camera distance behind the speeder
+const LANE_CAM_UP = 0.5;       // and how far above it
+const LANE_FOLLOW = 0.55;      // how much of the speeder's move the camera copies (the rest moves it on screen)
+const LANE_FAR = 210;          // how far down the tunnel you can see
+const LANE_RING_GAP = 8;       // the tunnel's rings of light, this far apart
+const LANE_SIDES = 18;         // the tunnel is an 18-sided tube
+const LANE_BEND = 0.0018;      // how much the tunnel snakes about (drawing only: you always fly straight)
+const LANE_GAP = [0.75, 1.1];  // seconds of open tunnel between two sections
+const LANE_STEER = 7;          // arrow keys / WASD: units a second
+const LANE_KEYS_UP = new Set(['ArrowUp', 'w', 'W']), LANE_KEYS_DOWN = new Set(['ArrowDown', 's', 'S']);
+const ROLL_V = 7;              // moving this fast (units a second) the speeder's top points fully the way it's going
+const LANE_ROLL_RATE = 9;      // how quickly it rolls to that
+const LANE_BANK = 1.0;         // 'bank': the most it banks (radians, about 57°)
+const LANE_TILT = -0.12;       // nose tipped up a little, so you see its deck
+const SPIN_V = 38;             // 'roll': a swipe faster than this (units a second, about 1,400 points a second on a phone) throws in a barrel roll
+const SPIN_T = 0.55;           // how long a barrel roll takes
+const LROCK_HP = 3;            // rock hit points on loop 1 (+2 a loop, up to loop 5)
+const LROCK_PTS = 60;          // points for shooting one
+const LRING_R = 1.0;           // ring radius
+const LRING_PTS = 150;         // first ring; the second is worth twice this, and so on
+const LRING_PERFECT = 800;     // all six
+const LIRIS_HOLE = 1.2;        // iris wall: hole radius on loop 1 (a little smaller each loop, never under 0.95)
+const LASER_HALF = 0.12;       // half the thickness of a laser beam
+const LANE = {
+  on: false, then: 'enter', t: 0, d: 0, len: 0, vt: 0, tint: 0, ph: 0, twist: 0,
+  x: 0, y: 0, tx: 0, ty: 0, vx: 0, vy: 0, ptx: 0, tvx: 0, ty0: 0,
+  roll: 0, pitch: 0, yaw: 0, spin: 0, spinT: 0, spinDir: 1, spinCool: 0,
+  camX: 0, camY: 0, hz0: 0, hz: -1,
+  pid: -1, ax: 0, ay: 0, atx: 0, aty: 0, anchored: false, cx: -1,
+  objs: [], shots: [], streaks: [], trail: [], trailT: 0, exit: null, nextD: 0, segs: 0, last: '', fireT: 0,
+  // counters (analytics and the game-over line)
+  runs: 0, rings: 0, ringsSeen: 0, hits: 0, orbs: 0, rolls: 0, diedIn: false, movedY: false,
+};
+const LANE_TINTS = SKINS.map((S) => ({ c: 'rgb(' + S.rail.join(',') + ')', spr: S.spr }));
+const LANE_VIOLET = '#a64cff';
+// A low-poly rock: an icosahedron with its corners pushed in and out a little (fixed, not random).
+const ROCK_MESH = (() => {
+  const t = (1 + Math.sqrt(5)) / 2;
+  const base = [[-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]];
+  const v = [];
+  base.forEach((p, i) => {
+    const m = Math.hypot(p[0], p[1], p[2]), j = 0.8 + 0.32 * Math.abs((Math.sin(i * 12.9898 + 4.1) * 43758.5453) % 1);
+    v.push(p[0] / m * j, p[1] / m * j, p[2] / m * j);
+  });
+  const F = [[0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11], [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+    [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9], [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]];
+  const cols = [[96, 52, 124], [74, 38, 100], [58, 30, 84]];
+  return makeMesh(v, F.map((f, i) => [f, cols[i % 3], '#ff9d2e']), [0, 0, 0]);
+})();
+
+function resetLane() {
+  const L = LANE;
+  if (L.on && L.hz >= 0) { HORIZON = L.hz0; ROLL = 0; }   // (quitting from inside a lane: give the road its camera back)
+  L.on = false; L.hz = -1; L.exit = null; L.pid = -1;
+  L.objs.length = 0; L.shots.length = 0; L.trail.length = 0;
+  L.runs = 0; L.rings = 0; L.ringsSeen = 0; L.hits = 0; L.orbs = 0; L.rolls = 0; L.diedIn = false; L.movedY = false;
+}
+function laneTint() { return LANE_TINTS[LANE.tint]; }
+function laneLvl() { return (WP.loop - 1) + (WP.sec % SKINS.length) / SKINS.length; }
+function wrapPi(a) { return a - 6.283185307 * Math.round(a / 6.283185307); }
+function smooth01(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+// a random spot in the tunnel, at most r from the middle
+function lanePt(r) { const a = rand(0, 6.2832), q = r * Math.sqrt(Math.random()); return [Math.cos(a) * q, Math.sin(a) * q]; }
+function laneAdd(type, d, props) {
+  const o = Object.assign({ kind: 'lane', type, d, x: 0, y: 0, t: rand(0, 6), _z: 0 }, props);
+  LANE.objs.push(o);
+  return o;
+}
+
+// You've flown through a world gate (then = 'enter'), or a test run starts in a lane (then =
+// 'resume': you come out into the world you're already in).
+function startLane(then) {
+  const L = LANE;
+  L.on = true; L.then = then; L.t = 0; L.d = 0; L.runs++;
+  L.tint = then === 'enter' ? (WP.sec + 1) % SKINS.length : WP.theme;    // tinted like the world it leads to
+  L.vt = Math.max(baseSpeed(G.d) * LANE_SPEEDUP, LANE_MIN_V);
+  L.len = L.vt * LANE_T;
+  L.ph = rand(0, 6.2832); L.twist = 0;
+  // you come in where you were across the road, a little below the middle of the tunnel
+  L.x = clamp(player.x, -LANE_LIM * 0.8, LANE_LIM * 0.8); L.y = -1.3;
+  const m = Math.hypot(L.x, L.y);
+  if (m > LANE_LIM * 0.85) { L.x *= LANE_LIM * 0.85 / m; L.y *= LANE_LIM * 0.85 / m; }
+  L.tx = L.x; L.ty = L.y; L.ptx = L.x; L.ty0 = L.y; L.vx = 0; L.vy = 0; L.tvx = 0;
+  L.roll = -player.bank; L.pitch = LANE_TILT; L.yaw = 0; L.spin = 0; L.spinT = 0; L.spinCool = 0.5;
+  L.camX = L.x * LANE_FOLLOW; L.camY = L.y * LANE_FOLLOW;
+  L.hz = -1;
+  L.pid = drag ? drag.id : -1; L.anchored = false;     // a thumb already down keeps steering (it picks up from its next move)
+  L.cx = drag ? drag.x0 + (player.tx - drag.t0) / steerSensitivity() : -1;   // (where that thumb is, near enough)
+  L.objs.length = 0; L.shots.length = 0; L.trail.length = 0; parts.length = 0;
+  L.exit = laneAdd('exit', L.len, {});
+  L.nextD = L.vt * 1.5;        // a second and a half of open tunnel to find your bearings
+  L.segs = 0; L.last = ''; L.fireT = 0.2;
+  L.streaks.length = 0;
+  for (let i = 0; i < 46; i++) L.streaks.push({ a: rand(0, 6.2832), r: rand(0.5, 0.97) * LANE_R, d: rand(0, LANE_FAR) });
+  player.y = 0; player.vy = 0; player.ramp = null; player.hop = false; player.mega = false;
+  SKY.cur = null; G.air = 0;
+  G.speed = Math.max(G.speed, L.vt * 0.85);
+  G.flash = Math.max(G.flash, 0.8); G.flashColor = laneTint().c;
+  G.kick = 1;
+  toast('HYPERLANE', laneTint().c, L.runs === 1 ? 'steer up and down too' : 'next: ' + THEMES[L.tint].name);
+  play('swarm', 0.5, 0.8);
+  play('power', 0.4, 0.7);
+  vibrate([20, 30, 20]);
+  laneView();
+}
+// Out through the exit and back onto the road.
+function exitLane() {
+  const L = LANE;
+  L.on = false;
+  HORIZON = L.hz0; L.hz = -1;
+  ROLL = 0;
+  player.x = clamp(L.x, -(TRACK_HALF - 0.45), TRACK_HALF - 0.45); player.tx = player.x;
+  player.vx = 0; player.lean = 0; player.bank = 0; player.y = 0; player.vy = 0;
+  cam.x = player.x * CAM_TRACK;
+  if (drag && L.cx >= 0) { drag.x0 = L.cx; drag.t0 = player.tx; }   // a thumb still down carries on steering from where it is
+  L.objs.length = 0; L.shots.length = 0; L.trail.length = 0; L.exit = null; parts.length = 0;
+  resetTrail();
+  for (const st of streaks) resetStreak(st, true);
+  WP.exit = Math.max(WP.exit, 0.7);       // out into the light
+  if (L.then === 'enter') {
+    enterWorld();
+  } else {
+    // (test setup: back into the world the run started in)
+    WP.rez = 0; WP.card = true;
+    G.nextSpawn = Math.max(G.nextSpawn, G.d + G.speed * 2);
+    G.invuln = Math.max(G.invuln, 0.8);
+  }
+  buildView(0);
+}
+
+// The lane's camera, written into the shared camera values (see the top of this block).
+function laneView() {
+  const L = LANE;
+  const k = 1 - 0.06 * G.kick;
+  VIEW_Z = LANE_CAM_Z * k;
+  // the tunnel, at the speeder, is a little wider than the screen
+  FOCAL = Math.min(W, H * 0.7) * 1.12 * LANE_CAM_Z / (2 * LANE_R) * k;
+  VIEW_D = L.d - VIEW_Z;
+  cam.x = L.camX;
+  CAM_LIFT = L.camY + LANE_CAM_UP - CAM_H;
+  if (HORIZON !== L.hz) L.hz0 = HORIZON;     // (the road's own value, or a new one after the screen changed size)
+  HORIZON = L.hz = Math.round(H * 0.44);     // the far end of the tunnel, a little above the middle of the screen
+  HZ = HORIZON;
+  // the tunnel snakes about: built like the road's bends, so everything drawn in it bends together
+  let lat = 0, slope = 0, up = 0, rise = 0;
+  bendX[0] = 0; bendY[0] = 0;
+  for (let i = 1; i < NS; i++) {
+    const dd = VIEW_D + (i - 0.5) * SEG;
+    const kx = laneCurve(dd, 0), ky = laneCurve(dd, 1);
+    lat += slope * SEG + 0.5 * kx * SEG * SEG; slope += kx * SEG;
+    up += rise * SEG + 0.5 * ky * SEG * SEG; rise += ky * SEG;
+    bendX[i] = lat; bendY[i] = up;
+  }
+  // look a little into each bend, as on the road
+  const aimZ = VIEW_Z + 30, ax = lx(aimZ) / aimZ, ay = ly(aimZ) / aimZ;
+  for (let i = 1; i < NS; i++) { bendX[i] -= i * SEG * ax; bendY[i] -= i * SEG * ay; }
+  bendXEnd = slope - ax; bendYEnd = rise - ay;
+}
+// How sharply the tunnel bends at lane distance d (axis 0 = sideways, 1 = up and down).
+// Straight at the start and toward the exit, so you come in and go out looking dead ahead.
+function laneCurve(d, axis) {
+  const L = LANE, f = smooth01((d - 40) / 160) * smooth01((L.len - 60 - d) / 200);
+  if (f <= 0) return 0;
+  const p = L.ph + axis * 2.1;
+  return LANE_BEND * f * (0.65 * Math.sin(d * 0.0057 + p) + 0.35 * Math.sin(d * 0.0131 + p * 1.7));
+}
+
+// ---- Sections: what you meet in the lane. Each puts its things at lane distance `at`, spaced
+// in time at the lane's speed v, and returns the length of tunnel it used. ----
+const LANE_SECTIONS = {
+  // six rings in a snaking line: each one is worth more than the last
+  rings(at, v, lvl) {
+    const n = 6, gap = 0.42, set = { n, got: 0, passed: 0 };
+    let a = rand(0, 6.2832), dir = Math.random() < 0.5 ? -1 : 1, r = rand(1.1, 1.9);
+    for (let i = 0; i < n; i++) {
+      if (i > 0) {
+        if (Math.random() < 0.25) dir = -dir;
+        a += dir * rand(0.55, 0.85 + 0.12 * Math.min(lvl, 3));
+        r = clamp(r + rand(-0.5, 0.5), 0.6, LANE_R - LRING_R - 0.45);
+      }
+      laneAdd('ring', at + v * gap * i, { x: Math.cos(a) * r, y: Math.sin(a) * r, i, set, done: false });
+    }
+    return v * gap * (n - 1);
+  },
+  // a field of tumbling rocks: shoot them or slip between
+  rocks(at, v, lvl) {
+    const dur = 2, n = Math.round(7 + 2.5 * Math.min(lvl, 4));
+    for (let i = 0; i < n; i++) laneRock(at + v * dur * (i + rand(0, 0.8)) / n, lanePt(LANE_R - 0.75), rand(0.55, 0.9), lvl >= 1);
+    return v * dur;
+  },
+  // two laser beams across the tunnel at different angles
+  laser(at, v) {
+    let a = rand(0, 3.1416);
+    laneAdd('laser', at, { ang: a, w: 0, off: rand(-1.4, 1.4) });
+    a += 1.5708 + rand(-0.6, 0.6);
+    laneAdd('laser', at + v * 0.95, { ang: a, w: 0, off: rand(-1.4, 1.4) });
+    return v * 0.95;
+  },
+  // two beams turning as they come, opposite ways
+  spin(at, v, lvl) {
+    const w = (1 + 0.25 * Math.min(lvl, 4)) * (Math.random() < 0.5 ? -1 : 1);
+    laneAdd('laser', at, { ang: rand(0, 3.1416), w, off: rand(-0.5, 0.5) });
+    laneAdd('laser', at + v * 0.9, { ang: rand(0, 3.1416), w: -w, off: rand(-0.5, 0.5) });
+    return v * 0.9;
+  },
+  // a turning cross: find a quarter and stay in it
+  cross(at, v, lvl) {
+    const a = rand(0, 3.1416), w = (0.7 + 0.15 * Math.min(lvl, 4)) * (Math.random() < 0.5 ? -1 : 1);
+    laneAdd('laser', at, { ang: a, w, off: 0 });
+    laneAdd('laser', at, { ang: a + 1.5708, w, off: 0 });
+    return v * 0.3;
+  },
+  // walls across the tunnel with one hole each, somewhere different every time
+  iris(at, v) {
+    const hr = Math.max(0.95, LIRIS_HOLE - 0.06 * Math.min(WP.loop - 1, 4)), lim = LANE_R - hr - 0.35;
+    const [x, y] = lanePt(lim);
+    laneAdd('iris', at, { x, y, hr });
+    let p, tries = 0;
+    do { p = lanePt(lim); } while (Math.hypot(p[0] - x, p[1] - y) < 1.8 && ++tries < 30);
+    laneAdd('iris', at + v, { x: p[0], y: p[1], hr });
+    return v;
+  },
+  // a spiral of power cells
+  cells(at, v) {
+    const n = 8, a = rand(0, 6.2832), dir = Math.random() < 0.5 ? -1 : 1, r = rand(1.4, 2.2);
+    for (let i = 0; i < n; i++) laneAdd('cell', at + v * 0.16 * i, { x: Math.cos(a + dir * i * 0.45) * r, y: Math.sin(a + dir * i * 0.45) * r });
+    return v * 0.16 * (n - 1);
+  },
+  // a power-up orb, with a rock parked right in front of it and a few more around
+  orb(at, v, lvl) {
+    const a = rand(0, 6.2832), r = rand(1.2, 2), x = Math.cos(a) * r, y = Math.sin(a) * r;
+    laneAdd('orb', at + v * 0.6, { x, y, power: lanePower() });
+    laneRock(at + v * 0.2, [x, y], 0.7, false);
+    for (let i = 0; i < 3; i++) {
+      const b = a + 2.1 + i * 1.05 + rand(-0.2, 0.2);
+      laneRock(at + v * rand(0, 0.45), [x + Math.cos(b) * 1.5, y + Math.sin(b) * 1.5], rand(0.55, 0.75), lvl >= 1);
+    }
+    return v * 0.6;
+  },
+};
+function laneRock(d, p, r, drifts) {
+  let [x, y] = p;
+  const m = Math.hypot(x, y), lim = LANE_R - r - 0.15;
+  if (m > lim) { x *= lim / m; y *= lim / m; }
+  const dv = drifts ? lanePt(0.7) : [0, 0];
+  return laneAdd('rock', d, { x, y, r, hp: LROCK_HP + 2 * Math.min(WP.loop - 1, 4), vx: dv[0], vy: dv[1], rot: rand(0, 6), spin: rand(-2.2, 2.2), flashT: 0 });
+}
+// which power-up an orb carries: only ones that would do something right now
+function lanePower() {
+  const list = [{ t: 'rapid', w: 1 }, { t: 'mult', w: 1 }];
+  if (G.shield < 2) list.push({ t: 'shield', w: 1.4 });
+  if (G.weapon < GUN_MAX) list.push({ t: 'weapon', w: 1.4 });
+  if (G.hull < hullMax()) list.push({ t: 'repair', w: 1.2 });
+  return weighted(list).t;
+}
+function laneNextSection() {
+  const L = LANE;
+  if (L.segs === 0) return 'rings';      // a gentle start that teaches up and down
+  if (L.segs === 2) return 'orb';
+  const pool = ['rocks', 'laser', 'iris', 'cells', 'rings', 'spin'];
+  if (laneLvl() >= 1) pool.push('cross', 'rocks');
+  let k;
+  do { k = pick(pool); } while (k === L.last);
+  return k;
+}
+
+function updateLane(dt) {
+  const L = LANE, playing = G.state === 'play' && player.alive;
+  dt = Math.max(dt, 1e-4);
+  if (G.state === 'play') {
+    G.runT += dt;
+    L.t += dt;
+    const target = L.vt * (G.slow > 0 ? 0.6 : 1);
+    G.speed += (target - G.speed) * Math.min(1, dt * (G.slow > 0 ? 6 : 2));
+    G.score += G.speed * dt * 0.5 * scoreX();
+    G.invuln = Math.max(0, G.invuln - dt);
+    G.slow = Math.max(0, G.slow - dt);
+    G.rapid = Math.max(0, G.rapid - dt);
+    G.mult = Math.max(0, G.mult - dt);
+    if (G.mult <= 0) G.mx = 1;
+    // the bits of Warp Run that keep ticking in here: OVERDRIVE, close-call chains, AEGIS
+    if (WP.odT > 0) WP.odT = Math.max(0, WP.odT - dt);
+    else if (WP.od >= OD_NEED) startOverdrive();
+    if (WP.nmT > 0) { WP.nmT -= dt; if (WP.nmT <= 0) WP.nm = 0; }
+    if (WP.perks.aegis && G.shield < 2) {
+      WP.aegisT += dt;
+      if (WP.aegisT >= 20) { WP.aegisT = 0; G.shield++; toast('SHIELD REGROWN', COLORS.cyan); sfx.shield(); }
+    }
+    if (labOn('jump')) updateJump(dt);
+  } else {
+    // dying / over: coast to a stop (never out through the exit)
+    G.speed *= Math.exp(-dt * 1.6);
+    G.overT += dt;
+    if (G.state === 'dying' && G.overT > 1.25) showOver();
+  }
+  L.d += G.speed * dt;
+  if (!playing && L.exit) L.d = Math.min(L.d, L.exit.d - 3);
+  L.twist += dt * 0.22;
+
+  // steering: the speeder glides to where your thumb (or the keys) put it, as on the road
+  if (playing) {
+    if (keys.left) L.tx -= LANE_STEER * dt;
+    if (keys.right) L.tx += LANE_STEER * dt;
+    if (keys.up) L.ty += LANE_STEER * dt;
+    if (keys.down) L.ty -= LANE_STEER * dt;
+    const m = Math.hypot(L.tx, L.ty);
+    if (m > LANE_LIM) { L.tx *= LANE_LIM / m; L.ty *= LANE_LIM / m; }
+    if (Math.abs(L.ty - L.ty0) > 0.8) L.movedY = true;
+  }
+  const px = L.x, py = L.y;
+  if (player.alive) {
+    const e = 1 - Math.exp(-dt * STEER_EASE);
+    L.x += (L.tx - L.x) * e;
+    L.y += (L.ty - L.y) * e;
+  }
+  L.vx = (L.x - px) / dt; L.vy = (L.y - py) / dt;
+  // how fast the thumb itself is moving sideways (a fast swipe = a barrel roll)
+  L.tvx += ((L.tx - L.ptx) / dt - L.tvx) * (1 - Math.exp(-dt * 25));
+  L.ptx = L.tx;
+  laneAttitude(dt);
+  const cf = 1 - Math.exp(-dt * CAM_FOLLOW);
+  L.camX += (L.x * LANE_FOLLOW - L.camX) * cf;
+  L.camY += (L.y * LANE_FOLLOW - L.camY) * cf;
+  ROLL += (clamp(-L.vx * 0.012, -0.1, 0.1) - ROLL) * (1 - Math.exp(-dt * 3));
+  player.x = L.x; player.tx = L.x; player.vx = L.vx;
+  laneView();
+
+  // what's coming
+  if (G.state === 'play') {
+    while (L.nextD < L.d + LANE_FAR + 5 && L.nextD < L.len - L.vt * 2.2) {
+      const k = laneNextSection();
+      const len = LANE_SECTIONS[k](L.nextD, L.vt, laneLvl());
+      L.last = k; L.segs++;
+      STATS.pat['lane-' + k] = (STATS.pat['lane-' + k] || 0) + 1;
+      L.nextD += len + L.vt * rand(LANE_GAP[0], LANE_GAP[1]);
+    }
+  }
+  for (const s of L.streaks) if (s.d - VIEW_D < 1) { s.d = VIEW_D + rand(LANE_FAR * 0.3, LANE_FAR); s.a = rand(0, 6.2832); s.r = rand(0.5, 0.97) * LANE_R; }
+  // the engine trail: where the speeder has been over the last fifth of a second
+  L.trailT -= dt;
+  if (L.trailT <= 0) {
+    L.trailT = 0.02;
+    const r = L.roll + L.spin;
+    L.trail.unshift({ x: L.x, y: L.y, c: Math.cos(r), s: Math.sin(r) });
+    if (L.trail.length > 10) L.trail.length = 10;
+  }
+
+  // guns: the same rate, damage and spread as on the road; the spread turns with the speeder
+  if (playing) {
+    L.fireT -= dt;
+    if (L.fireT <= 0) {
+      const od = WP.odT > 0;
+      L.fireT += od ? (G.rapid > 0 ? 0.055 : 0.075) : G.rapid > 0 ? 0.075 : 0.15;
+      laneFire();
+    }
+  }
+  for (const b of L.shots) {
+    b.pd = b.d;
+    b.d += b.vd * dt; b.x += b.vx * dt; b.y += b.vy * dt;
+    if (b.d - L.d > 170 || Math.hypot(b.x, b.y) > LANE_R) b.dead = true;
+  }
+
+  for (const o of L.objs) updateLaneObj(o, dt, playing);
+
+  // particles drift: no gravity in here
+  for (let i = 0, n = parts.length; i < n; i++) {
+    const p = parts[i];
+    p.life -= dt;
+    if (p.life <= 0) { p.dead = true; continue; }
+    p.d += p.vd * dt;
+    if (p.k >= 2) continue;
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.k === 1) p.rot += p.spin * dt;
+  }
+  for (const p of popups) { p.t += dt; if (p.t > 0.9) p.dead = true; }
+  compact(L.objs); compact(L.shots); compact(parts); compact(popups);
+
+  // out: once the exit's window onto the next world fills the screen
+  if (playing && L.exit && L.exit.d - VIEW_D <= LANE_R * FOCAL / Math.hypot(W / 2, H / 2)) exitLane();
+  updateLadder(dt);
+  audioEngine();
+}
+
+// The speeder's roll, pitch and yaw in the lane (see 'feel' at the top of this block).
+function laneAttitude(dt) {
+  const L = LANE, k = Math.tanh(L.vx / ROLL_V), q = Math.tanh(L.vy / ROLL_V);
+  const cur = wrapPi(L.roll);
+  L.roll = cur;
+  let target;
+  if (labOpt('lane', 'feel') === 'bank') {
+    target = -LANE_BANK * k;
+  } else {
+    // roll so the top points along the move; the faster the move, the further round it goes
+    const w = Math.min(1, Math.hypot(L.vx, L.vy) / ROLL_V);
+    let ang = Math.atan2(-L.vx, L.vy);
+    // a dive is the same either way round: keep rolling the way it already leans
+    if (Math.abs(ang) > 2.2 && Math.abs(cur) > 0.25 && Math.sign(ang) !== Math.sign(cur)) ang += Math.sign(cur) * 6.283185307;
+    target = ang * w;
+    // a fast swipe sideways: a full barrel roll on top
+    L.spinCool -= dt;
+    if (L.spinT <= 0 && L.spinCool <= 0 && Math.abs(L.tvx) > SPIN_V && G.state === 'play') {
+      L.spinT = SPIN_T; L.spinDir = -Math.sign(L.tvx); L.spinCool = SPIN_T + 0.45; L.rolls++;
+      play('swarm', 0.22, 1.7, 0.2);
+    }
+  }
+  L.roll += (target - cur) * (1 - Math.exp(-dt * LANE_ROLL_RATE));
+  if (L.spinT > 0) {
+    L.spinT = Math.max(0, L.spinT - dt);
+    L.spin = L.spinDir * 6.283185307 * smooth01(1 - L.spinT / SPIN_T);
+    if (L.spinT === 0) L.spin = 0;
+  }
+  L.pitch += (LANE_TILT - 0.42 * q - L.pitch) * (1 - Math.exp(-dt * 8));
+  L.yaw += (0.32 * k - L.yaw) * (1 - Math.exp(-dt * 8));
+}
+
+function laneFire() {
+  const L = LANE, lv = G.weapon, od = WP.odT > 0;
+  const pierce = lv >= 5, dmg = (lv >= 7 ? 2 : 1) + (WP.perks.core || 0) + (od ? 1 : 0), vd = G.speed + (lv >= 8 ? 150 : 110);
+  const r = L.roll + L.spin, c = Math.cos(r), s = Math.sin(r);
+  for (const [ox, vx] of GUNS[Math.min(4, lv)]) {
+    L.shots.push({ kind: 'shot', x: L.x + ox * c, y: L.y + ox * s, d: L.d + 0.6, pd: L.d + 0.6, vx: vx * c, vy: vx * s, vd, turn: 0, dmg, pierce, hits: null, _z: 0 });
+  }
+  sfx.shoot();
+}
+// sparks flying every which way (no gravity in the lane)
+function laneBurst(x, y, d, color, n, spd, vd, life) {
+  n = partRoom(n);
+  for (let i = 0; i < n; i++) {
+    const a = rand(0, 6.2832), v = rand(0.3, 1) * spd;
+    parts.push({ kind: 'part', k: 0, x, y, d, vx: Math.cos(a) * v, vy: Math.sin(a) * v, vd: vd + rand(-1, 1) * spd,
+      life: rand(0.5, 1) * (life || 0.8), max: life || 0.8, color, size: rand(0.04, 0.1) });
+  }
+}
+// hurt() does the damage, the sounds and the shake; its sparks belong on the road, so they're
+// swapped for sparks in here.
+function laneHurt() {
+  const L = LANE, n = parts.length, sh = G.shield;
+  if (!hurt()) return false;
+  parts.length = n;
+  L.hits++;
+  if (!player.alive) {
+    L.diedIn = true;
+    const vd = G.speed * 0.55;
+    flashAt(L.x, L.y, L.d, SPR.white, 3.2, 0.45, vd);
+    flashAt(L.x, L.y, L.d, SPR.pink, 6, 0.9, vd);
+    shockRing(L.x, L.y, L.d, COLORS.cyan, 5, 0.8, vd);
+    laneBurst(L.x, L.y, L.d, COLORS.cyan, 44, 9, vd, 1.3);
+    laneBurst(L.x, L.y, L.d, COLORS.pink, 34, 7, vd, 1.1);
+    debris(L.x, L.y, L.d, '#2a2878', COLORS.cyan, 9, 6, vd, 0.2, true);
+    debris(L.x, L.y, L.d, '#5c2296', '#ff4fdc', 6, 6.5, vd, 0.18, true);
+  } else if (G.shield < sh) {
+    laneBurst(L.x, L.y, L.d, COLORS.cyan, 26, 5, G.speed, 0.6);
+    shockRing(L.x, L.y, L.d, COLORS.cyan, 2.6, 0.4, G.speed * 0.9);
+  } else {
+    laneBurst(L.x, L.y, L.d, COLORS.orange, 24, 5, G.speed * 0.8, 0.7);
+    flashAt(L.x, L.y, L.d, SPR.red, 2.6, 0.3, G.speed * 0.9);
+    shockRing(L.x, L.y, L.d, COLORS.red, 2.2, 0.35, G.speed * 0.9);
+  }
+  return true;
+}
+function laneBreak(o, shot) {
+  o.dead = true;
+  laneBurst(o.x, o.y, o.d, COLORS.orange, 18, 6, 0, 0.6);
+  debris(o.x, o.y, o.d, '#3a1d52', '#ff9d2e', 6, 5, 0, 0.16, true);
+  flashAt(o.x, o.y, o.d, SPR.orange, o.r * 3, 0.3, 0);
+  sfx.boom();
+  if (!shot) return;
+  addScore(LROCK_PTS);
+  popup('+' + LROCK_PTS * scoreX(), o.x, o.y, o.d, COLORS.orange);
+  if (Math.random() < 0.35) laneAdd('cell', o.d, { x: o.x, y: o.y });    // it stays where the rock was
+}
+function updateLaneObj(o, dt, playing) {
+  const L = LANE;
+  o.t += dt;
+  const rel = o.d - L.d, pr = o.pr === undefined ? rel : o.pr;
+  o.pr = rel;
+  if (rel < -VIEW_Z - 3) { o.dead = true; return; }
+  if (rel > LANE_FAR + 20) return;
+  const crossed = pr > 0 && rel <= 0;     // the speeder has just reached it
+  const dist = Math.hypot(L.x - o.x, L.y - o.y);
+  if (o.type === 'rock') {
+    o.rot += o.spin * dt;
+    o.flashT = Math.max(0, o.flashT - dt);
+    o.x += o.vx * dt; o.y += o.vy * dt;
+    const m = Math.hypot(o.x, o.y), lim = LANE_R - o.r - 0.1;
+    if (m > lim) { o.x *= lim / m; o.y *= lim / m; const dot = (o.vx * o.x + o.vy * o.y) / (lim * lim); if (dot > 0) { o.vx -= 2 * dot * o.x; o.vy -= 2 * dot * o.y; } }
+    for (const b of L.shots) {
+      if (b.dead || b.pd > o.d + o.r || b.d < o.d - o.r) continue;
+      if (Math.hypot(b.x - o.x, b.y - o.y) > o.r + 0.1 || !shotHits(b, o)) continue;
+      if (!b.pierce) b.dead = true;
+      o.hp -= b.dmg;
+      o.flashT = 0.08;
+      laneBurst(b.x, b.y, o.d - o.r * 0.6, '#ffd0a0', 3, 2, 0, 0.25);
+      sfx.tick();
+      if (o.hp <= 0) { laneBreak(o, true); return; }
+    }
+    if (playing && crossed) {
+      const room = dist - o.r - LANE_HIT_R;
+      if (room < 0) { if (laneHurt()) laneBreak(o, false); }
+      else if (room < 0.4) nearMiss();
+    }
+  } else if (o.type === 'laser') {
+    o.ang += o.w * dt;
+    if (playing && crossed) {
+      const room = Math.abs(-Math.sin(o.ang) * L.x + Math.cos(o.ang) * L.y - o.off) - LASER_HALF - LANE_HIT_R;
+      if (room < 0) laneHurt();
+      else if (room < 0.35) nearMiss();
+    }
+  } else if (o.type === 'iris') {
+    // bullets only get through the hole
+    for (const b of L.shots) {
+      if (!b.dead && b.pd <= o.d && b.d >= o.d && Math.hypot(b.x - o.x, b.y - o.y) > o.hr) { b.dead = true; laneBurst(b.x, b.y, o.d - 0.1, '#ff9be8', 3, 2, 0, 0.2); }
+    }
+    if (playing && crossed) {
+      const room = o.hr - dist - LANE_HIT_R;
+      if (room < 0) { o.hit = true; laneHurt(); }
+      else if (room < 0.3) nearMiss();
+    }
+  } else if (o.type === 'ring') {
+    if (o.done || !crossed) return;
+    o.done = true;
+    const S = o.set;
+    S.passed++;
+    if (!playing) return;
+    L.ringsSeen++;
+    if (dist > LRING_R - 0.12) return;
+    o.dead = true;
+    S.got++; L.rings++;
+    const pts = LRING_PTS * S.got;
+    addScore(pts);
+    popup('RING +' + (pts * scoreX()).toLocaleString(), o.x, o.y, o.d + 2, COLORS.yellow);
+    laneBurst(o.x, o.y, o.d, COLORS.yellow, 14, 5, G.speed * 0.9, 0.45);
+    shockRing(o.x, o.y, o.d, COLORS.yellow, LRING_R * 1.6, 0.3, G.speed * 0.95);
+    play('ui', 0.5, 1.1 + S.got * 0.12);
+    vibrate(10);
+    if (S.got === S.n) {
+      addScore(LRING_PERFECT);
+      toast('PERFECT LINE', COLORS.yellow, '+' + (LRING_PERFECT * scoreX()).toLocaleString() + ' · 2 cells');
+      chargeOD(2);
+      G.kick = 1;
+      G.flash = Math.max(G.flash, 0.3); G.flashColor = COLORS.yellow;
+      play('power', 0.55, 1.25);
+      vibrate([20, 30, 40]);
+    }
+  } else if (o.type === 'cell') {
+    // close up they lean toward you; MAGNET pulls them from much further
+    const near = WP.perks.magnet ? rel < 70 : rel < 25 && dist < 1.6;
+    if (near && dist > 0.01) { const k = Math.min(1, (WP.perks.magnet ? 7 : 4) * dt); o.x += (L.x - o.x) * k; o.y += (L.y - o.y) * k; }
+    if (playing && rel < 0.8 && pr > -1 && Math.hypot(L.x - o.x, L.y - o.y) < 0.8) {
+      o.dead = true;
+      chargeOD(1);
+      addScore(25);
+      laneBurst(o.x, o.y, L.d + 0.5, '#6dff7a', 8, 3, G.speed, 0.35);
+      play('ui', 0.45, 1.5 + WP.od * 0.06, 0.03);
+    }
+  } else if (o.type === 'orb') {
+    if (playing && rel < 0.8 && pr > -1 && dist < 0.9) {
+      o.dead = true;
+      L.orbs++;
+      const P = POWERS[o.power];
+      laneBurst(o.x, o.y, L.d + 0.5, P.color, 16, 4, G.speed * 0.8, 0.6);
+      shockRing(o.x, o.y, L.d + 0.5, P.color, 2.4, 0.4, G.speed * 0.9);
+      applyPower(o.power);
+      G.fly = { type: o.power, t: 0 };
+    }
+  } else if (o.type === 'exit') {
+    if (playing && crossed) { G.flash = Math.max(G.flash, 0.4); G.flashColor = '#ffffff'; play('swarm', 0.45, 1.2); }
+  }
+}
+
+// ---- Lane input: the same relative drag as the road, in two directions ----
+function lanePointerDown(e) {
+  const L = LANE;
+  L.pid = e.pointerId; L.ax = e.clientX; L.ay = e.clientY; L.atx = L.tx; L.aty = L.ty; L.anchored = true; L.cx = e.clientX;
+}
+function lanePointerMove(e) {
+  const L = LANE;
+  if (e.pointerId !== L.pid) {
+    if (!drag || e.pointerId !== drag.id) return;
+    L.pid = e.pointerId; L.anchored = false;     // (the thumb that was steering on the road)
+  }
+  L.cx = e.clientX;
+  if (!L.anchored || paused) { L.ax = e.clientX; L.ay = e.clientY; L.atx = L.tx; L.aty = L.ty; L.anchored = true; return; }
+  const k = steerSensitivity();
+  let tx = L.atx + (e.clientX - L.ax) * k, ty = L.aty - (e.clientY - L.ay) * k;
+  if (Math.abs(e.clientX - L.ax) > 6 || Math.abs(e.clientY - L.ay) > 6) G.dragged = true;
+  const m = Math.hypot(tx, ty);
+  if (m > LANE_LIM) {
+    // re-anchor at the edge so pulling back responds at once
+    tx *= LANE_LIM / m; ty *= LANE_LIM / m;
+    L.ax = e.clientX; L.ay = e.clientY; L.atx = tx; L.aty = ty;
+  }
+  L.tx = tx; L.ty = ty;
+}
+function lanePointerUp(e) { if (e.pointerId === LANE.pid) LANE.pid = -1; }
+
+// ---- Drawing the lane ----
+const LT_N = Math.ceil(LANE_FAR / LANE_RING_GAP) + 2;
+const LT_X = new Float32Array(LT_N * LANE_SIDES), LT_Y = new Float32Array(LT_N * LANE_SIDES), LT_Z = new Float32Array(LT_N);
+function drawLane() {
+  const L = LANE;
+  laneView();          // (again, in case the screen changed size while paused)
+  ctx.save();
+  if (Math.abs(ROLL) > 0.0005) { ctx.translate(CX, HORIZON); ctx.rotate(ROLL); ctx.translate(-CX, -HORIZON); }
+  if (G.shake > 0 && SET.shake) { const m = G.shake * 7; ctx.translate(rand(-m, m), rand(-m, m)); }
+  drawLaneTunnel();
+  drawList.length = 0;
+  for (const o of L.objs) { o._z = o.d - VIEW_D; if (o._z > 0.3 && o._z < LANE_FAR + 10) drawList.push(o); }
+  for (const b of L.shots) { b._z = b.d - VIEW_D; if (b._z > 1 && b._z < LANE_FAR) drawList.push(b); }
+  for (const p of parts) { p._z = p.d - VIEW_D; if (p._z > 0.8 && p._z < LANE_FAR) drawList.push(p); }
+  if (player.alive) { PLAYER_ITEM._z = VIEW_Z; drawList.push(PLAYER_ITEM); }
+  drawList.sort((a, b) => b._z - a._z);
+  for (const it of drawList) {
+    if (it.kind === 'lane') drawLaneObj(it);
+    else if (it.kind === 'shot') drawShot(it);
+    else if (it.kind === 'part') drawPart(it);
+    else if (it.kind === 'player') drawLaneShip();
+  }
+  ctx.restore();
+}
+function drawLaneTunnel() {
+  const L = LANE, N = LANE_SIDES, camD = VIEW_D, T = laneTint();
+  ctx.fillStyle = '#04010c';
+  ctx.fillRect(-OS, -OS, W + OS * 2, H + OS * 2);
+  const end = L.exit ? Math.min(LANE_FAR, L.exit.d - camD) : LANE_FAR;
+  ctx.globalCompositeOperation = 'lighter';
+  // the bright core far down the tunnel
+  if (end > LANE_FAR * 0.6) {
+    const vx = sx(0, LANE_FAR), vy = sy(0, LANE_FAR), r = Math.min(W, H);
+    glow(SPR[T.spr], vx, vy, r * 0.9, r * 0.9, 0.2);
+    glow(SPR.violet, vx, vy, r * 0.5, r * 0.5, 0.3);
+    glow(SPR.white, vx, vy, r * 0.1, r * 0.1, 0.45);
+  }
+  // the tube: rings of points, turning slowly, so its lines spiral
+  const gap = LANE_RING_GAP * (QUAL.name === 'Low' ? 1.5 : 1);
+  let n = 0;
+  for (let ld = Math.ceil((camD + 0.4) / gap) * gap; ld - camD < end && n < LT_N; ld += gap) {
+    const z = ld - camD, tw = L.twist + ld * 0.004;
+    LT_Z[n] = z;
+    for (let k = 0; k < N; k++) {
+      const a = tw + k * 6.283185 / N;
+      LT_X[n * N + k] = sx(Math.cos(a) * LANE_R, z);
+      LT_Y[n * N + k] = sy(Math.sin(a) * LANE_R, z);
+    }
+    n++;
+  }
+  if (n >= 2) {
+    // lines running down the tunnel, carried on right up to the camera (so the walls never
+    // blink in and out as the nearest ring slips behind you)
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = LANE_VIOLET;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    const zn = 0.7, twn = L.twist + (camD + zn) * 0.004;
+    for (let k = 0; k < N; k++) {
+      ctx.moveTo(LT_X[(n - 1) * N + k], LT_Y[(n - 1) * N + k]);
+      for (let r = n - 2; r >= 0; r--) ctx.lineTo(LT_X[r * N + k], LT_Y[r * N + k]);
+      const a = twn + k * 6.283185 / N;
+      ctx.lineTo(sx(Math.cos(a) * LANE_R, zn), sy(Math.sin(a) * LANE_R, zn));
+    }
+    ctx.stroke();
+    // the rings: every fourth one bright, in the colour of the world ahead
+    for (let r = n - 1; r >= 0; r--) {
+      const z = LT_Z[r], ld = z + camD;
+      const fog = clamp((LANE_FAR - z) / 60, 0, 1) * clamp(z / 2, 0, 1);
+      const big = Math.round(ld / gap) % 4 === 0;
+      ctx.globalAlpha = fog * (big ? 0.9 : 0.4);
+      ctx.strokeStyle = big ? T.c : LANE_VIOLET;
+      ctx.lineWidth = clamp((big ? 0.07 : 0.035) * FOCAL / z, 1, big ? 7 : 3);
+      ctx.beginPath();
+      ctx.moveTo(LT_X[r * N], LT_Y[r * N]);
+      for (let k = 1; k < N; k++) ctx.lineTo(LT_X[r * N + k], LT_Y[r * N + k]);
+      ctx.closePath();
+      ctx.stroke();
+    }
+  }
+  // speed lines streaming past along the walls
+  const ns = Math.min(L.streaks.length, QUAL.streaks), len = G.speed * 0.07;
+  ctx.strokeStyle = '#e4d8ff';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < ns; i++) {
+    const s = L.streaks[i], z = s.d - camD;
+    if (z < 3 || z > end) continue;
+    const x = Math.cos(s.a) * s.r, y = Math.sin(s.a) * s.r;
+    ctx.globalAlpha = 0.55 * clamp((LANE_FAR - z) / 60, 0, 1);
+    ctx.beginPath(); ctx.moveTo(sx(x, z), sy(y, z)); ctx.lineTo(sx(x, z + len), sy(y, z + len)); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+function drawLaneObj(o) {
+  const z = o._z, a = clamp((LANE_FAR - z) / 50, 0, 1);
+  if (a <= 0.01) return;
+  const s = FOCAL / z;
+  if (o.type === 'rock') {
+    if (z < 0.8) return;
+    ctx.globalCompositeOperation = 'lighter';
+    glow(SPR.orange, sx(o.x, z), sy(o.y, z), o.r * 1.9 * s, o.r * 1.9 * s, a * 0.16);
+    ctx.globalCompositeOperation = 'source-over';
+    MT.x = o.x; MT.y = o.y; MT.z = z; MT.roll = o.rot; MT.pitch = o.rot * 0.7; MT.yaw = o.rot * 0.4; MT.scale = o.r;
+    MESH_TINT = o.flashT > 0 ? 0.6 : 0;
+    drawMesh(ROCK_MESH, MT, a, 0.025);
+    MESH_TINT = 0;
+  } else if (o.type === 'laser') {
+    const c = Math.cos(o.ang), sn = Math.sin(o.ang), h = Math.sqrt(Math.max(0, LANE_R * LANE_R - o.off * o.off));
+    const mx = -sn * o.off, my = c * o.off;
+    const X1 = sx(mx + c * h, z), Y1 = sy(my + sn * h, z), X2 = sx(mx - c * h, z), Y2 = sy(my - sn * h, z);
+    const fl = 0.85 + 0.15 * Math.sin(o.t * 40);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = a * 0.3 * fl;
+    ctx.strokeStyle = COLORS.red;
+    ctx.lineWidth = clamp(0.55 * s, 2, 40);
+    ctx.beginPath(); ctx.moveTo(X1, Y1); ctx.lineTo(X2, Y2); ctx.stroke();
+    ctx.globalAlpha = a * fl;
+    ctx.strokeStyle = '#ff8a9c';
+    ctx.lineWidth = clamp(LASER_HALF * 2 * s, 1, 14);
+    ctx.stroke();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = clamp(0.06 * s, 0.8, 4);
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+    glow(SPR.red, X1, Y1, 0.7 * s, 0.7 * s, a);
+    glow(SPR.red, X2, Y2, 0.7 * s, 0.7 * s, a);
+  } else if (o.type === 'iris') {
+    drawIris(o, z, a, s);
+  } else if (o.type === 'ring') {
+    if (z < 1.05) return;
+    const px = sx(o.x, z), py = sy(o.y, z), r = LRING_R * s, next = o.i === o.set.passed;
+    const fa = a * (o.done ? 0.3 : 1);
+    ctx.globalCompositeOperation = 'lighter';
+    glow(SPR.yellow, px, py, r * 1.7, r * 1.7, fa * (next ? 0.5 : 0.25));
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = fa;
+    ctx.lineWidth = clamp(0.15 * s, 1.5, 10);
+    ctx.strokeStyle = next ? '#fffbe0' : COLORS.yellow;
+    ctx.beginPath(); ctx.arc(px, py, r, 0, 6.2832); ctx.stroke();
+    ctx.lineWidth = clamp(0.045 * s, 1, 3);
+    ctx.strokeStyle = laneTint().c;
+    ctx.beginPath(); ctx.arc(px, py, r * 0.8, 0, 6.2832); ctx.stroke();
+  } else if (o.type === 'cell') {
+    if (z < 1.05) return;
+    const px = sx(o.x, z), py = sy(o.y, z), r = clamp(0.24 * s, 2.5, 40);
+    ctx.globalCompositeOperation = 'lighter';
+    glow(SPR.teal, px, py, r * 2.6, r * 2.6, a * 0.8);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = a;
+    const w = r * Math.abs(Math.cos(o.t * 3)) * 0.75 + r * 0.25;
+    ctx.fillStyle = '#6dff7a';
+    ctx.beginPath(); ctx.moveTo(px, py - r); ctx.lineTo(px + w, py); ctx.lineTo(px, py + r); ctx.lineTo(px - w, py); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#eaffea';
+    ctx.lineWidth = clamp(0.03 * s, 1, 2.5);
+    ctx.stroke();
+  } else if (o.type === 'orb') {
+    if (z < 1.05) return;
+    const P = POWERS[o.power], px = sx(o.x, z), py = sy(o.y + Math.sin(o.t * 3) * 0.06, z), r = clamp(0.5 * s, 3, 120);
+    ctx.globalCompositeOperation = 'lighter';
+    glow(o.power === 'shield' ? SPR.cyan : SPR.white, px, py, r * 2.5, r * 2.5, a * 0.5);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = a;
+    ctx.fillStyle = 'rgba(11, 4, 32, 0.88)';
+    ctx.beginPath(); ctx.arc(px, py, r, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = P.color;
+    ctx.lineWidth = clamp(0.06 * s, 1.5, 6);
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(px, py, r * 1.25, o.t * 3, o.t * 3 + 2); ctx.stroke();
+    powerIcon(o.power, px, py, r * 0.55, P.color, clamp(0.05 * s, 1.5, 5));
+    if (z < 90) {
+      ctx.globalAlpha = a * clamp((90 - z) / 30, 0, 1);
+      ctx.font = '800 ' + Math.round(clamp(0.3 * s, 9, 16)) + 'px ' + FONT;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = P.color;
+      ctx.fillText(powerLabel(o.power), px, py + r * 1.35);
+    }
+  } else if (o.type === 'exit') {
+    drawLaneExit(o, z, s);
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+// A wall right across the tunnel with one way through.
+function drawIris(o, z, a, s) {
+  if (z < 0.5) return;
+  const cx = sx(0, z), cy = sy(0, z), R = LANE_R * 1.02 * s;
+  const hx = sx(o.x, z), hy = sy(o.y, z), hr = o.hr * s;
+  const near = clamp((z - VIEW_Z + 1) / 3, 0, 1);      // fades as you pass, so a hit never blinds you
+  ctx.globalAlpha = a * (0.25 + 0.6 * near);
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, 6.2832);
+  ctx.moveTo(hx + hr, hy);
+  ctx.arc(hx, hy, hr, 0, 6.2832, true);
+  ctx.fillStyle = '#1c0628';
+  ctx.fill('evenodd');
+  ctx.globalCompositeOperation = 'lighter';
+  // spokes out from the hole, so it reads as one solid wall
+  ctx.globalAlpha = a * 0.3 * (0.4 + 0.6 * near);
+  ctx.strokeStyle = '#ff5fe0';
+  ctx.lineWidth = clamp(0.03 * s, 1, 3);
+  ctx.beginPath();
+  const ox = hx - cx, oy = hy - cy, oo = ox * ox + oy * oy - R * R;
+  for (let k = 0; k < 12; k++) {
+    const t = k * 0.5236 + o.t * 0.4, ux = Math.cos(t), uy = Math.sin(t), b = ux * ox + uy * oy;
+    const far = -b + Math.sqrt(Math.max(0, b * b - oo));
+    if (far <= hr) continue;
+    ctx.moveTo(hx + ux * hr * 1.15, hy + uy * hr * 1.15); ctx.lineTo(hx + ux * far, hy + uy * far);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = a * (0.4 + 0.5 * near);
+  ctx.lineWidth = clamp(0.08 * s, 1, 7);
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.stroke();
+  // the way through: a bright rim
+  const pulse = 0.8 + 0.2 * Math.sin(o.t * 8);
+  glow(SPR.cyan, hx, hy, hr * 1.5, hr * 1.5, a * 0.35);
+  ctx.globalAlpha = a * pulse;
+  ctx.strokeStyle = COLORS.cyan;
+  ctx.lineWidth = clamp(0.12 * s, 1.5, 10);
+  ctx.beginPath(); ctx.arc(hx, hy, hr, 0, 6.2832); ctx.stroke();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = clamp(0.035 * s, 1, 3);
+  ctx.stroke();
+}
+// The way out: a disc across the end of the tunnel, showing the world it leads to.
+function drawLaneExit(o, z, s) {
+  if (z < 0.3) return;
+  const T = SKINS[LANE.tint], G2 = themeGrads[LANE.tint];
+  const cx = sx(0, z), cy = sy(0, z), R = LANE_R * s;
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.clip();
+  ctx.fillStyle = G2.sky;
+  ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+  ctx.fillStyle = G2.ground;
+  ctx.fillRect(cx - R, cy + R * 0.2, R * 2, R);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillStyle = rgba(T.rail, 0.7);
+  ctx.fillRect(cx - R, cy + R * 0.2 - 1, R * 2, Math.max(2, R * 0.015));
+  glow(SPR[T.spr], cx, cy + R * 0.2, R, R * 0.35, 0.5);
+  ctx.restore();
+  ctx.globalCompositeOperation = 'lighter';
+  glow(SPR.white, cx, cy, R * 1.4, R * 1.4, 0.25 + 0.35 * clamp(1 - z / 80, 0, 1));
+  ctx.globalAlpha = 0.85;
+  ctx.strokeStyle = rgba(T.rail, 1);
+  ctx.lineWidth = clamp(0.25 * s, 2, 30);
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = clamp(0.06 * s, 1, 6);
+  ctx.stroke();
+  ctx.globalCompositeOperation = 'source-over';
+}
+// The speeder in the lane: the same model, now free to roll right round.
+function drawLaneShip() {
+  const L = LANE, z = VIEW_Z, s = FOCAL / z;
+  const blink = G.invuln > 0 && Math.floor(G.t * 18) % 2 === 0;
+  const baseA = blink ? 0.35 : 1;
+  const bob = Math.sin(G.t * 4) * 0.03;
+  MT.x = L.x; MT.y = L.y + bob; MT.z = z;
+  MT.roll = L.roll + L.spin; MT.pitch = L.pitch; MT.yaw = L.yaw; MT.scale = SHIP_SCALE;
+  drawLaneTrail(bob);
+  // a soft light behind it, so it stands out from the dark tunnel
+  ctx.globalCompositeOperation = 'lighter';
+  glow(SPR.cyan, sx(L.x, z), sy(L.y + bob, z), 0.95 * s, 0.7 * s, 0.22 * baseA);
+  ctx.globalCompositeOperation = 'source-over';
+  drawMesh(SHIP, MT, baseA, 0.013);
+  ctx.globalCompositeOperation = 'lighter';
+  // the cockpit light
+  let p = shipPoint(MT, 0, 0.2, 0.12);
+  const cr = 0.32 * s * (0.9 + 0.1 * Math.sin(G.t * 3));
+  glow(SPR.pink, sx(p[0], p[2]), sy(p[1], p[2]), cr, cr * 0.8, baseA * 0.45);
+  // engines, burning long in here
+  for (let i = 0; i < SHIP_ENGINES.length; i++) {
+    const E = SHIP_ENGINES[i];
+    p = shipPoint(MT, E[0], E[1], E[2]);
+    const ex = sx(p[0], p[2]), ey = sy(p[1], p[2]), r = E[3] * SHIP_SCALE * FOCAL / p[2];
+    const len = 0.55 + G.kick * 0.35 + Math.sin(G.t * 47 + i * 2.1) * 0.05 + Math.random() * 0.08;
+    p = shipPoint(MT, E[0], E[1], E[2] - len);
+    const fx = sx(p[0], p[2]), fy = sy(p[1], p[2]);
+    ctx.globalAlpha = baseA * 0.55;
+    ctx.fillStyle = i === 2 ? '#ff4fdc' : '#29f3ff';
+    flame(ex, ey, fx, fy, r * 1.15);
+    ctx.globalAlpha = baseA * 0.95;
+    ctx.fillStyle = '#e8ffff';
+    flame(ex, ey, ex + (fx - ex) * 0.55, ey + (fy - ey) * 0.55, r * 0.55);
+    glow(i === 2 ? SPR.pink : SPR.cyan, ex, ey, r * 1.9, r * 1.9, baseA * (0.6 + G.kick * 0.3));
+    ctx.globalAlpha = baseA;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(ex, ey, r * 0.5, 0, 6.2832); ctx.fill();
+  }
+  const tip = Math.sin(G.t * 5) > 0;
+  for (const side of [-1, 1]) {
+    p = shipPoint(MT, side * (SHIP_POD_X + 0.11), 0.42, -0.62);
+    glow((side < 0) === tip ? SPR.pink : SPR.cyan, sx(p[0], p[2]), sy(p[1], p[2]), 0.1 * s, 0.1 * s, baseA);
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  const px = sx(L.x, z), py = sy(L.y + bob, z);
+  if (G.shield > 0 || G.shHit > 0) drawShield(px, py, s);
+  if (G.pulse > 0) {
+    const r = (0.45 + (1 - G.pulse) * 1.5) * s;
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = G.pulse * 0.9;
+    ctx.strokeStyle = G.pulseColor;
+    ctx.lineWidth = Math.max(1.5, 0.07 * s * G.pulse);
+    ctx.beginPath(); ctx.arc(px, py, r, 0, 6.2832); ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+}
+// Light trails from the two engine pods: the last fifth of a second of movement, squeezed into
+// the few units between the speeder and the camera, so every swerve and roll leaves a curve.
+function drawLaneTrail(bob) {
+  const T = LANE.trail, n = T.length;
+  if (n < 2 || !QUAL.trails) return;
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineCap = 'round';
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < n - 1; i++) {
+      const z0 = VIEW_Z - 0.55 - i * 0.3, z1 = z0 - 0.3;
+      if (z1 < 2) break;
+      const p = T[i], q = T[i + 1], o = side * SHIP_POD_X;
+      const f = 1 - i / (n - 1);
+      ctx.globalAlpha = 0.6 * f;
+      ctx.strokeStyle = i < 3 ? '#e8ffff' : side < 0 ? COLORS.cyan : '#ff4fdc';
+      ctx.lineWidth = clamp(0.07 * FOCAL / z0 * (0.4 + 0.6 * f), 1, 9);
+      ctx.beginPath();
+      ctx.moveTo(sx(p.x + o * p.c, z0), sy(p.y + bob + o * p.s, z0));
+      ctx.lineTo(sx(q.x + o * q.c, z1), sy(q.y + bob + o * q.s, z1));
+      ctx.stroke();
+    }
+  }
+  ctx.lineCap = 'butt';
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+// The view through a world gate when HYPERLANE is on: the tunnel, not the next world.
+function drawLaneWindow(xl, xr, yt, yb, a) {
+  const T = LANE_TINTS[(WP.sec + 1) % SKINS.length];
+  ctx.globalAlpha = a;
+  ctx.fillStyle = '#04010c';
+  ctx.fillRect(xl, yt, xr - xl, yb - yt);
+  const cx = sx(0, FAR), cy = HZ;
+  const R = Math.max(Math.hypot(xl - cx, yt - cy), Math.hypot(xr - cx, yt - cy), Math.hypot(xl - cx, yb - cy), Math.hypot(xr - cx, yb - cy));
+  ctx.globalCompositeOperation = 'lighter';
+  glow(SPR.violet, cx, cy, R * 0.8, R * 0.8, a * 0.45);
+  glow(SPR[T.spr], cx, cy, R * 0.4, R * 0.4, a * 0.4);
+  glow(SPR.white, cx, cy, R * 0.12, R * 0.12, a * 0.85);
+  // lines down the tunnel, turning slowly
+  ctx.globalAlpha = a * 0.3;
+  ctx.strokeStyle = LANE_VIOLET;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let k = 0; k < LANE_SIDES; k++) {
+    const t = k * 6.283185 / LANE_SIDES + G.t * 0.22;
+    ctx.moveTo(cx + Math.cos(t) * R * 0.03, cy + Math.sin(t) * R * 0.03);
+    ctx.lineTo(cx + Math.cos(t) * R * 1.1, cy + Math.sin(t) * R * 1.1);
+  }
+  ctx.stroke();
+  // rings rushing out at you
+  for (let i = 0; i < 12; i++) {
+    const f = ((i + G.t * 1.8) % 12) / 12, r = R * Math.pow(f, 2.4) * 1.1;
+    if (r < 2) continue;
+    const big = i % 4 === 0;
+    ctx.globalAlpha = a * f * (big ? 0.9 : 0.45);
+    ctx.strokeStyle = big ? T.c : LANE_VIOLET;
+    ctx.lineWidth = Math.max(1, f * f * (big ? 8 : 3));
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.2832); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+// HUD: time left in the lane, on the timers row
+function laneChip(x, y) {
+  const L = LANE;
+  return timerChip(x, y, 'HYPERLANE', laneTint().c, 1 - clamp(L.d / L.len, 0, 1));
+}
+// until you've moved up or down for the first time: tell people they can
+function drawLaneHint() {
+  const L = LANE;
+  if (G.state !== 'play' || L.movedY || L.t < 2 || L.t > 8 || (!G.dragged && G.runT < 6)) return;   // (after the HYPERLANE card, and never on top of the first-run steering hint)
+  const text = TOUCH ? '▲  DRAG UP AND DOWN TOO  ▼' : '▲  UP / DOWN ARROWS TOO  ▼';
+  ctx.globalAlpha = 0.6 + 0.4 * Math.sin(G.t * 5);
+  ctx.font = '800 14px ' + FONT;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  ctx.fillText(text, CX + 1, H * 0.88 + 2);
+  ctx.fillStyle = laneTint().c;
   ctx.fillText(text, CX, H * 0.88);
   ctx.globalAlpha = 1;
 }
@@ -7717,7 +8783,7 @@ function drawHUD() {
     if (WP.railLock > 0) { label = 'RAILS COOLING'; color = COLORS.red; }
     else if (WP.rail > 0.4 && railRiding()) { label = Math.sin(G.t * 16) > -0.3 ? '⚠ RAIL HOT' : ''; color = WP.rail > 0.7 ? COLORS.red : COLORS.orange; }
     else if (WP.windWarn) { label = WP.windWarn < 0 ? '◀◀ WIND' : 'WIND ▶▶'; color = '#ffe296'; }
-    else if (WP.portal && !WP.portal.dead && WP.portal.d - G.d < Math.max(210, G.speed * 2.4)) { label = '▲ WARP GATE'; color = COLORS.yellow; }
+    else if (WP.portal && !WP.portal.dead && WP.portal.d - G.d < Math.max(210, G.speed * 2.4)) { label = labOn('lane') ? '▲ HYPERLANE' : '▲ WARP GATE'; color = COLORS.yellow; }
     if (label) {
       ctx.font = '800 13px ' + FONT;
       ctx.textBaseline = 'middle';
@@ -7820,6 +8886,7 @@ function drawHUD() {
 }
 
 function render() {
+  if (LANE.on) { drawLane(); drawHUD(); return; }   // (Lab: a hyperlane)
   ctx.save();
   // lean the camera into turns, pivoting around the speeder so it stays easy to track
   if (Math.abs(ROLL) > 0.0005) {
@@ -9065,6 +10132,8 @@ window.addEventListener('keydown', (e) => {
   if (e.target && e.target.tagName === 'INPUT') return;
   if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
   if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+  if (LANE_KEYS_UP.has(e.key)) keys.up = true;          // (only a Lab hyperlane steers up and down)
+  if (LANE_KEYS_DOWN.has(e.key)) keys.down = true;
   if (e.key === 'Escape' || e.key === 'p') {
     if (ui === 'menu') resumeGame();
     else if (ui === 'settings' || ui === 'board' || ui === 'help' || ui === 'lab') closePanel();
@@ -9080,6 +10149,8 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keyup', (e) => {
   if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
   if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+  if (LANE_KEYS_UP.has(e.key)) keys.up = false;
+  if (LANE_KEYS_DOWN.has(e.key)) keys.down = false;
 });
 
 $('mute').addEventListener('click', (e) => {
@@ -9241,7 +10312,7 @@ if (LAB_LINK) openLabLink();        // a link ending in ?lab opens straight into
 requestAnimationFrame(frame);
 
 // handy for testing in the browser console
-window.SPEEDER = { step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, LAB, LAB_EXPERIMENTS, JUMP, SKY, labOn, labSet, tryHop, hopCharge, spawnSkyRamp, skyFits, addObj, addPylon, addMine, addWallSpan, addLaserFence, openPanel, closePanel, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
+window.SPEEDER = { step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, LAB, LAB_EXPERIMENTS, JUMP, SKY, LANE, startLane, exitLane, LANE_SECTIONS, keys, labOn, labSet, tryHop, hopCharge, spawnSkyRamp, skyFits, addObj, addPylon, addMine, addWallSpan, addLaserFence, openPanel, closePanel, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
 </script>
 </body>
 </html>

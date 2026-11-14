@@ -4,6 +4,48 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.12.0] — 2026-11-13
+
+### Session 13c — HYPERLANE: flying between worlds
+
+Adrian: add the flying idea to the Lab, but don't make people reach the end of a loop to try
+it. Put it between each world: through the portal into a zero-gravity hyperspace tunnel at high
+speed, dodging things and picking up power-ups. The speeder should fly naturally: rotate and
+flip with your moves, turning its top toward the way it's going, and spin in a cool way.
+
+- **New experiment: HYPERLANE** (on by default in the Lab). Every world gate, including the
+  one after the Warden, now opens onto a hyperspace tunnel instead of the next world. Fly in
+  and you're in the lane for about **16 seconds**, then out through an exit that shows the next
+  world, which loads in around you as usual. The road waits where the gate was.
+- **Two-way steering in the lane:** the same relative drag, now up and down as well as left and
+  right, kept inside the tunnel (a circle). Arrow keys or WASD on a computer. No jumps in here.
+- **What's in a lane:** rocks (shoot them, +60, sometimes drop a cell; hit one and it costs a
+  hit), red laser beams across the tunnel (some turning, a turning cross on loop 2+), iris walls
+  with one hole to fly through, six-ring lines (+150, +300, ... and +800 with 2 cells for all
+  six), spirals of cells, and one **power-up orb** per lane with a rock parked in front of it.
+  A lane always starts with rings to teach up and down; the orb comes third. Close calls count.
+- **The speeder flies freely:** it glides to your thumb as on the road and noses toward where
+  it's going. The option being compared is how it rolls: **Barrel rolls** (it rolls so its
+  top points the way it's moving, banks right over in a hard turn, flips upside down on a fast
+  dive, and a fast swipe sideways throws in a full barrel roll) vs **Smooth banks** (banks into
+  turns and tips its nose, never upside down).
+- **Looks:** an 18-sided neon tube that snakes about and slowly twists, rings of light in the
+  colour of the world ahead, a bright core at the far end, streaks along the walls, engine
+  trails that show every swerve, and a world gate that now shows the tunnel through its window.
+- **Lab panel:** HYPERLANE switch, a "Flying style" option, and a new test setup switch,
+  **Start in a hyperlane**, so you can try it the moment a run starts.
+- HUD: a HYPERLANE timer bar on the timers row; "▲ HYPERLANE" instead of "▲ WARP GATE" ahead of a
+  gate; a one-time "drag up and down too" hint.
+- Game over in the Lab lists hyperlanes, lane rings, hits and barrel rolls. Analytics:
+  `lab/lane/<variant>/rings-*`, `hits-*-per-lane`, `*-barrel-rolls`, `died-in-lane`.
+- Trade-off to know: with HYPERLANE on, a Lab loop takes about a minute longer (five lanes).
+- New test file `tests/lane.mjs`; `tests/soak.mjs` now flies lanes too.
+- **Classic and Warp Run are unchanged** (same seeded-run check as before).
+- Not tested by a human yet: lane length, speed, how much is in it, and both flying styles are
+  first guesses.
+
+---
+
 ## [v0.11.0] — 2026-11-13
 
 ### Session 13b — Bigger jump, sky ramps with rings, and a test setup for high speed

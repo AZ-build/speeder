@@ -22,6 +22,8 @@ actually working on right now?
 - [x] v0.9.0: world gates you see through and worlds that load in; 40-second worlds; three-stage Warden; cells stay on the road; fairer slalom and lasers at top speed; laser pass-through fix; rail overheat; city buildings and roadside details; Warp board reset
 - [x] v0.10.0: the Lab (test mode with switches, no leaderboard, votes) and its first experiment, JUMP
 - [x] v0.11.0: bigger jump, SKY RAMPS experiment (ramps with rings), test setup (starting loop, fully loaded)
+- [x] v0.12.0: HYPERLANE experiment (zero-g tunnel between worlds, two flying styles), "Start in a hyperlane" test setup
+- [ ] **Adrian:** play the HYPERLANE (v0.12) on a phone: switch on "Start in a hyperlane" to try it at once. Both flying styles; is 16 s the right length; too much or too little in it; does up/down steering feel natural with one thumb?
 - [ ] **Adrian:** play v0.11 in the Lab on a phone, starting on loop 3 and fully loaded: the bigger jump (both gestures, both fuel settings) and the sky ramps (questions listed in LAB.md)
 - [ ] **Adrian:** send friends the Lab link (https://az-build.github.io/speeder/?lab) and watch the `lab/vote/...` numbers on the analytics dashboard
 - [ ] **Adrian:** play v0.9 and say how these feel: the gates, the boss, 40 s per world, the rail limit
@@ -36,7 +38,7 @@ actually working on right now?
 - [ ] Tune Warp Run from Adrian's v0.9 playtest (`W_WORLD_T`, `BOSS_TOUGH`, `BOSS_PACE`, `RAIL_HOT_T`, slalom and laser spacing)
 - [ ] Tune or settle JUMP from Adrian's playtest (pick a gesture, pick charges or unlimited, or retire it)
 - [ ] Tune SKY RAMPS from Adrian's playtest (flight size, ring spacing, how often)
-- [ ] Next Lab experiment: new roads, forks, or the space tunnel (recipe in LAB.md)
+- [ ] Next Lab experiment: new roads or forks (recipe in LAB.md)
 - [ ] Decide the next big feature: a second boss, music per world, or more set pieces (see BACKLOG)
 - [ ] Name filter for rude leaderboard names
 

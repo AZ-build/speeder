@@ -26,8 +26,8 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.11.0 |
-| **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP and SKY RAMPS, and its test setup are untested on a phone) |
+| **Current Version** | v0.12.0 |
+| **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-13 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://az-build.github.io/speeder/ |
@@ -157,11 +157,17 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
 - **Experiment 2, SKY RAMPS (v0.11):** every 11-17 s a big lime ramp launches a flight about 6
   high for 2.6 s with five rings to steer through (+200 up to +1,000, all five = perfect flight:
   +1,000, 2 power cells, a jump charge). The road underneath is kept clear, so it is a choice.
+- **Experiment 3, HYPERLANE (v0.12):** every world gate opens onto a zero-gravity hyperspace
+  tunnel for about 16 s before the next world. The same drag steers up and down too. Rocks
+  (shoot or dodge), lasers, iris walls (fly through the hole), six-ring lines, cell spirals and
+  one power-up orb per lane. The road waits while you're in it. Compared: **flying style**,
+  Barrel rolls (the speeder rolls its top toward where it's going, flips on dives, a fast swipe
+  spins it round) vs Smooth banks (never upside down).
 - **Test setup (v0.11):** a card in the Lab panel, not an experiment: **Start on loop 1-6**
   (the run begins at that loop's speed, difficulty and score multiplier) and **Fully loaded**
-  (guns at level 8 and 2 shields from the start). For testing at high speed.
-- **Ideas queued for the Lab:** new roads (raised or split), forks in the road, a space-tunnel
-  stretch with up/down steering (see `LAB.md`).
+  (guns at level 8 and 2 shields from the start). For testing at high speed. v0.12 adds
+  **Start in a hyperlane** (shown while HYPERLANE is on).
+- **Ideas queued for the Lab:** new roads (raised or split), forks in the road (see `LAB.md`).
 
 ---
 
@@ -213,13 +219,13 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 **Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `BOSS_SNIPE` how often it fires single shots under its other attacks · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
 
-**Lab knobs:** `LAB_EXPERIMENTS` the list of experiments (the Lab panel, saved switches, votes and analytics build themselves from it) · JUMP: `HOP_H` / `HOP_T` how high and how long a jump is · `HOP_MAX` charges you can hold · `HOP_PER_CLOSE` charge earned per close call · `HOP_OVER` which obstacles a hop clears · `FLICK_PX` / `FLICK_MS` / `FLICK_RATIO` what counts as a flick up · `TAP_MS` / `TAP_PX` what counts as a one-finger tap · SKY RAMPS: `SKY_W` / `SKY_LEN` / `SKY_H` the ramp's size · `SKY_PEAK` / `SKY_T` how high and how long the flight is · `SKY_RINGS` / `RING_R` how many rings and how big · `RING_PTS` / `RING_PERFECT` points · `SKY_EVERY` seconds between sky ramps · test setup: `LAB_LOOPS` the highest starting loop offered.
+**Lab knobs:** `LAB_EXPERIMENTS` the list of experiments (the Lab panel, saved switches, votes and analytics build themselves from it) · JUMP: `HOP_H` / `HOP_T` how high and how long a jump is · `HOP_MAX` charges you can hold · `HOP_PER_CLOSE` charge earned per close call · `HOP_OVER` which obstacles a hop clears · `FLICK_PX` / `FLICK_MS` / `FLICK_RATIO` what counts as a flick up · `TAP_MS` / `TAP_PX` what counts as a one-finger tap · SKY RAMPS: `SKY_W` / `SKY_LEN` / `SKY_H` the ramp's size · `SKY_PEAK` / `SKY_T` how high and how long the flight is · `SKY_RINGS` / `RING_R` how many rings and how big · `RING_PTS` / `RING_PERFECT` points · `SKY_EVERY` seconds between sky ramps · HYPERLANE: `LANE_T` seconds in a lane · `LANE_R` / `LANE_LIM` tunnel size and how far you can go · `LANE_SPEEDUP` / `LANE_MIN_V` speed · `LANE_CAM_Z` / `LANE_FOLLOW` camera · `LANE_BEND` how much it snakes · `LANE_GAP` space between sections · `ROLL_V` / `LANE_ROLL_RATE` / `LANE_BANK` how the speeder rolls · `SPIN_V` / `SPIN_T` barrel roll swipe and length · `LROCK_HP` / `LRING_PTS` / `LRING_PERFECT` / `LIRIS_HOLE` hazards and points · `LANE_SECTIONS` what's in a lane · test setup: `LAB_LOOPS` the highest starting loop offered.
 
 ### Testing hooks
 
-Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs). Run all three before publishing.
+Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs). Run all four before publishing.
 
-Lab hooks: `SPEEDER.setMode('lab'); SPEEDER.startGame()` (start a Lab run), `SPEEDER.LAB` (`on`, `cfg` = the saved switches, `run` = this run's experiments), `SPEEDER.labSet('jump', 'gesture', 'tap')` / `SPEEDER.labSet('jump', 'fuel', 'free')` / `SPEEDER.labSet('jump', 'on', false)`, `SPEEDER.tryHop('key')`, `SPEEDER.hopCharge(1)`, `SPEEDER.JUMP` (`n` charges, `hops`, `denied`, `by`), `SPEEDER.openPanel('lab')`, `SPEEDER.labSet('ramps', 'on', true)`, `SPEEDER.spawnSkyRamp(SPEEDER.G.d + 90)` (put a sky ramp just ahead), `SPEEDER.SKY` (`offered`, `flights`, `rings`, `perfect`), `SPEEDER.labSet('setup', 'loop', 3)` / `SPEEDER.labSet('setup', 'loaded', true)` (test setup for the next Lab run). Lab storage keys: `speeder.lab.cfg` (switches), `speeder.lab.setup` (starting loop, fully loaded), `speeder.lab.best`, `speeder.lab.votes`.
+Lab hooks: `SPEEDER.setMode('lab'); SPEEDER.startGame()` (start a Lab run), `SPEEDER.LAB` (`on`, `cfg` = the saved switches, `run` = this run's experiments), `SPEEDER.labSet('jump', 'gesture', 'tap')` / `SPEEDER.labSet('jump', 'fuel', 'free')` / `SPEEDER.labSet('jump', 'on', false)`, `SPEEDER.tryHop('key')`, `SPEEDER.hopCharge(1)`, `SPEEDER.JUMP` (`n` charges, `hops`, `denied`, `by`), `SPEEDER.openPanel('lab')`, `SPEEDER.labSet('ramps', 'on', true)`, `SPEEDER.spawnSkyRamp(SPEEDER.G.d + 90)` (put a sky ramp just ahead), `SPEEDER.SKY` (`offered`, `flights`, `rings`, `perfect`), `SPEEDER.labSet('setup', 'loop', 3)` / `SPEEDER.labSet('setup', 'loaded', true)` (test setup for the next Lab run), `SPEEDER.labSet('lane', 'feel', 'bank')`, `SPEEDER.labSet('setup', 'lane', true)` (next Lab run starts in a hyperlane), `SPEEDER.startLane('resume')` (into a lane now), `SPEEDER.LANE` (`on`, `x`/`y` and `tx`/`ty` the speeder and its target, `roll`, `objs`, `runs`, `rings`, `hits`, `rolls`), `SPEEDER.LANE.exit.d = SPEEDER.LANE.d + 30` (to the exit). Lab storage keys: `speeder.lab.cfg` (switches), `speeder.lab.setup` (starting loop, fully loaded, start in a hyperlane), `speeder.lab.best`, `speeder.lab.votes`.
 
 Warp Run keeps the same per-mode keys under `speeder.w.` (`speeder.w.best`, `speeder.w.local`, `speeder.w.worldTop`, ...), plus `speeder.w.live` (set once its world board has loaded), `speeder.w.boardV` (the board reset this device has applied) and `speeder.w.hidden` (scores of older-version entries, left out of your rank). `speeder.pendingRuns` is shared; each run carries its mode.
 
@@ -303,6 +309,10 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Sky ramps (v0.11) | A choice, not a gate: the ramp is 5 wide and the road under the flight is kept clear | Adrian asked for ramps with rings to fly through in the sky. Keeping the road clear means nobody is punished for missing a ramp at 500 km/h. Trade-off: skipping one is 2.6 s of empty road. |
 | Rings (v0.11) | They keep time with the speeder in flight; each is worth more than the last | Height always matches the flight arc, so only steering decides a hit. Rising values reward finishing the line. |
 | Test setup (v0.11) | Starting loop and "fully loaded" live in the Lab only, with no vote | Adrian wants to test ideas at high speed without 20 minutes of play first. Kept out of the real modes so leaderboards stay fair. |
+| Hyperlane placement (v0.12) | At every world gate, not only after the Warden | Adrian: "you shouldn't have to get to the end of a loop to try it". Trade-off: a Lab loop takes about a minute longer. |
+| Hyperlane and the road (v0.12) | The road waits while you're in the lane; the lane takes over update and drawing | Keeps the lane fully separate from road gameplay, so it can't break Warp Run, and lets it live in the Lab as a layer rather than its own run. |
+| Hyperlane steering (v0.12) | The same relative drag, now two-way, held inside a circle; no jumps in the lane | One input stays the design. A flick-up jump would fight steering up. |
+| Speeder in the lane (v0.12) | Two styles compared: Barrel rolls (top toward the move, flips on dives, swipe to spin) vs Smooth banks | Adrian described the first; Claude's concern: flipping upside down may disorient, so the Lab compares it with a calmer one. Rolls are looks only, never change collisions. |
 | Music speed-up | Play the loop faster (pitch rises too) as speed climbs, capped at +14% | Simple, no extra files, and the rising pitch adds urgency. Trade-off: a pitch-preserving version would need several pre-made copies of the track. |
 
 ---
@@ -338,7 +348,16 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.11.0, 2026-11-13):**
+**Where things stand (after v0.12.0, 2026-11-13):**
+- Adrian asked for the flying idea in the Lab, between worlds rather than after the Warden:
+  through the portal into a zero-g hyperspace tunnel at high speed, dodging and grabbing
+  power-ups, with the speeder rotating and flipping naturally. v0.12.0 adds it as HYPERLANE,
+  with two flying styles to compare and a "Start in a hyperlane" test switch.
+- Classic and Warp Run still play exactly as before (`tests/same-as-before.sh`).
+- **Not played by a human yet:** lane length (16 s), speed, how much is in a lane, the barrel
+  roll swipe speed, and both flying styles are first guesses. Knobs are in `LAB.md`.
+
+**Earlier the same day (after v0.11.0, 2026-11-13):**
 - Adrian's first Lab feedback: he likes the Lab; the jump should be higher and longer; next
   experiment should be ramps with rings in the sky; and he wants to test at high speed without
   playing for 20 minutes. v0.11.0 does all four: bigger jump, SKY RAMPS experiment, and a test
@@ -420,12 +439,15 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
+- Adrian's playtest of the HYPERLANE (switch on "Start in a hyperlane"): Barrel rolls or Smooth
+  banks? Does up/down steering feel natural? Is 16 s right, and is there too much or too little
+  in a lane? Then tune the knobs in `LAB.md`.
 - Adrian's playtest of v0.11 in the Lab, ideally starting on loop 3, fully loaded: is the jump
   now the right size, does flick-up misfire while steering, is the second-finger tap
   comfortable, do charges feel like a decision or a nuisance? Sky ramps: is the flight big
   enough, are five rings threadable at that speed, do the ramps come too often or too rarely?
   Then tune the knobs in `LAB.md`.
-- Next experiments: new roads, forks in the road, the space tunnel. Follow the recipe in `LAB.md`.
+- Next experiments: new roads, forks in the road. Follow the recipe in `LAB.md`.
 - Adrian's playtest of v0.9: do the gates feel good at speed, is the boss now a good fight or
   too much, is 40 s per world right, does the rail limit feel fair, where does a great run end?
 - Then tune: `W_WORLD_T`, `BOSS_TOUGH`, `BOSS_PACE`, `RAIL_HOT_T`, each world's `pat` / `sig`

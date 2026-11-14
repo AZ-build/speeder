@@ -5,7 +5,8 @@
 
 The Lab is a third mode (added in v0.10.0) where new ideas are tried out **without touching
 Classic or Warp Run**. Anyone can open it, switch experiments on or off, play, and vote.
-It also has a **test setup** card (v0.11.0) for getting to high speed quickly.
+It also has a **test setup** card (v0.11.0) for getting to high speed quickly, or (v0.12.0)
+straight into a hyperlane.
 
 ---
 
@@ -48,7 +49,11 @@ Analytics dashboard: https://speeder.goatcounter.com (filter for `lab/`).
 | `lab/jump/<variant>/<n>-jumps` | How many jumps happened in a run (0, 1-4, 5-14, 15+) |
 | `lab/ramps/took-most` / `took-some` / `took-few` | Share of the sky ramps offered in a run that the player actually took |
 | `lab/ramps/4-5-rings` / `2-3-rings` / `0-1-rings` | Average rings threaded per flight in a run |
-| `lab/setup/loop<N>` or `loop<N>-loaded` | A run used the test setup (started on a later loop and/or fully loaded) |
+| `lab/lane/<variant>/rings-most` / `rings-some` / `rings-few` | Share of lane rings threaded in a run |
+| `lab/lane/<variant>/hits-0-per-lane` / `hits-1-per-lane` / `hits-2plus-per-lane` | Hits taken per hyperlane, on average |
+| `lab/lane/<variant>/0-barrel-rolls` / `1-4-` / `5+-` | Barrel rolls in a run (Barrel rolls style only): do people find them? |
+| `lab/lane/<variant>/died-in-lane`, `no-lanes` | The run ended inside a lane / before the first one |
+| `lab/setup/loop<N>`, `loop<N>-loaded`, `...-lane` | A run used the test setup (later loop, fully loaded, started in a hyperlane) |
 
 A **variant** is the experiment plus its options, for example `jump.flick.charges` or
 `jump.tap.free`. Votes are counted per variant, so two ways of doing the same idea can be
@@ -63,6 +68,7 @@ changes, so the counts are roughly people, not runs.
 |------------|-------|--------|---------------|
 | **JUMP** (`jump`) | v0.10.0, made bigger in v0.11.0 | In the Lab. Adrian's first note (2026-11-13): make it higher and longer. Done; needs another try. | A jump you can do anywhere. Options: gesture (flick up / second-finger tap) and fuel (2 earned charges / unlimited). |
 | **SKY RAMPS** (`ramps`) | v0.11.0 | In the Lab. No human has played it yet. | Big ramps that launch a long flight with five rings to steer through. No options yet. |
+| **HYPERLANE** (`lane`) | v0.12.0 | In the Lab. No human has played it yet. | A zero-gravity tunnel between every two worlds, steering up and down as well as sideways. Option: flying style (barrel rolls / smooth banks). |
 
 ### JUMP: how it works
 
@@ -118,6 +124,71 @@ changes, so the counts are roughly people, not runs.
   jump? Are five rings in 2 seconds too quick at 500+ km/h? Should the ramp be something you
   must take (full width) rather than a choice? Is the empty road underneath boring if you skip?
 
+### HYPERLANE: how it works
+
+Adrian's idea (2026-11-13): the space tunnel shouldn't wait for the end of a loop. Put it
+between worlds: through the portal into hyperspace, at high speed, dodging things and grabbing
+power-ups, with the speeder rolling and flipping naturally as you move.
+
+- **When:** every world gate (including the one after the Warden) opens onto the lane instead
+  of the next world; the gate's window shows the tunnel. You're in it for about **16 seconds**
+  (`LANE_T`), then out through an exit that shows the next world, which loads in as usual
+  (`enterWorld()`). The first lane of a run comes at the first gate, about 55 seconds in, or
+  straight away with the test setup's **Start in a hyperlane**.
+- **The road waits.** While you're in the lane, nothing on the road moves and `G.d` doesn't
+  change; the lane has its own distance (`LANE.d`). The score, timers (RAPID, 2X, OVERDRIVE,
+  AEGIS), hull, shields and guns carry on as normal.
+- **Speed:** 1.25x the road's speed (`LANE_SPEEDUP`), never under 70 (about 350 km/h,
+  `LANE_MIN_V`). On the way out the road eases back down to its own speed.
+- **Steering:** the same relative drag and the same sensitivity, in two directions, held
+  inside a circle (`LANE_LIM`). Arrow keys / WASD on a computer. A thumb already down when you
+  enter keeps steering. No jumps in a lane (flick-up would clash with steering up).
+- **What's in it** (`LANE_SECTIONS`, picked in `laneNextSection()`): a lane always opens with
+  `rings`, has the `orb` third, and otherwise picks from `rocks`, `laser`, `spin`, `iris`,
+  `cells`, `rings` (plus `cross` and more rocks from loop 2), never the same twice in a row,
+  with 0.75-1.1 s of open tunnel between, and the last ~2 s clear before the exit.
+  - **Rocks** (orange edges, like mines: shootable): 3 HP on loop 1, +2 a loop (to loop 5).
+    +60 each; 35% drop a cell where they were. Hitting one costs a hit and smashes it. Some
+    drift from loop 2.
+  - **Lasers** (red, like everywhere): a beam across the tunnel; bullets pass through.
+    `spin` beams turn; `cross` is two at right angles, turning together.
+  - **Iris walls** (pink, like walls): a wall right across with one hole (radius 1.2, a little
+    smaller each loop, never under 0.95). Bullets only get through the hole.
+  - **Rings** (yellow): six in a snaking line, +150 x how many you've threaded so far; all six
+    is +800, 2 cells and a zoom.
+  - **Cells** (green): a spiral of 8, each charges OVERDRIVE. MAGNET pulls them in.
+  - **Orb:** one power-up per lane, only ones that would do something (shield, guns, repair,
+    rapid, 2X), with a rock parked right in front of it (shoot through it or go round).
+  - Close calls (passing a rock, laser or iris rim with a little room) count as in Warp Run.
+- **Flying style** (the option being compared, `labOpt('lane', 'feel')`):
+  - **Barrel rolls** (`roll`, default): the speeder rolls so its top points the way it's
+    moving, like a fighter turning: moving up it stays upright, sideways it banks right over,
+    diving fast it flips upside down, then rights itself when you stop. The faster the move,
+    the further round it rolls (`ROLL_V`). A fast swipe sideways (`SPIN_V`, about 1,400
+    points a second) throws in a full barrel roll (`SPIN_T`). Rolls are only for looks: they
+    don't change what hits you.
+  - **Smooth banks** (`bank`): banks into sideways moves (up to `LANE_BANK`) and tips its nose up
+    and down. Never upside down, no barrel rolls.
+  - Both: the nose points a little toward where it's going (pitch and yaw), and the gun
+    spread turns with the speeder (rolled on its side, the bullets fan out up and down).
+- **How it plugs in:** `startLane()` is called from the world gate (one guarded line in
+  `updateWarpObj`), and while `LANE.on` the game's `update()` and `render()` hand over to
+  `updateLane()` / `drawLane()` (one guarded line each). The lane writes its own camera into the
+  shared camera values (`laneView()`), so the usual drawing helpers (`sx`/`sy`, `drawMesh`,
+  particles, popups) work in the tunnel; the road's horizon is put back by `exitLane()` and
+  `resetLane()`. The tunnel's bends are drawing only, like the road's: gameplay is straight.
+- Knobs (in the "Experiment: HYPERLANE" block): `LANE_T`, `LANE_R`, `LANE_SPEEDUP`,
+  `LANE_MIN_V`, `LANE_CAM_Z`, `LANE_FOLLOW`, `LANE_BEND`, `LANE_GAP`, `ROLL_V`,
+  `LANE_ROLL_RATE`, `LANE_BANK`, `SPIN_V`, `SPIN_T`, `LROCK_HP`, `LRING_R`, `LRING_PTS`,
+  `LRING_PERFECT`, `LIRIS_HOLE`, `LASER_HALF`; what's in a lane: `LANE_SECTIONS`.
+- **Known trade-off:** five lanes a loop add about 80 seconds, so a Lab loop takes ~5 minutes
+  instead of ~4. If it should graduate, the obvious variants are "every other gate" or
+  "only after the Warden".
+- **Open questions for the playtest:** Barrel rolls or Smooth banks? Is up/down with the same
+  thumb natural, or does it fight the left/right? Is 16 s right? Too much or too little in a
+  lane? Is the barrel-roll swipe too easy or too hard to trigger? Does the lane break the flow
+  between worlds that Adrian liked in v0.9, or is it a welcome change of pace?
+
 ## Test setup (not an experiment)
 
 A card at the bottom of the Lab panel, for testing at high speed without playing for 20
@@ -130,6 +201,8 @@ minutes first. It has no vote. Saved on the device (`speeder.lab.setup`).
   555, loop 5 = 605, loop 6 = 655 (top speed). The distance shown at the end counts only what
   you flew (`LAB.d0` is where the run began).
 - **Fully loaded.** Start with guns at level 8 and 2 shields. It does not add prototypes.
+- **Start in a hyperlane** (shown while HYPERLANE is on). The run begins inside a lane and
+  comes out into the world it started in.
 - Code: `labStartOnLoop()` and `startLabRun()`.
 
 ---
@@ -142,11 +215,9 @@ SKY RAMPS in v0.11.)
 1. **New roads.** Raised or split roads, a road in the sky you land on.
 2. **Forks in the road.** A safe path and a risky one with more power cells. Fits the
    "choose by steering" design.
-3. **Space tunnel.** Fly through a tunnel, moving up and down as well as left and right, and
-   dodge. The biggest one: it needs two-axis steering and its own obstacle patterns. Suggested
-   first shape: a 20-30 second stretch after the Warden, not a whole new game. Because it
-   changes the controls, it will need its own run setup rather than a layer on Warp Run (see
-   "A bigger experiment" below).
+
+(The space tunnel became HYPERLANE in v0.12: it turned out it could be a layer on Warp Run
+after all, by pausing the road while the lane runs.)
 
 ---
 
@@ -205,8 +276,12 @@ All of it lives in `index.html`, in the block headed `THE LAB (v0.10)`.
 
 ### A bigger experiment (its own kind of run)
 
-Today every Lab run is Warp Run plus layers. Something like the space tunnel changes the
-controls and the obstacles, so it should start its own run instead: in `startLabRun()`, check
+(HYPERLANE shows a middle way: a stretch that takes over the game for a while inside a normal
+Lab run. While `LANE.on`, `update()` and `render()` hand over to the lane's own functions, and
+the road simply waits. Copy that if your idea is "a different kind of play for a while".)
+
+Today every Lab run is Warp Run plus layers. Something that replaces the whole run (a
+different game, not a stretch of one) should start its own run instead: in `startLabRun()`, check
 for it first and call its own setup rather than `startWarpRun()`. Give its entry a flag such
 as `solo: true` and have the Lab panel switch the other experiments off while it is on. Not
 built yet; build it when the first such experiment arrives.
@@ -229,7 +304,8 @@ From the repo folder (needs Node and Chrome with Playwright, as in Claude's work
 ```
 bash tests/same-as-before.sh     # Classic and Warp Run play exactly as in the last published version
 node tests/lab.mjs "$PWD"        # the Lab: screens, jump rules, gestures, no leaderboard writes
-node tests/soak.mjs "$PWD"       # a bot plays two long Lab runs; any script error fails
+node tests/lane.mjs "$PWD"       # HYPERLANE: steering, rolls, hits, pick-ups, in and out of a lane
+node tests/soak.mjs "$PWD"       # a bot plays three long Lab runs (lanes included); any script error fails
 ```
 
 `same-as-before.sh` plays a fixed, seeded run of each main mode in the last committed

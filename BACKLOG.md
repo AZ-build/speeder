@@ -13,7 +13,7 @@ on right now. Add anything here so it doesn't get lost.
 - [ ] **Sky ramp options to compare**: a full-width ramp you must take vs the current optional one; 3 rings vs 5; something to collect on the road for players who stay down.
 - [ ] **Fully loaded could include prototypes** (HEAVY CORE, TWIN WINGS...) if high-loop testing needs them.
 - [ ] **Forks in the road**: a safe path and a risky one with more power cells.
-- [ ] **Space tunnel**: fly through a tunnel, moving up/down as well as left/right, dodging. Suggested first as a 20-30 s stretch after the Warden. Needs its own run setup in the Lab ("A bigger experiment" in LAB.md).
+- [x] ~~**Space tunnel**~~ In the Lab since v0.12 as HYPERLANE: a 16 s zero-gravity tunnel at every world gate (Adrian wanted it between worlds, not only after the Warden). Comparing two flying styles. Awaiting Adrian's playtest.
 - [ ] **Lab results in the game**: show the vote totals in the Lab panel (needs somewhere to read them from; today they only go to the analytics dashboard).
 
 ## Feature Ideas
