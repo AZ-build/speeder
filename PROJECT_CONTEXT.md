@@ -26,10 +26,10 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.12.7 |
+| **Current Version** | v0.12.8 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-13 |
+| **Last Updated** | 2026-11-15 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://az-build.github.io/speeder/ |
 
 ---
@@ -349,7 +349,13 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.12.6, 2026-11-13):**
+**Where things stand (after v0.12.8, 2026-11-15):**
+- An Android friend reported sideways swipes closing the app. Cause: Android's edge-swipe Back
+  gesture (a web page can't switch it off), not a game change. v0.12.8 catches Back during a run
+  and pauses instead (`armBackGuard()`, analytics `back/paused`). Watch that event; if it is
+  common, consider steering that needs less thumb travel. Ask whether he still has trouble.
+
+**Earlier (after v0.12.6, 2026-11-13):**
 - Adrian likes the hyperlane ("cool"). Since v0.12.1: softer streaks blended into the walls
   (v0.12.2-3), slower lanes and solid shaded walls with a dark far end (v0.12.4), a proper
   landing out of the lane and a new outline shield that rolls with the speeder in every mode

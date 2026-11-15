@@ -745,7 +745,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.12.7';
+const VERSION = '0.12.8';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -9444,6 +9444,27 @@ function clearPanels() {
 // ---------- Pause + countdown ----------
 let resumeT = 0;
 
+// Back gesture guard (v0.12.8). On Android a swipe in from the left or right edge of the screen
+// is "Back", and Back on an installed web app's only page closes the app. A thumb steering hard
+// can start right at the edge, so players were thrown out mid-run. While a run is on, the game
+// keeps one spare entry in the history: Back uses it up and pauses the run instead of closing.
+// The game can't switch the phone's gesture off; this only catches it.
+// It is re-armed by the next tap that starts or resumes a run: browsers skip history entries
+// added without a tap, so it can't be re-armed from inside the Back itself.
+let backGuard = false;
+function armBackGuard() {
+  if (backGuard || !window.history || !history.pushState) return;
+  try { history.pushState({ speeder: 'run' }, ''); backGuard = true; } catch (e) { /* fine */ }
+}
+window.addEventListener('popstate', () => {
+  if (!backGuard) return;
+  backGuard = false;
+  if (G.state === 'play') {
+    track('back/paused', 'Back gesture paused a run');
+    openMenu();
+  }
+});
+
 function openMenu() {
   if (G.state !== 'play' || ui) return;
   paused = true;
@@ -9457,6 +9478,7 @@ function openMenu() {
 
 function resumeGame() {
   clearPanels();
+  armBackGuard();
   resumeT = 1.5;
   $('countNum').textContent = '3';
   show('countdown');
@@ -9963,6 +9985,7 @@ function startGame() {
   resumeT = 0;
   hide('countdown');
   show('pauseBtn');
+  armBackGuard();
 }
 
 let lastRun = null;

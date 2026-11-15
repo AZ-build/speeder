@@ -4,6 +4,26 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.12.8] — 2026-11-15
+
+### Session 14 — Android's Back swipe no longer closes the game mid-run
+
+An Android player said the touch felt weird again and that sideways swipes closed the app.
+
+- Cause: not a game change. Classic and Warp Run touch code is the same as before the Lab (the
+  Lab's touch code only runs in a Lab run). On Android phones with gesture navigation, a swipe
+  that starts at the left or right edge of the screen is "Back", and Back on an installed web
+  app's only page closes it. Steering needs a long sideways drag, so a thumb can start right at
+  the edge. A web page can't switch that gesture off.
+- Fix: during a run the game keeps one spare page in the browser history. Back uses it up and
+  **pauses the run** (the pause menu opens) instead of closing the app. Starting or resuming a
+  run sets it up again. Side effect: after a run, the first Back on the game-over screen
+  does nothing and the second one leaves as usual.
+- New analytics event `back/paused`: how often a Back gesture interrupted a run.
+- Classic and Warp Run play exactly as before (`tests/same-as-before.sh`).
+
+---
+
 ## [v0.12.7] — 2026-11-13
 
 ### Session 13j — Walls that look like walls
