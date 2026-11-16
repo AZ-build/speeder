@@ -18,7 +18,7 @@ After that, Claude can upload the files and switch on the web page for you.
 6. Tell Claude "the repo is ready".
 
 Claude then uploads the files, turns on GitHub Pages, and checks that the game is live at
-**https://az-build.github.io/speeder/**.
+**https://speeder-game.com/**.
 
 > If you'd rather do the upload yourself: on the new repo page click **uploading an existing file**,
 > drag in everything from `E:\Claude Projects\Speeder`, and click **Commit changes**. Then go to
@@ -82,7 +82,7 @@ each phone and upload by themselves once the rule is in (your 5 best).
 
 ## Install it on your phone (after Step 1)
 
-- **iPhone (Safari):** open https://az-build.github.io/speeder/, tap **Share** (the square with
+- **iPhone (Safari):** open https://speeder-game.com/, tap **Share** (the square with
   an up arrow), then **Add to Home Screen**.
 - **Android (Chrome):** open the link and tap **Install app** on the title screen (or use the
   ⋮ menu, then **Install app**).
@@ -125,7 +125,7 @@ The How to play page in the game explains everything in Warp Run.
 are tried out (a jump you can do anywhere; sky ramps with rings to fly through). It can also
 start a run on a later loop, fully loaded, for testing at speed. Lab runs don't count on any leaderboard,
 and each one ends by asking for a thumbs up or down. To send someone straight there, share
-https://az-build.github.io/speeder/?lab. How it works and how to add an experiment: `LAB.md`.
+https://speeder-game.com/?lab. How it works and how to add an experiment: `LAB.md`.
 
 **Power-ups:** SHIELD (blocks a hit) · GUNS+ (8 levels: more guns up to level 4, then piercing
 bullets, wing missiles, heavy rounds and max power) · RAPID (fires faster for 12s) · REPAIR (+1 hull) ·

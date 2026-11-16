@@ -745,7 +745,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.12.8';
+const VERSION = '0.12.9';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -9881,7 +9881,7 @@ $('tabLocal').addEventListener('click', () => loadBoard('local'));
 $('boardBack').addEventListener('click', closePanel);
 
 // ---------- Challenges: "beat my score" links ----------
-// A shared link looks like .../speeder/?c=45210&n=ADRIAN. Opening it sets a target
+// A shared link looks like speeder-game.com/?c=45210&n=ADRIAN. Opening it sets a target
 // for your runs until you beat it.
 let CHALLENGE = readJSON('speeder.challenge', null);
 (function readChallengeLink() {
@@ -9903,7 +9903,7 @@ let CHALLENGE = readJSON('speeder.challenge', null);
   } catch (e) { /* no link */ }
 })();
 function shareUrl() {
-  return 'https://az-build.github.io/speeder/';
+  return 'https://speeder-game.com/';
 }
 
 // ---------- The ladder: who you're about to pass during a run ----------
@@ -10244,9 +10244,9 @@ function makeShareCard(run) {
     g.font = '800 64px ' + FONT;
     g.fillStyle = '#ffd23c';
     g.fillText(SET.name ? 'CAN YOU BEAT ' + SET.name + '?' : 'CAN YOU BEAT ME?', W2 / 2, 1170);
-    g.font = '500 40px ' + FONT;
+    g.font = '700 52px ' + FONT;
     g.fillStyle = '#29f3ff';
-    g.fillText('az-build.github.io/speeder', W2 / 2, 1265);
+    g.fillText('speeder-game.com', W2 / 2, 1268);
     c.toBlob((blob) => {
       if (!blob || lastRun !== run) return;
       try { shareFile = new File([blob], 'speeder-' + run.score + '.png', { type: 'image/png' }); } catch (e) { shareFile = null; }

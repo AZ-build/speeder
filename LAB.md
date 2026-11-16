@@ -31,7 +31,7 @@ straight into a hyperlane.
 - Title screen → **THE LAB** (the lime button next to How to play) → switch things on →
   **Ride in the Lab**.
 - A link ending in `?lab` opens the Lab panel directly:
-  `https://az-build.github.io/speeder/?lab`. Good for inviting testers.
+  `https://speeder-game.com/?lab`. Good for inviting testers.
 - After a Lab run: **Ride again** stays in the Lab, **Change the experiments** reopens the
   panel, **Play WARP RUN instead** leaves.
 

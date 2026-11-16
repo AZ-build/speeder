@@ -26,11 +26,11 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.12.8 |
+| **Current Version** | v0.12.9 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-15 |
-| **GitHub Repo** | `AZ-build/speeder`, live at https://az-build.github.io/speeder/ |
+| **Last Updated** | 2026-11-16 |
+| **GitHub Repo** | `AZ-build/speeder`, live at https://speeder-game.com/ (custom domain since v0.12.9; the old https://az-build.github.io/speeder/ address redirects there) |
 
 ---
 
@@ -180,7 +180,7 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
 | Sound | Web Audio playing CC0 audio files in `audio/` | Effects from Kenney's free packs, music "Synthwave House Loop" by Fupi. Credits in `audio/CREDITS.md`. Music tempo and brightness follow the run. |
 | Offline / install | `manifest.webmanifest` + `sw.js` (service worker) | Bump `CACHE` in sw.js after each change so phones get updates. |
 | Backend / DB | Firebase Firestore, **ORBit's project `orbit-23921`**, lists `speeder_scores` (Classic) and `speeder_warp_scores` (Warp Run) | Loaded only when needed (Firestore "lite" library). Settings and local scores live in the browser's localStorage. Rules: `firestore-rules-speeder.txt` (Classic) and `firestore-rules-warp.txt` (Warp Run). |
-| Hosting | GitHub Pages (planned) | A PWA needs https to install; GitHub Pages provides it for free. |
+| Hosting | GitHub Pages, custom domain `speeder-game.com` | A PWA needs https to install; GitHub Pages provides it for free. Domain bought by Adrian through Squarespace (2026-11-16); its DNS records point at GitHub Pages. The `CNAME` file in the repo holds the domain: never delete it. |
 
 ### Files
 
@@ -339,7 +339,7 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
   Appreciates being challenged and getting suggestions, not just "yes and."
 - **Deploying**: Adrian wants Claude to always publish updates for him at the end of each change.
   How: in a claude.ai session, attach the repo `AZ-build/speeder` (push access), commit, and push
-  to `main`. GitHub Pages republishes https://az-build.github.io/speeder/ about a minute later.
+  to `main`. GitHub Pages republishes https://speeder-game.com/ about a minute later.
   Remember to bump `CACHE` in sw.js so installed phones pick up the update. Claude can't change
   GitHub Pages settings or Firebase rules from its tools; those are one-time jobs for Adrian.
 
@@ -349,7 +349,16 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.12.8, 2026-11-15):**
+**Where things stand (after v0.12.9, 2026-11-16):**
+- Speeder moved to its own domain, **speeder-game.com** (bought through Squarespace). DNS
+  records in Squarespace: four A records and four AAAA records on `@` pointing at GitHub Pages,
+  and `www` as a CNAME to `az-build.github.io`. The share link and share picture now use the new
+  address. Old links redirect. Trade-off: the browser treats the new address as a different site,
+  so each phone starts fresh there (best scores on the device, settings, name, player ID).
+  World leaderboard entries are untouched. Friends who installed the old app should reinstall
+  from the new address.
+
+**Earlier (after v0.12.8, 2026-11-15):**
 - An Android friend reported sideways swipes closing the app. Cause: Android's edge-swipe Back
   gesture (a web page can't switch it off), not a game change. v0.12.8 catches Back during a run
   and pauses instead (`armBackGuard()`, analytics `back/paused`). Watch that event; if it is

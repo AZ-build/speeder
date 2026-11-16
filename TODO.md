@@ -25,7 +25,7 @@ actually working on right now?
 - [x] v0.12.0: HYPERLANE experiment (zero-g tunnel between worlds, two flying styles), "Start in a hyperlane" test setup
 - [ ] **Adrian:** play the HYPERLANE (v0.12) on a phone: switch on "Start in a hyperlane" to try it at once. Both flying styles; is 16 s the right length; too much or too little in it; does up/down steering feel natural with one thumb?
 - [ ] **Adrian:** play v0.11 in the Lab on a phone, starting on loop 3 and fully loaded: the bigger jump (both gestures, both fuel settings) and the sky ramps (questions listed in LAB.md)
-- [ ] **Adrian:** send friends the Lab link (https://az-build.github.io/speeder/?lab) and watch the `lab/vote/...` numbers on the analytics dashboard
+- [ ] **Adrian:** send friends the Lab link (https://speeder-game.com/?lab) and watch the `lab/vote/...` numbers on the analytics dashboard
 - [ ] **Adrian:** play v0.9 and say how these feel: the gates, the boss, 40 s per world, the rail limit
 - [ ] **Adrian (optional):** delete the two v0.8 test entries in the Firebase console (they're already hidden from the board)
 - [ ] Check v0.9's frame rate on a real mid-range phone (new buildings and roadside props)

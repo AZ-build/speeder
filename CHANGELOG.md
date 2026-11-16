@@ -4,6 +4,24 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.12.9] — 2026-11-16
+
+### Session 15 — Its own address: speeder-game.com
+
+Adrian bought speeder-game.com through Squarespace.
+
+- Added a `CNAME` file so GitHub Pages serves the game at https://speeder-game.com/. The old
+  address (https://az-build.github.io/speeder/) redirects there, so old links still work.
+- "Share & challenge" links now use https://speeder-game.com/.
+- The share picture shows **speeder-game.com**, bigger than the old address line.
+- README, LAB.md and TODO.md links updated.
+- Heads-up: a new address counts as a new site to the browser, so on each phone the
+  saved best score, settings, name and player ID start fresh there. The world leaderboards
+  are unchanged.
+- No gameplay changes.
+
+---
+
 ## [v0.12.8] — 2026-11-15
 
 ### Session 14 — Android's Back swipe no longer closes the game mid-run
