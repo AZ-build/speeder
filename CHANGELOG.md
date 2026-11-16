@@ -4,6 +4,29 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.13.0] — 2026-11-16
+
+### Session 15b — New artwork: icons, score card, link preview
+
+Adrian had a new set of artwork made (ChatGPT, "speeder-brand-v2.zip" in his Speeder folder):
+the real speeder's shape, cyan edges and magenta cockpit over a sunset and grid.
+
+- **App icons** (`icons/`): new home-screen icons for iPhone and Android (same file names), and
+  a new 32 px browser-tab icon, `icons/favicon-32.png`.
+- **Score card:** "Share & challenge" now draws the run on the new artwork
+  (`social/card-bg.jpg`): logo and tagline at the top, headline, score, mode and stats in the
+  open middle, the speeder and sun below. The artwork's painted-in "CAN YOU BEAT ME?" is covered
+  and redrawn with the player's name. The artwork loads 1.5 s after the game opens and is saved
+  for offline play; if it isn't ready or fails, the card is drawn in code as before.
+- **Link previews:** sharing speeder-game.com in iMessage, WhatsApp, Discord, X and so on now
+  shows the wide artwork (`social/share-wide.jpg`, 1200 x 630) with a title and description
+  (Open Graph and Twitter tags in `index.html`).
+- The artwork was converted to JPEG for the two social images (1.9 MB and 1.3 MB down to
+  142 KB and 107 KB). The full-size originals stay in the zip on Adrian's PC.
+- No gameplay changes.
+
+---
+
 ## [v0.12.9] — 2026-11-16
 
 ### Session 15 — Its own address: speeder-game.com

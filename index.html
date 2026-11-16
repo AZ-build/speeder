@@ -11,7 +11,23 @@
 <meta name="description" content="Neon hover-speeder run. Drag to steer, guns fire on their own.">
 <title>Speeder</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="canonical" href="https://speeder-game.com/">
+<!-- Link previews (iMessage, WhatsApp, Discord, X, Facebook...) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Speeder">
+<meta property="og:title" content="Speeder: neon hover run">
+<meta property="og:description" content="Drag to steer, dodge at 600+ km/h, beat your friends' scores. Free, in your browser.">
+<meta property="og:url" content="https://speeder-game.com/">
+<meta property="og:image" content="https://speeder-game.com/social/share-wide.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Speeder: a neon hover ship racing across a synthwave grid toward a striped sun">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Speeder: neon hover run">
+<meta name="twitter:description" content="Drag to steer, dodge at 600+ km/h, beat your friends' scores. Free, in your browser.">
+<meta name="twitter:image" content="https://speeder-game.com/social/share-wide.jpg">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -745,7 +761,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.12.9';
+const VERSION = '0.13.0';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -10176,11 +10192,94 @@ function challengeUrl(run) {
 }
 
 // A picture of your score, made on the spot, to send along with the link.
+// The score card's artwork (social/card-bg.jpg, made in the v2 brand pack). It loads a moment
+// after the game opens. Until it's ready, or if it fails, the card is drawn entirely in code
+// as before (drawShareCard's second half).
+const CARD_BG = { img: null, ok: false, wait: [] };
+function loadCardBg() {
+  if (CARD_BG.img) return;
+  const im = new Image();
+  CARD_BG.img = im;
+  const done = () => { const w = CARD_BG.wait; CARD_BG.wait = []; w.forEach((f) => f()); };
+  im.onload = () => { CARD_BG.ok = true; done(); };
+  im.onerror = done;
+  im.src = 'social/card-bg.jpg';
+}
+window.addEventListener('load', () => setTimeout(loadCardBg, 1500));
+
 function makeShareCard(run) {
+  shareFile = null;
+  loadCardBg();
+  if (CARD_BG.ok || CARD_BG.img.complete) drawShareCard(run);
+  else CARD_BG.wait.push(() => { if (lastRun === run) drawShareCard(run); });
+}
+
+function cardHeadline(run) {
+  const mname = MODES[run.mode] || 'CLASSIC';
+  if (run.rank === 1) return { text: mname + ' WORLD RECORD', color: '#ffd23c' };
+  if (run.rank) return { text: '#' + run.rank + ' IN THE WORLD · ' + mname, color: run.rank <= 3 ? '#ffd23c' : '#29f3ff' };
+  if (run.isBest) return { text: 'NEW PERSONAL BEST', color: '#ffd23c' };
+  return null;
+}
+
+// Fit a line of text into maxW by shrinking the font size.
+function fitFont(g, weight, size, text, maxW) {
+  g.font = weight + ' ' + size + 'px ' + FONT;
+  const w = g.measureText(text).width;
+  if (w > maxW) g.font = weight + ' ' + Math.floor(size * maxW / w) + 'px ' + FONT;
+}
+
+// The card on the artwork: logo and tagline are painted in at the top, the sun and speeder
+// from about 650 px down, so the run's results go in the open space between.
+function drawCardOnArt(run, g, W2, H2) {
+  g.drawImage(CARD_BG.img, 0, 0, W2, H2);
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  const head = cardHeadline(run);
+  if (head) {
+    fitFont(g, '800', 58, head.text, W2 - 200);
+    const hw = g.measureText(head.text).width + 80;
+    g.fillStyle = 'rgba(11, 4, 32, 0.85)'; g.fillRect(W2 / 2 - hw / 2, 290, hw, 96);
+    g.strokeStyle = head.color; g.lineWidth = 5; g.strokeRect(W2 / 2 - hw / 2, 290, hw, 96);
+    g.fillStyle = head.color; g.fillText(head.text, W2 / 2, 340);
+  }
+  const sct = run.score.toLocaleString();
+  fitFont(g, '800', 170, sct, W2 - 120);
+  g.shadowColor = 'rgba(255, 255, 255, 0.5)'; g.shadowBlur = 24;
+  g.fillStyle = '#ffffff'; g.fillText(sct, W2 / 2, 472);
+  g.shadowBlur = 0;
+  const mode = run.mode === 'warp' ? 'WARP RUN  ·  LOOP ' + run.loop : 'CLASSIC';
+  fitFont(g, '800', 48, mode, W2 - 160);
+  g.fillStyle = '#29f3ff'; g.fillText(mode, W2 / 2, 582);
+  const stats = (run.dist / 1000).toFixed(2) + ' KM  ·  ' + run.kills + ' DESTROYED';
+  fitFont(g, '500', 40, stats, W2 - 160);
+  g.fillStyle = '#cbb7ff'; g.fillText(stats, W2 / 2, 634);
+  // The artwork says "CAN YOU BEAT ME?" at the bottom: fade that out and write the player's name in.
+  const fade = g.createLinearGradient(0, 1100, 0, 1160);
+  fade.addColorStop(0, 'rgba(16, 0, 36, 0)'); fade.addColorStop(1, 'rgb(16, 0, 36)');
+  g.fillStyle = fade; g.fillRect(0, 1100, W2, 60);
+  g.fillStyle = 'rgb(16, 0, 36)'; g.fillRect(0, 1160, W2, H2 - 1160);
+  const dare = SET.name ? 'CAN YOU BEAT ' + SET.name + '?' : 'CAN YOU BEAT ME?';
+  fitFont(g, '800', 66, dare, W2 - 120);
+  g.fillStyle = '#ffffff'; g.fillText(dare, W2 / 2, 1205);
+  g.font = '700 52px ' + FONT;
+  g.fillStyle = '#29f3ff'; g.fillText('speeder-game.com', W2 / 2, 1285);
+}
+
+// Turn the finished card into a picture file for the share sheet (unless a newer run has
+// replaced this one in the meantime).
+function finishCard(c, run) {
+  c.toBlob((blob) => {
+    if (!blob || lastRun !== run) return;
+    try { shareFile = new File([blob], 'speeder-' + run.score + '.png', { type: 'image/png' }); } catch (e) { shareFile = null; }
+  }, 'image/png');
+}
+
+function drawShareCard(run) {
   shareFile = null;
   try {
     const W2 = 1080, H2 = 1350;
     const c = makeCanvas(W2, H2), g = c.getContext('2d');
+    if (CARD_BG.ok) { drawCardOnArt(run, g, W2, H2); finishCard(c, run); return; }
     const bg = g.createLinearGradient(0, 0, 0, H2);
     bg.addColorStop(0, '#12052e'); bg.addColorStop(0.55, '#2a0a4a'); bg.addColorStop(1, '#0b0420');
     g.fillStyle = bg; g.fillRect(0, 0, W2, H2);
@@ -10247,10 +10346,7 @@ function makeShareCard(run) {
     g.font = '700 52px ' + FONT;
     g.fillStyle = '#29f3ff';
     g.fillText('speeder-game.com', W2 / 2, 1268);
-    c.toBlob((blob) => {
-      if (!blob || lastRun !== run) return;
-      try { shareFile = new File([blob], 'speeder-' + run.score + '.png', { type: 'image/png' }); } catch (e) { shareFile = null; }
-    }, 'image/png');
+    finishCard(c, run);
   } catch (e) {
     shareFile = null;
   }

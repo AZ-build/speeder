@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.12.9 |
+| **Current Version** | v0.13.0 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-16 |
@@ -189,7 +189,9 @@ Speeder/
 ├── index.html             ← the whole game
 ├── manifest.webmanifest   ← app name, icons, colors (for "install")
 ├── sw.js                  ← service worker (offline caching)
-├── icons/                 ← app icons (192, 512, maskable 512, Apple 180)
+├── icons/                 ← app icons (192, 512, maskable 512, Apple 180, favicon 32), v2 artwork since v0.13.0
+├── social/                ← card-bg.jpg (score card artwork, 1080x1350) and share-wide.jpg (link preview, 1200x630)
+├── CNAME                  ← the custom domain (speeder-game.com) for GitHub Pages; never delete
 ├── audio/                 ← sound effects, engine loop, music + CREDITS.md (all CC0)
 ├── README.md              ← how to play it locally and publish it
 ├── firestore-rules-speeder.txt ← the database rules block for the Classic leaderboard
@@ -349,7 +351,14 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.12.9, 2026-11-16):**
+**Where things stand (after v0.13.0, 2026-11-16):**
+- New artwork (v2 brand pack Adrian had made with ChatGPT; originals in
+  `E:\Claude Projects\Speeder\speeder-brand-v2.zip`): new app icons and favicon, the score
+  card drawn on artwork (`drawCardOnArt()`, with the old code-drawn card as a fallback), and
+  link previews (Open Graph tags pointing at `https://speeder-game.com/social/share-wide.jpg`).
+  The brand pack also has `score-card-example` (fake data, labelled EXAMPLE RUN): not used.
+
+**Earlier (after v0.12.9, 2026-11-16):**
 - Speeder moved to its own domain, **speeder-game.com** (bought through Squarespace). DNS
   records in Squarespace: four A records and four AAAA records on `@` pointing at GitHub Pages,
   and `www` as a CNAME to `az-build.github.io`. The share link and share picture now use the new
