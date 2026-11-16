@@ -4,6 +4,31 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.14.0] — 2026-11-16
+
+### Session 15c — Calmer title screen, Share the game, counting players
+
+Adrian: add a way to share the game from the home screen; the title screen is getting busy
+(keep it quick to jump into a run); and count how many people and names have played.
+
+- **Title screen, decluttered.** "Touch to ride" stays the main thing. The two big mode cards
+  became one slim WARP RUN | CLASSIC switch with a one-line description of the picked mode under
+  it. The two rows of four big buttons became one row of five icon buttons: Board, Settings,
+  Help, **Share** (new) and Lab. The four how-to-play tips only show until a device's first run
+  (How to play still has everything). A friend's challenge now sits under the logo instead of
+  over the speeder.
+- **Share on the title screen.** Opens the phone's share sheet with an invite and
+  https://speeder-game.com/ (the link preview shows the new artwork). Where there's no share
+  sheet, it copies the invite and says so. Analytics: `share/game` (tapped) and
+  `share/game/sent` (shared).
+- **Counting players** (GoatCounter events, each sent once per device):
+  `player/first-run` (a device played its first run), `player/named` (a device saved a
+  leaderboard name for the first time), `player/renamed` (changed it), and `player/day` (a device
+  played at least one run that day: daily players). One person on two phones counts twice.
+- No gameplay changes.
+
+---
+
 ## [v0.13.0] — 2026-11-16
 
 ### Session 15b — New artwork: icons, score card, link preview

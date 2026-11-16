@@ -121,7 +121,7 @@ own hazards, a world gate between each (you can see the next world through it), 
 multiply your score. Classic is the original endless run. Each has its own leaderboard.
 The How to play page in the game explains everything in Warp Run.
 
-**The Lab:** the lime **THE LAB** button on the title screen opens a test mode where new ideas
+**The Lab:** the lime **LAB** button (flask icon) on the title screen opens a test mode where new ideas
 are tried out (a jump you can do anywhere; sky ramps with rings to fly through). It can also
 start a run on a later loop, fully loaded, for testing at speed. Lab runs don't count on any leaderboard,
 and each one ends by asking for a thumbs up or down. To send someone straight there, share

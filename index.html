@@ -105,6 +105,7 @@
   @media (max-height: 740px) {
     #title { padding-top: calc(env(safe-area-inset-top, 0px) + 6vh); gap: 10px; }
     #title .how { margin-top: 8px; font-size: 14px; line-height: 1.7; }
+    #title .cta { margin-top: 4px; }
   }
   @media (max-height: 610px) {
     #title { padding-top: calc(env(safe-area-inset-top, 0px) + 3vh); gap: 8px; }
@@ -478,6 +479,37 @@
   }
   .version { font-size: 10px; letter-spacing: 0.2em; color: rgba(203, 183, 255, 0.5); }
   .modes { display: flex; gap: 10px; width: min(340px, 100%); }
+  /* Title screen (v0.14): one slim mode switch and a row of icon buttons under "Touch to ride" */
+  #title .modes {
+    gap: 0; width: min(300px, 100%); padding: 4px; box-sizing: border-box;
+    background: rgba(10, 3, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 999px;
+  }
+  .seg {
+    flex: 1; min-height: 40px; font-family: inherit; font-weight: 800; font-size: 12px; letter-spacing: 0.16em;
+    color: rgba(239, 230, 255, 0.6); background: none; border: 1px solid transparent; border-radius: 999px;
+    cursor: pointer; touch-action: manipulation;
+  }
+  .seg.sel { color: var(--yellow); background: rgba(255, 210, 60, 0.12); border-color: rgba(255, 210, 60, 0.7); box-shadow: 0 0 12px rgba(255, 210, 60, 0.2); }
+  .seg:active { transform: scale(0.97); }
+  .mode-note {
+    margin-top: -4px; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 12px;
+    color: #cdbdf2; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  }
+  #title .cta { margin-top: 6px; }
+  #title .challenge { margin-top: 10px; background: rgba(20, 4, 40, 0.78); }
+  .dock { display: flex; gap: 6px; justify-content: center; width: min(340px, 100%); margin-top: 8px; }
+  .dock-btn {
+    flex: 1; max-width: 66px; display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 9px 0 7px; font-family: inherit; color: #efe6ff; background: rgba(20, 6, 40, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 14px; cursor: pointer; touch-action: manipulation;
+  }
+  .dock-btn svg { width: 22px; height: 22px; }
+  .dock-btn span { font-size: 9px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+  .dock-btn:active { transform: scale(0.95); }
+  .dock-btn.share { color: var(--cyan); border-color: rgba(41, 243, 255, 0.45); }
+  .dock-btn.lab { color: var(--lime); border-color: rgba(182, 255, 46, 0.35); }
+  .dock-btn.lab.sel { background: rgba(182, 255, 46, 0.14); border-color: var(--lime); }
+  .dock-btn:focus-visible, .seg:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
   .btn.mode { flex: 1; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; min-height: 58px; padding: 8px 6px; opacity: 0.7; }
   .btn.mode b { font-size: 13px; letter-spacing: 0.12em; }
   .btn.mode small { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 10px; letter-spacing: 0; text-transform: none; color: #cdbdf2; line-height: 1.2; }
@@ -525,28 +557,29 @@
 <div id="title" class="overlay">
   <div class="logo">SPEEDER</div>
   <div class="tag">Neon hover run</div>
-  <div class="how">
+  <div class="how hidden" id="titleTips">
     <div><b>Drag</b> anywhere to steer</div>
     <div>Your guns fire <b>on their own</b></div>
     <div>Drive through a <b>gate</b> to take its power</div>
     <div>Hit a <b>ramp</b> to jump</div>
   </div>
-  <div class="spacer"></div>
   <div class="challenge hidden" id="titleChallenge"></div>
-  <div class="modes ui" role="group" aria-label="Game mode">
-    <button class="btn mode" id="modeWarp"><b>WARP RUN</b><small>New: 5 worlds, a boss, loops</small></button>
-    <button class="btn mode" id="modeClassic"><b>CLASSIC</b><small>The original endless run</small></button>
+  <div class="spacer"></div>
+  <div class="modes ui" role="radiogroup" aria-label="Game mode">
+    <button class="seg" id="modeWarp" type="button" role="radio">WARP RUN</button>
+    <button class="seg" id="modeClassic" type="button" role="radio">CLASSIC</button>
   </div>
+  <div class="mode-note" id="modeNote"></div>
   <div class="cta">Touch to ride</div>
   <div class="best" id="titleBest"></div>
-  <div class="row ui">
-    <button class="btn" id="titleBoardBtn">Leaderboard</button>
-    <button class="btn" id="titleSettingsBtn">Settings</button>
+  <div class="dock ui" role="group" aria-label="More">
+    <button class="dock-btn" id="titleBoardBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/></svg><span>Board</span></button>
+    <button class="dock-btn" id="titleSettingsBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span></button>
+    <button class="dock-btn" id="titleHelpBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9a3 3 0 0 1 5.6 1c0 2-3 2.6-3 4.2"/><path d="M12 17.6h.01"/></svg><span>Help</span></button>
+    <button class="dock-btn share" id="titleShareBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg><span>Share</span></button>
+    <button class="dock-btn lab" id="titleLabBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6"/><path d="M10 3v6.5L4.6 18.4A1.7 1.7 0 0 0 6.1 21h11.8a1.7 1.7 0 0 0 1.5-2.6L14 9.5V3"/><path d="M7.5 15h9"/></svg><span>Lab</span></button>
   </div>
-  <div class="row ui">
-    <button class="btn ghost" id="titleHelpBtn">How to play</button>
-    <button class="btn ghost lab" id="titleLabBtn">The Lab</button>
-  </div>
+  <div class="status small hidden" id="titleShareStatus" aria-live="polite"></div>
   <button id="installBtn" class="hidden ui">INSTALL APP</button>
   <div class="install hidden ui" id="installHint"><span id="installText"></span> <button class="linkbtn" id="installHow">How?</button> <button class="linkbtn hidden" id="copyLinkBtn">Copy link</button></div>
   <div class="version" id="versionTag"></div>
@@ -761,7 +794,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.13.0';
+const VERSION = '0.14.0';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -957,6 +990,29 @@ function track(path, title) {
   const gc = window.goatcounter;
   if (gc && typeof gc.count === 'function') { try { gc.count(ev); } catch (e) { /* ignore */ } }
   else if (GCQ.length < 50) GCQ.push(ev);
+}
+// Counting players (v0.14). Each of these is sent once per device, so on the dashboard the
+// number of times it was counted is the number of devices (one person on two phones counts twice):
+//   player/first-run  a device played its first run (new players who actually played)
+//   player/named      a device saved a leaderboard name for the first time
+//   player/renamed    a named device changed its name
+//   player/day        a device played at least one run that day (daily players; once per device per day)
+function trackOnce(key, path, title) {
+  if (storeGet(key)) return false;
+  storeSet(key, '1');
+  track(path, title);
+  return true;
+}
+function trackPlayerRun() {
+  trackOnce('speeder.played', 'player/first-run', 'Player: first run on this device');
+  const day = new Date().toISOString().slice(0, 10);
+  if (storeGet('speeder.playDay') !== day) {
+    storeSet('speeder.playDay', day);
+    track('player/day', 'Player: played today (one per device per day)');
+  }
+}
+function trackNamed() {
+  if (!trackOnce('speeder.namedT', 'player/named', 'Player: added a leaderboard name')) track('player/renamed', 'Player: changed their name');
 }
 (function startAnalytics() {
   if (!GC_CODE || !location.protocol.startsWith('http')) return;
@@ -9605,6 +9661,7 @@ function commitSettingsName() {
   if (name && name !== SET.name) {
     SET.name = name;
     saveSettings();
+    trackNamed();
     renameOnline();
   }
 }
@@ -9964,7 +10021,12 @@ function updateLadder(dt) {
 function updateTitleBest() {
   $('modeWarp').classList.toggle('sel', SET.mode === 'warp');
   $('modeClassic').classList.toggle('sel', SET.mode === 'classic');
+  $('modeWarp').setAttribute('aria-checked', SET.mode === 'warp' ? 'true' : 'false');
+  $('modeClassic').setAttribute('aria-checked', SET.mode === 'classic' ? 'true' : 'false');
   $('titleLabBtn').classList.toggle('sel', SET.mode === 'lab');
+  $('modeNote').textContent = SET.mode === 'warp' ? '5 worlds, a boss, loops that speed up' : SET.mode === 'classic' ? 'The original endless run' : '';
+  // the how-to-play tips only show until this device's first run
+  $('titleTips').classList.toggle('hidden', !!storeGet('speeder.played'));
   G.best = bestFor(SET.mode);
   $('titleBest').textContent = SET.mode === 'lab' ? labTitleLine() : G.best > 0 ? MODES[SET.mode] + ' BEST  ' + G.best.toLocaleString() : '';
   const ch = $('titleChallenge');
@@ -9996,6 +10058,7 @@ function startGame() {
   if (G.mode === 'lab') startLabRun();        // (Warp Run's rules, plus whatever is switched on in the Lab)
   else if (G.mode === 'warp') startWarpRun();
   track('play/' + G.mode, 'Run started: ' + MODES[G.mode]);
+  trackPlayerRun();
   buildLadder();
   paused = false;
   resumeT = 0;
@@ -10166,6 +10229,7 @@ function saveNameAndScore() {
     $('nameInput').focus();
     return;
   }
+  if (name !== SET.name) trackNamed();
   SET.name = name;
   saveSettings();
   // earlier runs on this device were saved as "YOU" before you had a name
@@ -10452,6 +10516,33 @@ $('labRide').addEventListener('click', () => { audioInit(); setMode('lab'); star
 $('overBoardBtn').addEventListener('click', () => openPanel('board'));
 $('overSettingsBtn').addEventListener('click', () => openPanel('settings'));
 $('titleBoardBtn').addEventListener('click', () => openPanel('board'));
+// "Share" on the title screen: an invite to the game itself (the link preview shows the artwork).
+async function shareGame() {
+  const url = shareUrl();
+  const text = 'Try Speeder: a neon hover racer you play right in your browser. Drag to steer, dodge at 600+ km/h.';
+  const status = $('titleShareStatus');
+  const say = (msg) => {
+    status.textContent = msg; status.classList.remove('hidden');
+    clearTimeout(shareGame.t); shareGame.t = setTimeout(() => status.classList.add('hidden'), 3500);
+  };
+  track('share/game', 'Tapped Share on the title screen');
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: 'Speeder', text, url });
+      track('share/game/sent', 'Shared the game from the title screen');
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;   // you closed the share sheet
+  }
+  try {
+    await navigator.clipboard.writeText(text + ' ' + url);
+    say('Link copied. Paste it to a friend!');
+  } catch (e) {
+    say(url);
+  }
+}
+$('titleShareBtn').addEventListener('click', (e) => { e.stopPropagation(); audioInit(); shareGame(); });
 $('titleHelpBtn').addEventListener('click', () => openPanel('help'));
 $('menuHelpBtn').addEventListener('click', () => openPanel('help'));
 $('helpBack').addEventListener('click', closePanel);

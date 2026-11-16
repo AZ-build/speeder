@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.13.0 |
+| **Current Version** | v0.14.0 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-16 |
@@ -79,6 +79,9 @@ shot, or pick which gate to take), all with a single control.
 - **Score:** distance + kills, times the multiplier. Best score is saved on the device.
 - **Helper text (v0.5):** gate choices, ramp warning, toasts and zone names sit below the
   speeder, never over the road ahead.
+- **Title screen (v0.14):** logo, a friend's challenge if any, the speeder, then the WARP RUN | CLASSIC switch,
+  "Touch to ride", your best, and one row of icon buttons (Board, Settings, Help, Share, Lab). Tips show until
+  the first run on a device. Share opens the share sheet with an invite to speeder-game.com.
 - **Menus (v0.2):** pause button → Resume / Leaderboard / Settings / Quit run, with a 3-2-1
   countdown on resume. Auto-pauses when you leave the app. Settings (per device): sound,
   volume, music, engine hum, vibration, steering speed, camera distance (v0.7.6: Close / Normal / Far / Full track), graphics, screen shake, leaderboard name.
@@ -140,7 +143,7 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
 
 - **What it is:** a third mode for trying ideas before they go into the real game. A Lab run
   plays by Warp Run's rules with the switched-on experiments layered over the top.
-- **Getting in:** title screen → **THE LAB** (lime button beside How to play) → switch things
+- **Getting in:** title screen → **LAB** (lime flask icon at the end of the button row) → switch things
   on → **Ride in the Lab**. A link ending in `?lab` opens the Lab panel directly.
 - **Kept apart:** Lab runs never go to a world leaderboard, the "This device" boards or the
   share card. The Lab is never the saved mode: the game always reopens on the last real mode.
@@ -216,7 +219,7 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 `MULT_TIME` 2X duration · `EDGE_START` / `EDGE_BANK` / `EDGE_HALF_W` / `EDGE_YAW` the edge bank and how skinny it gets · `VIEW_TAN` / `CAM_VIEWS` (the Camera setting's levels) / `FIT_WIDE` / `VIEW_MAX_H` camera angle, how close it is, and big-screen fit (`fitView()`) · `CAM_TRACK` how much the camera follows your sideways move · `CAM_FOLLOW` how quickly it eases after you · `AIM_AHEAD` how far it looks into turns · `STEER_EASE` how quickly the speeder glides to your thumb · `LEAN_MAX` / `LEAN_GAIN` the small lean while moving · `SWARM_N` missiles per MISSILES pickup ·
 `MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch ·
 `PART_MAX` particle cap · `QUALS[].fx` / `QUALS[].gloss` particle amount and glossy road per graphics level · `DRONE_MESH` / `RAM_MESH` / `TURRET_BASE` / `TURRET_HEAD` enemy models · `drawGloss()` road reflections · `drawShield()` shield bubble · `G.slowmo` wreck slow motion ·
-`GC_CODE` analytics on/off (GoatCounter site code, now `speeder`; dashboard https://speeder.goatcounter.com) · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
+`GC_CODE` analytics on/off (GoatCounter site code, now `speeder`; dashboard https://speeder.goatcounter.com) · `trackOnce()` / `trackPlayerRun()` / `trackNamed()` the once-per-device player counts · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
 `choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
 
 **Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `BOSS_SNIPE` how often it fires single shots under its other attacks · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
@@ -351,7 +354,15 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.13.0, 2026-11-16):**
+**Where things stand (after v0.14.0, 2026-11-16):**
+- Title screen tidied: slim mode switch, one row of icon buttons (Board, Settings, Help, Share,
+  Lab), tips only until a device's first run. New **Share** button invites friends to the game.
+- Player counting on the analytics dashboard (https://speeder.goatcounter.com), each event once
+  per device: `player/first-run` (played at all), `player/named` (saved a name),
+  `player/renamed`, `player/day` (played that day). Plus `share/game` and `share/game/sent`.
+  Counts started fresh with the move to speeder-game.com (new address = new storage).
+
+**Earlier (after v0.13.0, 2026-11-16):**
 - New artwork (v2 brand pack Adrian had made with ChatGPT; originals in
   `E:\Claude Projects\Speeder\speeder-brand-v2.zip`): new app icons and favicon, the score
   card drawn on artwork (`drawCardOnArt()`, with the old code-drawn card as a fallback), and

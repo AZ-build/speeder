@@ -28,7 +28,7 @@ straight into a hyperlane.
 
 ## How players get there
 
-- Title screen → **THE LAB** (the lime button next to How to play) → switch things on →
+- Title screen → **LAB** (the lime flask icon at the end of the button row) → switch things on →
   **Ride in the Lab**.
 - A link ending in `?lab` opens the Lab panel directly:
   `https://speeder-game.com/?lab`. Good for inviting testers.
