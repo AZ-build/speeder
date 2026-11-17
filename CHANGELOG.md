@@ -4,6 +4,28 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.16.6] — 2026-11-17
+
+### Steering: a second touch no longer kills the steering thumb
+
+An Android friend (plays his fold folded): steering feels inconsistent, he has to lift his thumb
+off the screen almost every time he moves, and it "moves with my thumb again" instead of the
+lighter steering he was used to.
+
+- **Bug found and fixed.** Any new touch took over the steering at once, even one that just
+  rested there (the other thumb, the side of a palm, a fold's curved edge). From then on the
+  thumb that was actually sliding did nothing until it was lifted and put down again, even
+  after the stray touch let go. Now a second finger is ignored until it really slides
+  (`TAKEOVER_PX`, 12 points), and when one lifts, the finger still down carries on steering
+  from where it is. One finger on its own steers exactly as before.
+- **Steering speed goes higher:** the Settings slider now runs 50-250% (was 50-160%). At 250%
+  crossing the track takes about 40% of the screen width instead of about 90%. Default unchanged.
+- Likely reason it "changed": the move to speeder-game.com (v0.12.9) reset every phone's
+  settings, so anyone who had turned Steering speed up is back at 100%.
+- Classic and Warp Run play exactly as before (`tests/same-as-before.sh`); all tests pass.
+
+---
+
 ## [0.16.5] — 2026-11-16
 
 ### Flight School instructions moved to the bottom

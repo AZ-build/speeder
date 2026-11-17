@@ -26,10 +26,10 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.16.5 |
+| **Current Version** | v0.16.6 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-16 |
+| **Last Updated** | 2026-11-17 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://speeder-game.com/ (custom domain since v0.12.9; the old https://az-build.github.io/speeder/ address redirects there) |
 
 ---
@@ -313,6 +313,7 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Camera fit (v0.7.5) | Close chase camera, ~1.5x farther back than v0.7.1; eases after the speeder (85% follow, slight lag) and looks into turns, as in v0.7.1; wide screens show the whole track (≤85% width) and don't move | v0.7.2 fit the whole track on phones but was too zoomed out: lost the feel of flying. A close camera can't show both rails. v0.7.3's lag-free lockstep camera felt stiff, so the v0.7.1 smoothing is back. |
 | Camera setting (v0.7.6) | Players pick Close / Normal / Far / Full track; Normal is the default | People disagree on close-and-thrilling vs seeing the whole track; a setting lets each player choose. |
 | Steering (v0.7.7) | Crossing the track takes a drag of nearly the full screen width on a phone; capped at 400 points (`STEER_MAX_W`) so foldables/tablets need the same thumb travel as an iPhone | Tried thumb-distance steering in v0.7.2 (~230 points to cross); Adrian found it too touchy. The old 520-point cap made unfolded folds need ~3.1 in of thumb travel. |
+| Extra touches (v0.16.6) | A second finger only takes over the steering once it slides 12 points (`TAKEOVER_PX`); when one lifts, the finger still down keeps steering. Steering speed slider now 50-250% | A resting palm or other thumb used to take over at once and leave the moving thumb dead until lifted: an Android friend had to lift his thumb almost every move. |
 | Frame rate (v0.7.1) | Capped at 60fps; 30 on title/game over, 15 when paused | 120Hz Android phones were drawing twice as often as iPhones and draining battery. |
 | Big screens (v0.7.1) | Pixel budget per graphics level; reflections only on phone-sized screens | An unfolded foldable drew ~3x the pixels of an iPhone. Normal phones are unaffected. |
 | Modes (v0.8) | Classic kept untouched; all new ideas live in a second mode, Warp Run, which is the default | Adrian's call: keep the existing experience as Classic. Separate best scores and leaderboards, so Classic's board never needs a reset. |
@@ -382,6 +383,14 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**Steering complaint (v0.16.6, 2026-11-17):**
+- Adrian's Android friend (plays his fold folded): steering inconsistent, lifts his thumb almost
+  every move, "moves with my thumb again", can't get past 50K. Fixed a real bug (a stray second
+  touch made the steering thumb dead until lifted) and raised the Steering speed slider to 250%.
+  His settings were probably reset by the domain move. **Ask whether it's better**, and at what
+  Steering speed. If thumb travel is still the problem, ideas offered: a lighter default on narrow
+  screens, or a Lab STEERING experiment (fast swipes go further, or joystick-style hold to slide).
 
 **Where things stand (after v0.16.4, 2026-11-16):**
 - Stats page now has trends over time in every section (lines, stacked and 100% columns; one

@@ -799,7 +799,7 @@
     <div class="setting"><label for="setMusic">Music</label><input type="checkbox" id="setMusic" class="switch"></div>
     <div class="setting"><label for="setEngine">Engine hum</label><input type="checkbox" id="setEngine" class="switch"></div>
     <div class="setting"><label for="setHaptics">Vibration <small>Android only</small></label><input type="checkbox" id="setHaptics" class="switch"></div>
-    <div class="setting"><label for="setSens">Steering speed <small id="sensLabel"></small></label><input type="range" id="setSens" min="50" max="160" step="10"></div>
+    <div class="setting"><label for="setSens">Steering speed <small id="sensLabel"></small></label><input type="range" id="setSens" min="50" max="250" step="10"></div>
     <div class="setting"><label for="setCam">Camera <small>how far back</small></label><button class="btn chip" id="setCam" type="button">Normal</button></div>
     <div class="setting"><label for="setGfx">Graphics <small id="gfxNote"></small></label><button class="btn chip" id="setGfx" type="button">Auto</button></div>
     <div class="setting"><label for="setShake">Screen shake</label><input type="checkbox" id="setShake" class="switch"></div>
@@ -950,6 +950,7 @@ const EDGE_YAW = 0.25;      // how much the nose points back toward the middle w
 const CAM_FOLLOW = 6;       // how quickly the camera eases after the speeder sideways (v0.7.1 feel; higher = tighter)
 const AIM_AHEAD = 31;       // the camera looks this far past the speeder into each turn (v0.7.1 feel)
 const STEER_MAX_W = 400;    // widest screen (points) that steering scales with; wider screens steer like a 400-point phone
+const TAKEOVER_PX = 12;     // how far a second finger must slide before it takes over the steering (a resting palm doesn't)
 const STEER_EASE = 14;      // how quickly the speeder glides to where your thumb is (higher = snappier)
 const LEAN_MAX = 0.35;      // most the speeder leans while moving across the track (radians, about 20°)
 const LEAN_GAIN = 0.07;     // how quickly that lean builds with sideways speed
@@ -963,7 +964,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.16.5';
+const VERSION = '0.16.6';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -3168,6 +3169,7 @@ const streaks = [];   // speed lines
 const PLAYER_ITEM = { kind: 'player', _z: PLAYER_Z };
 let paused = false;
 let drag = null;
+const fingers = new Map();   // every finger on the screen during a run: id -> { x0: where it landed, x: where it is now }
 const keys = {};
 const STATS = { jumps: 0, air: 0, wallHits: 0, pat: {} };   // counters for testing
 const NONE = [];
@@ -11516,12 +11518,25 @@ window.addEventListener('pointerdown', (e) => {
   if (G.state === 'title') startGame();
   if (G.state !== 'play') return;
   if (LAB.on && labPointerDown(e)) return;     // (Lab: this touch was a jump, not a new steering thumb)
-  drag = { id: e.pointerId, x0: e.clientX, t0: player.tx };
+  // v0.16.6: a second finger (the other thumb, the side of a palm, a fold's curved edge) no longer
+  // steals the steering from the thumb that's moving. It only takes over once it really moves
+  // (TAKEOVER_PX), and when either one lifts, the finger still down carries on steering.
+  if (e.isPrimary) fingers.clear();            // (the first finger down: nothing else is touching)
+  fingers.set(e.pointerId, { x0: e.clientX, x: e.clientX });
+  if (!drag || e.isPrimary) drag = { id: e.pointerId, x0: e.clientX, t0: player.tx };
 });
 
 window.addEventListener('pointermove', (e) => {
   if (LAB.on) labPointerMove(e);
-  if (!drag || e.pointerId !== drag.id || G.state !== 'play') return;
+  const f = fingers.get(e.pointerId);
+  if (f) f.x = e.clientX;
+  if (!drag || G.state !== 'play') return;
+  if (e.pointerId !== drag.id) {
+    // another finger: ignore it while it rests; once it really moves it takes over from where it is
+    if (!f || Math.abs(e.clientX - f.x0) < TAKEOVER_PX) return;
+    drag = { id: e.pointerId, x0: e.clientX, t0: player.tx };
+    return;
+  }
   if (paused) {
     // during the resume countdown, just remember where the thumb is
     drag.x0 = e.clientX;
@@ -11542,7 +11557,14 @@ window.addEventListener('pointermove', (e) => {
 
 function endDrag(e) {
   if (LAB.on) labPointerUp(e);
-  if (drag && e.pointerId === drag.id) drag = null;
+  fingers.delete(e.pointerId);
+  if (drag && e.pointerId === drag.id) {
+    drag = null;
+    // a finger still down carries on steering from where it is (no jump)
+    let next = null;
+    for (const [id, f] of fingers) next = { id, x0: f.x, t0: player.tx };
+    if (next && G.state === 'play') drag = next;
+  }
 }
 window.addEventListener('pointerup', endDrag);
 window.addEventListener('pointercancel', endDrag);
