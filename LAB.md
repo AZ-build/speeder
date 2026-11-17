@@ -37,7 +37,7 @@ straight into a hyperlane.
 
 ## Reading the results
 
-Analytics dashboard: https://speeder.goatcounter.com (filter for `lab/`).
+Analytics: the **Lab verdicts** section of https://speeder-game.com/stats/ (votes per variant side by side), or https://speeder.goatcounter.com (filter for `lab/`). A new experiment's votes show up there by themselves; add its name and options to `LAB_EXP` in `stats/index.html` so they read nicely.
 
 | Event | Meaning |
 |-------|---------|

@@ -1,6 +1,6 @@
 // Speeder service worker: lets the game load offline once it has been opened.
 // When you change the game, bump CACHE so phones pick up the new files.
-const CACHE = 'speeder-v0.16.1';
+const CACHE = 'speeder-v0.16.2';
 const ASSETS = [
   './',
   './index.html',
@@ -53,7 +53,11 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // The page itself: try the network first so updates show up, fall back to the cached copy offline.
+  // Other pages on the site (like /stats/) are left alone: never cached, never stored as the game.
+  // (Before v0.16.2 every page visit was saved as the offline copy of the game.)
+  if (req.mode === 'navigate' && url.pathname !== '/' && url.pathname !== '/index.html') return;
+
+  // The game page itself: try the network first so updates show up, fall back to the cached copy offline.
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)

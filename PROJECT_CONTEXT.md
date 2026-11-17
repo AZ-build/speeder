@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.16.1 |
+| **Current Version** | v0.16.2 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-16 |
@@ -213,6 +213,7 @@ Speeder/
 ├── sw.js                  ← service worker (offline caching)
 ├── icons/                 ← app icons (192, 512, maskable 512, Apple 180, favicon 32), v2 artwork since v0.13.0
 ├── social/                ← card-bg.jpg (score card artwork, 1080x1350) and share-wide.jpg (link preview, 1200x630)
+├── stats/index.html       ← private stats page (speeder-game.com/stats/): GoatCounter API + leaderboards; not part of the game
 ├── CNAME                  ← the custom domain (speeder-game.com) for GitHub Pages; never delete
 ├── audio/                 ← sound effects, engine loop, music + CREDITS.md (all CC0)
 ├── README.md              ← how to play it locally and publish it
@@ -238,7 +239,7 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 `MULT_TIME` 2X duration · `EDGE_START` / `EDGE_BANK` / `EDGE_HALF_W` / `EDGE_YAW` the edge bank and how skinny it gets · `VIEW_TAN` / `CAM_VIEWS` (the Camera setting's levels) / `FIT_WIDE` / `VIEW_MAX_H` camera angle, how close it is, and big-screen fit (`fitView()`) · `CAM_TRACK` how much the camera follows your sideways move · `CAM_FOLLOW` how quickly it eases after you · `AIM_AHEAD` how far it looks into turns · `STEER_EASE` how quickly the speeder glides to your thumb · `LEAN_MAX` / `LEAN_GAIN` the small lean while moving · `SWARM_N` missiles per MISSILES pickup ·
 `MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch ·
 `PART_MAX` particle cap · `QUALS[].fx` / `QUALS[].gloss` particle amount and glossy road per graphics level · `DRONE_MESH` / `RAM_MESH` / `TURRET_BASE` / `TURRET_HEAD` enemy models · `drawGloss()` road reflections · `drawShield()` shield bubble · `G.slowmo` wreck slow motion ·
-`GC_CODE` analytics on/off (GoatCounter site code, now `speeder`; dashboard https://speeder.goatcounter.com) · `trackOnce()` / `trackPlayerRun()` / `trackNamed()` the once-per-device player counts · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
+`GC_CODE` analytics on/off (GoatCounter site code, now `speeder`; dashboard https://speeder.goatcounter.com, and our own at https://speeder-game.com/stats/) · `trackOnce()` / `trackPlayerRun()` / `trackNamed()` the once-per-device player counts · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
 `choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
 
 **Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `BOSS_SNIPE` how often it fires single shots under its other attacks · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
@@ -300,6 +301,7 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Graphics quality | Auto steps down if the frame rate drops | Keeps older phones smooth without asking players to tune anything. |
 | Sound (v0.6) | Free CC0 sound files instead of generated tones | Adrian found the generated sounds cheap. CC0 means no licence worries or credit needed. |
 | Analytics (v0.6.3) | GoatCounter, events only, no cookies | Free, privacy-friendly, phone-friendly dashboard, no cookie banner. Offline runs aren't counted. |
+| Stats page (v0.16.2) | Our own page at speeder-game.com/stats/ reading GoatCounter's API, not a Claude artifact | Adrian asked for an artifact, but artifacts can't reach outside sites, so it couldn't be live. The key lives only in Adrian's browser; the page shows nothing without it. Trade-off: the address is public (harmless without the key). |
 | Leaderboard reads (v0.6.3) | Reuse a recent download; only re-download after a run that could make the board | Free Firebase plan is ~50k reads/day, shared with ORBit. |
 | Built-in browsers (v0.6.3) | Detect TikTok/Instagram etc. and say "Open in browser" | They can't install the game, and the game is being shared on TikTok. |
 | Visual polish (v0.7) | Particles with flashes, shockwaves and debris; 3D enemies; glossy road on High only | Adrian wanted more polish. Heavier effects are tied to the graphics level so older phones skip them. |
@@ -376,7 +378,18 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.16.0, 2026-11-16):**
+**Where things stand (after v0.16.2, 2026-11-16):**
+- New private stats page, **https://speeder-game.com/stats/** (`stats/index.html`): players and
+  returns, countries and phones, modes and run length, Lab verdicts per variant, Flight School
+  funnel, everyone on the world boards, sharing and installs, every event. Needs a GoatCounter API
+  key with "Read statistics", pasted once on the device. Tested with sample data only: ask Adrian
+  whether it loaded with his real key (if GoatCounter refuses the browser's request, the page says
+  it couldn't reach GoatCounter).
+- When adding analytics events, add them to the stats page too (each section is a render
+  function; unknown events still show under "Every event").
+- sw.js now only saves the game page for offline use (before, any page visited replaced it).
+
+**Earlier (after v0.16.0, 2026-11-16):**
 - Title logo is now the brand artwork (`icons/logo.webp`). Panels have a pinned Back button.
   Flight School can be started from the pause menu's How to play (two taps: it ends the run).
 - Tagline is now **"Left. Right. No brakes."** (Adrian's pick, v0.16.1): title screen, page and

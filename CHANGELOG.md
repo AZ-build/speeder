@@ -4,6 +4,35 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.16.2] — 2026-11-16
+
+### Session 15g — A private stats page
+
+Adrian asked for a better analytics dashboard: players and whether they come back, where in the
+world they are, modes and run length, Lab verdicts, and Flight School drop-off. He wanted it as a
+Claude artifact, but artifact pages can't reach GoatCounter (outside websites are blocked), so it
+is a live page on the site instead.
+
+- **New page: https://speeder-game.com/stats/** (`stats/index.html`, not linked from the game,
+  marked noindex). It reads GoatCounter's API with a key pasted once (kept only in that browser,
+  `speeder.stats.key`; "Read statistics" permission only) and the two world leaderboards from
+  Firestore (public reads, cached 10 minutes). Without the key it shows nothing.
+- Sections: Players (new, return days, player-days, names, a new vs returning chart per day, how
+  the game is opened) · Where they are (countries, phones) · Modes and how far runs get (km
+  buckets for both modes, a loop × world grid of where Warp Runs end, milestones) · Lab verdicts
+  (thumbs up/down per variant plus each experiment's own signals) · Flight School (offered,
+  started, finished, a part-by-part funnel, where people leave, skipped steps) · On the world
+  boards (every name, best scores, last entry) · Sharing and installs · Every event (searchable).
+  Ranges: Today, 7 days, 30 days, All time.
+- **Service worker fix:** every page visit used to be saved as the offline copy of the game, so
+  opening /stats/ would have made the stats page what loads offline. Now only the game page is.
+  `CACHE` bumped. Classic and Warp Run unchanged (`tests/same-as-before.sh`).
+- Tested with sample data in a phone-sized browser; not yet run against the real GoatCounter API.
+- Reminder (on the page too): GoatCounter counts visits, not events. "warp/run/1-3km = 5" means
+  five visits had a run end there, not five runs. The once-per-device events are exact.
+
+---
+
 ## [v0.16.1] — 2026-11-16
 
 ### Session 15f — New tagline: "Left. Right. No brakes."

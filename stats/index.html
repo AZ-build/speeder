@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b0420">
+<title>Speeder stats</title>
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
+<!--
+  Speeder's private stats page (v0.16.2). Not part of the game: nothing here is counted, cached
+  for offline play, or linked from the game.
+
+  Where the numbers come from:
+  - GoatCounter's API (https://speeder.goatcounter.com/api/v0/...). Needs an API key with
+    "Read statistics". The key is pasted once and kept only in this browser (localStorage
+    "speeder.stats.key"). Without a key the page shows nothing.
+  - The two world leaderboards in Firestore (public reads, the same as the game makes).
+
+  GoatCounter counts VISITORS, not events: one per path per visit (a visit lasts up to 8 hours).
+  So "run/1-2km = 3" means three visits had at least one run end there, not three runs.
+  The once-per-device events (player/first-run, player/named, player/day, lab votes) are exact.
+
+  To add a section: add a render function and call it from render(). Event names are listed
+  in PROJECT_CONTEXT.md and LAB.md.
+-->
+<style>
+  :root {
+    color-scheme: dark;
+    --page: #0b0b16;
+    --surface-1: #151626;          /* card / chart surface (palette validated against this) */
+    --surface-2: #1d1f33;          /* bar tracks, inputs */
+    --grid: #2a2c44;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2cf;
+    --text-muted: #8d8ca3;
+    --series-1: #3987e5;           /* blue  */
+    --series-2: #d95926;           /* orange */
+    --series-3: #199e70;           /* aqua  */
+    --brand-pink: #ff2bd6;
+    --brand-cyan: #29f3ff;
+    --critical: #e66767;
+    --pad: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--page); color: var(--text-primary); }
+  body {
+    font: 15px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 12px; }
+  .brand { font-family: 'Orbitron', system-ui, sans-serif; font-weight: 800; letter-spacing: .08em; font-size: 20px; margin: 0; }
+  .brand span { color: var(--brand-pink); }
+  .brand small { color: var(--brand-cyan); font-weight: 500; font-size: 12px; letter-spacing: .2em; margin-left: 6px; }
+  .btn {
+    appearance: none; border: 1px solid var(--grid); background: var(--surface-2); color: var(--text-primary);
+    font: inherit; font-size: 14px; padding: 8px 12px; border-radius: 10px; cursor: pointer; min-height: 40px;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--series-1); border-color: var(--series-1); color: #fff; font-weight: 600; }
+  .btn[disabled] { opacity: .5; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; position: sticky; top: 0; z-index: 5;
+    background: var(--page); padding: 8px 0 10px; margin: 0 0 6px; }
+  .chip { appearance: none; border: 1px solid var(--grid); background: transparent; color: var(--text-secondary);
+    font: inherit; font-size: 14px; padding: 7px 12px; border-radius: 999px; cursor: pointer; min-height: 36px; }
+  .chip[aria-pressed="true"] { background: var(--text-primary); color: var(--page); border-color: var(--text-primary); font-weight: 600; }
+  .stamp { color: var(--text-muted); font-size: 12px; margin-left: auto; }
+  .card { background: var(--surface-1); border-radius: 16px; padding: var(--pad); margin: 0 0 14px; }
+  .card h2 { font-family: 'Orbitron', system-ui, sans-serif; font-weight: 800; font-size: 14px; letter-spacing: .08em;
+    text-transform: uppercase; margin: 0 0 2px; color: var(--text-primary); }
+  .card .q { color: var(--text-muted); font-size: 13px; margin: 0 0 14px; }
+  .card h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin: 18px 0 8px; text-transform: none; }
+  .card .q + div > h3:first-child, .card .q + div > .cols2:first-child > div:first-child > h3:first-child { margin-top: 4px; }
+  @media (min-width: 620px) { .card .q + div > .cols2:first-child > div > h3:first-child { margin-top: 4px; } }
+  .note { color: var(--text-muted); font-size: 12px; margin: 10px 0 0; }
+  .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  @media (min-width: 620px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .tile { background: var(--surface-2); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+  .tile .label { color: var(--text-secondary); font-size: 12px; }
+  .tile .value { font-size: 26px; font-weight: 650; line-height: 1.15; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .tile .sub { color: var(--text-muted); font-size: 12px; }
+  /* horizontal bars */
+  .bars { display: grid; gap: 8px; }
+  .bar-row { display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr) auto; gap: 10px; align-items: center; cursor: default; }
+  .bar-row .name { font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-row .track { height: 14px; position: relative; }
+  .bar-row .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--series-1); border-radius: 0 4px 4px 0; }
+  .bar-row:not(.zero) .fill { min-width: 3px; }
+  .bar-row .val { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--text-primary); text-align: right; min-width: 2.5em; }
+  .bar-row .val small { color: var(--text-muted); margin-left: 4px; }
+  .bar-row.zero .name, .bar-row.zero .val { color: var(--text-muted); }
+  .cols2 { display: grid; gap: 4px 24px; }
+  @media (min-width: 620px) { .cols2 { grid-template-columns: 1fr 1fr; } }
+  /* daily chart */
+  .chart { position: relative; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); margin: 0 0 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .tip { position: absolute; pointer-events: none; background: #f0efec; color: #0b0b0b; font-size: 12px; line-height: 1.35;
+    padding: 6px 8px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, -100%); box-shadow: 0 4px 14px rgba(0,0,0,.4); z-index: 3; }
+  .tip b { font-weight: 650; }
+  /* heatmap */
+  .heat { display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
+  .heat div { border-radius: 4px; text-align: center; font-size: 12px; padding: 7px 0; }
+  .heat .hd { color: var(--text-muted); background: none; padding: 2px 0; }
+  .heat .rh { color: var(--text-secondary); background: none; text-align: left; padding-left: 2px; }
+  /* lab */
+  .exp { border-top: 1px solid var(--grid); padding-top: 12px; margin-top: 12px; }
+  .exp:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+  .exp h3 { margin: 0 0 8px !important; color: var(--text-primary); font-size: 14px; }
+  .variant { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; margin: 0 0 12px; }
+  .variant .vname { font-size: 13px; color: var(--text-secondary); }
+  .variant .vstat { font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+  .seg { grid-column: 1 / -1; display: flex; gap: 2px; height: 14px; }
+  .seg span { display: block; height: 100%; }
+  .seg .up { background: var(--series-1); border-radius: 4px 0 0 4px; }
+  .seg .down { background: var(--series-2); border-radius: 0 4px 4px 0; }
+  .seg .up:last-child { border-radius: 4px; }
+  .seg .down:first-child { border-radius: 4px; }
+  .seg .none { background: var(--surface-2); border-radius: 4px; flex: 1; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 0; }
+  .chips span { background: var(--surface-2); border-radius: 8px; padding: 3px 8px; font-size: 12px; color: var(--text-secondary); }
+  .chips span b { color: var(--text-primary); font-weight: 600; }
+  /* tables */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  td small { color: var(--text-muted); margin-left: 3px; }
+  th { color: var(--text-muted); font-weight: 500; font-size: 12px; }
+  td.n, th.n { text-align: right; }
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  input[type="text"], input[type="password"], input[type="search"] {
+    width: 100%; font: inherit; font-size: 16px; color: var(--text-primary); background: var(--surface-2);
+    border: 1px solid var(--grid); border-radius: 10px; padding: 10px 12px; }
+  ol.steps { padding-left: 20px; margin: 8px 0 14px; }
+  ol.steps li { margin: 0 0 8px; color: var(--text-secondary); }
+  ol.steps b { color: var(--text-primary); }
+  a { color: var(--brand-cyan); }
+  .msg { border-radius: 12px; padding: 12px 14px; margin: 0 0 14px; font-size: 14px; background: #3a1820; color: #ffd9de; }
+  .msg.info { background: var(--surface-2); color: var(--text-secondary); }
+  .skeleton { color: var(--text-muted); font-size: 13px; padding: 18px 0; text-align: center; }
+  .hidden { display: none !important; }
+  footer { color: var(--text-muted); font-size: 12px; text-align: center; margin-top: 18px; }
+  footer button { background: none; border: 0; color: var(--text-muted); text-decoration: underline; font: inherit; cursor: pointer; padding: 6px; }
+  .row-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 class="brand">SPEE<span>D</span>ER<small>STATS</small></h1>
+    <button class="btn" id="refresh" type="button" aria-label="Refresh">↻ Refresh</button>
+  </header>
+
+  <!-- First time: paste the GoatCounter key -->
+  <section class="card hidden" id="setup">
+    <h2>Connect GoatCounter</h2>
+    <p class="q">One time only. The key stays in this browser and is never sent anywhere except GoatCounter.</p>
+    <ol class="steps">
+      <li>Open <a href="https://speeder.goatcounter.com/user/api" target="_blank" rel="noopener">speeder.goatcounter.com/user/api</a> and sign in.</li>
+      <li>Tap <b>New API key</b>. Name it <b>stats page</b>.</li>
+      <li>Tick only <b>Read statistics</b>, then tap <b>Create</b>.</li>
+      <li>Copy the long key it shows and paste it below.</li>
+    </ol>
+    <label for="keyIn" class="note" style="display:block;margin:0 0 6px">GoatCounter API key</label>
+    <input id="keyIn" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste the key here">
+    <div class="row-actions">
+      <button class="btn primary" id="saveKey" type="button">Save and load stats</button>
+    </div>
+    <p class="note" id="setupMsg"></p>
+  </section>
+
+  <div id="main" class="hidden">
+    <nav class="filters" aria-label="Date range">
+      <button class="chip" type="button" data-range="today">Today</button>
+      <button class="chip" type="button" data-range="7">7 days</button>
+      <button class="chip" type="button" data-range="30">30 days</button>
+      <button class="chip" type="button" data-range="all">All time</button>
+      <span class="stamp" id="stamp"></span>
+    </nav>
+    <div id="err" class="msg hidden" role="alert"></div>
+
+    <section class="card" id="players">
+      <h2>Players</h2>
+      <p class="q">How many people play, and do they come back?</p>
+      <div id="playersBody"><div class="skeleton">Loading…</div></div>
+    </section>
+
+    <section class="card" id="where">
+      <h2>Where they are</h2>
+      <p class="q">Which countries and phones people play from.</p>
+      <div id="whereBody"><div class="skeleton">Loading…</div></div>
+    </section>
+
+    <section class="card" id="modes">
+      <h2>Modes &amp; how far runs get</h2>
+      <p class="q">What people play, and where their runs end.</p>
+      <div id="modesBody"><div class="skeleton">Loading…</div></div>
+    </section>
+
+    <section class="card" id="lab">
+      <h2>Lab verdicts</h2>
+      <p class="q">Thumbs up or down on each experiment, per version of it.</p>
+      <div id="labBody"><div class="skeleton">Loading…</div></div>
+    </section>
+
+    <section class="card" id="school">
+      <h2>Flight School</h2>
+      <p class="q">How far people get through the tutorial, and where they leave.</p>
+      <div id="schoolBody"><div class="skeleton">Loading…</div></div>
+    </section>
+
+    <section class="card" id="boards">
+      <h2>On the world boards</h2>
+      <p class="q">Everyone with a run on a leaderboard (all time).</p>
+      <div id="boardsBody"><div class="skeleton">Loading…</div></div>
+    </section>
+
+    <section class="card" id="other">
+      <h2>Sharing, installs &amp; more</h2>
+      <p class="q">Smaller signals worth a glance.</p>
+      <div id="otherBody"><div class="skeleton">Loading…</div></div>
+    </section>
+
+    <section class="card" id="all">
+      <h2>Every event</h2>
+      <p class="q">The full list, in case something isn't shown above.</p>
+      <input type="search" id="allFilter" placeholder="Filter, e.g. lab/ or tut/" autocapitalize="off" spellcheck="false">
+      <div id="allBody" style="margin-top:10px"><div class="skeleton">Loading…</div></div>
+    </section>
+
+    <footer>
+      Numbers from GoatCounter (visits) and the Speeder leaderboards.<br>
+      <button type="button" id="forget">Forget the key on this device</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ---------- settings ----------
+const GC = 'https://speeder.goatcounter.com/api/v0';
+const KEY_STORE = 'speeder.stats.key';
+const RANGE_STORE = 'speeder.stats.range';
+const ALL_START = '2026-11-01';             // analytics began in early November 2026
+const FS = { project: 'orbit-23921', key: 'AIzaSyCqMxJV7_hh8AHaSuYUi7QR16apt0QhPiE' };   // same public key the game uses
+const BOARDS = [['warp', 'speeder_warp_scores', 'Warp Run'], ['classic', 'speeder_scores', 'Classic']];
+const BOARD_CACHE_MIN = 10;                 // reuse the leaderboard download for 10 minutes (Firebase's free reads are shared with ORBit)
+const BOARD_LIMIT = 300;                    // entries read per board
+
+const MODE_NAMES = { warp: 'Warp Run', classic: 'Classic', lab: 'The Lab' };
+const OPEN_NAMES = { app: 'Installed app', browser: 'Browser', tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', snapchat: 'Snapchat', x: 'X', linkedin: 'LinkedIn', discord: 'Discord', pinterest: 'Pinterest', line: 'Line', reddit: 'Reddit' };
+const WARP_BUCKETS = ['0-1', '1-3', '3-7', '7-17', '17-34', '34+'];
+const CLASSIC_BUCKETS = ['0-0.5', '0.5-1', '1-2', '2-4', '4-7', '7-12', '12+'];
+const LAB_BUCKETS = ['0-1', '1-3', '3-7', '7-17', '17+'];
+const TUT_PARTS = ['Welcome', 'The screen', 'Controls', 'Power-ups', 'Obstacles', 'Enemies', 'Cells & close calls', 'The five worlds', 'The Warden & loops', 'Ready to ride'];
+const LAB_EXP = {
+  jump: { name: 'JUMP', opts: [{ flick: 'Flick up', tap: '2nd finger' }, { charges: 'Earned charges', free: 'Unlimited' }] },
+  ramps: { name: 'SKY RAMPS', opts: [] },
+  lane: { name: 'HYPERLANE', opts: [{ roll: 'Barrel rolls', bank: 'Smooth banks' }] },
+};
+
+// ---------- small helpers ----------
+const $ = (id) => document.getElementById(id);
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } return null; }
+function h(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+const fmt = (n) => Number(n || 0).toLocaleString('en-US');
+const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+function flag(code) {
+  if (!/^[A-Za-z]{2}$/.test(code || '')) return '';
+  return String.fromCodePoint(...code.toUpperCase().split('').map((c) => 0x1f1a5 + c.charCodeAt(0)));
+}
+
+// ---------- date ranges ----------
+function rangeDates(r) {
+  const now = new Date();
+  const end = new Date(now); end.setMinutes(0, 0, 0); end.setHours(end.getHours() + 1);
+  let start;
+  if (r === 'all') start = new Date(ALL_START + 'T00:00:00');
+  else {
+    start = new Date(now); start.setHours(0, 0, 0, 0);
+    if (r !== 'today') start.setDate(start.getDate() - (Number(r) - 1));
+  }
+  return { start, end };
+}
+const iso = (d) => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
+
+// ---------- GoatCounter ----------
+async function gc(path, params) {
+  const key = store(KEY_STORE);
+  const q = new URLSearchParams(params || {});
+  const res = await fetch(GC + path + '?' + q.toString(), {
+    headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+  });
+  if (res.status === 401 || res.status === 403) { const e = new Error('key'); e.code = 'key'; throw e; }
+  if (res.status === 429) { const e = new Error('GoatCounter says too many requests. Wait a minute and refresh.'); e.code = 'rate'; throw e; }
+  if (!res.ok) throw new Error('GoatCounter answered ' + res.status + ' for ' + path);
+  return res.json();
+}
+// every path (pageviews and events), with a count per day
+async function loadHits(start, end) {
+  const out = []; const seen = new Set();
+  for (let page = 0; page < 6; page++) {
+    const p = { start: iso(start), end: iso(end), limit: 100, group: 'day' };
+    if (seen.size) p.exclude_paths = [...seen].join(',');
+    const r = await gc('/stats/hits', p);
+    let fresh = 0;
+    for (const x of r.hits || []) { if (seen.has(x.path_id)) continue; seen.add(x.path_id); out.push(x); fresh++; }
+    if (!r.more || !fresh) break;
+  }
+  return out;
+}
+async function loadList(page, start, end) {
+  try { const r = await gc('/stats/' + page, { start: iso(start), end: iso(end), limit: 100 }); return r.stats || []; }
+  catch (e) { if (e.code === 'key' || e.code === 'rate') throw e; return null; }
+}
+
+// ---------- leaderboards (Firestore, public) ----------
+async function loadBoards(force) {
+  const cached = (() => { try { return JSON.parse(store('speeder.stats.boards') || 'null'); } catch (e) { return null; } })();
+  if (!force && cached && Date.now() - cached.at < BOARD_CACHE_MIN * 60000) return cached.rows;
+  const rows = [];
+  for (const [mode, col] of BOARDS) {
+    const url = 'https://firestore.googleapis.com/v1/projects/' + FS.project + '/databases/(default)/documents:runQuery?key=' + FS.key;
+    const body = { structuredQuery: { from: [{ collectionId: col }], orderBy: [{ field: { fieldPath: 'score' }, direction: 'DESCENDING' }], limit: BOARD_LIMIT } };
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error('Leaderboard answered ' + res.status);
+    const js = await res.json();
+    for (const it of js) {
+      const f = it.document && it.document.fields; if (!f) continue;
+      const val = (k) => { const v = f[k]; if (!v) return null; return v.integerValue != null ? Number(v.integerValue) : v.doubleValue != null ? Number(v.doubleValue) : v.stringValue != null ? v.stringValue : v.timestampValue || null; };
+      rows.push({ mode, name: String(val('name') || '?').trim(), score: val('score') || 0, dist: val('dist') || 0, loop: val('loop') || 1, ts: val('ts'), v: val('v') });
+    }
+  }
+  store('speeder.stats.boards', JSON.stringify({ at: Date.now(), rows }));
+  return rows;
+}
+
+// ---------- reading the events ----------
+// D.count(path) = visitors for that exact path; D.match(prefix) = all paths under it
+function index(hits) {
+  const by = new Map();
+  for (const x of hits) by.set(x.path, x);
+  return {
+    hits,
+    count: (p) => (by.has(p) ? by.get(p).count : 0),
+    daily: (p) => { const m = new Map(); const x = by.get(p); if (x) for (const s of x.stats || []) m.set(s.day, s.daily || 0); return m; },
+    match: (prefix) => hits.filter((x) => x.path.startsWith(prefix)),
+  };
+}
+function days(start, end) {
+  const out = []; const d = new Date(start); d.setHours(0, 0, 0, 0);
+  const last = new Date(end.getTime() - 1);
+  while (d <= last) { out.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')); d.setDate(d.getDate() + 1); }
+  return out;
+}
+
+// ---------- drawing helpers ----------
+function tiles(list) {
+  const g = h('div', 'tiles');
+  for (const t of list) {
+    const el = h('div', 'tile');
+    el.append(h('div', 'label', t.label), h('div', 'value', t.value), h('div', 'sub', t.sub || ' '));
+    if (t.id) el.id = t.id;
+    g.append(el);
+  }
+  return g;
+}
+// rows: [{ name, value, sub? }]; keep order as given; max sets the scale
+function bars(rows, opts) {
+  opts = opts || {};
+  const wrap = h('div', 'bars');
+  const max = opts.max || Math.max(1, ...rows.map((r) => r.value));
+  const total = opts.total;
+  for (const r of rows) {
+    const row = h('div', 'bar-row' + (r.value ? '' : ' zero'));
+    const name = h('div', 'name', r.name); name.title = r.name;
+    const track = h('div', 'track'); const fill = h('div', 'fill');
+    fill.style.width = r.value ? Math.max(1, (r.value / max) * 100) + '%' : '0';
+    if (r.color) fill.style.background = r.color;
+    track.append(fill);
+    const val = h('div', 'val', fmt(r.value));
+    if (r.sub != null) val.append(h('small', null, r.sub));
+    else if (total) val.append(h('small', null, pct(r.value, total) + '%'));
+    row.append(name, track, val);
+    row.title = r.name + ': ' + fmt(r.value) + (total ? ' (' + pct(r.value, total) + '%)' : '');
+    wrap.append(row);
+  }
+  return wrap;
+}
+function empty(text) { return h('div', 'skeleton', text); }
+function note(text) { return h('p', 'note', text); }
+function sub(text) { return h('h3', null, text); }
+
+// stacked daily columns (new vs returning), with a tap/hover tooltip
+function dailyChart(dayList, series) {
+  const box = h('div', 'chart');
+  const leg = h('div', 'legend');
+  for (const s of series) { const l = h('span'); const i = h('i'); i.style.background = s.color; l.append(i, document.createTextNode(s.name)); leg.append(l); }
+  box.append(leg);
+  const W = 640, H = 170, padL = 30, padB = 22, padT = 8;
+  const totals = dayList.map((d) => series.reduce((a, s) => a + (s.data.get(d) || 0), 0));
+  const maxV = Math.max(1, ...totals);
+  const step = maxV <= 5 ? 1 : maxV <= 10 ? 2 : maxV <= 25 ? 5 : maxV <= 50 ? 10 : Math.ceil(maxV / 50) * 10;
+  const top = Math.ceil(maxV / step) * step;
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'Players per day');
+  const y = (v) => padT + (H - padT - padB) * (1 - v / top);
+  const mk = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  for (let v = 0; v <= top; v += step) {
+    svg.append(mk('line', { x1: padL, x2: W, y1: y(v), y2: y(v), stroke: 'var(--grid)', 'stroke-width': 1 }));
+    const t = mk('text', { x: padL - 6, y: y(v) + 4, 'text-anchor': 'end', fill: 'var(--text-muted)', 'font-size': 11 }); t.textContent = v; svg.append(t);
+  }
+  const n = dayList.length; const band = (W - padL) / n; const bw = Math.min(24, band * 0.7);
+  const tip = h('div', 'tip hidden');
+  const labelEvery = Math.ceil(n / 8);
+  dayList.forEach((d, i) => {
+    const cx = padL + band * i + band / 2;
+    let acc = 0;
+    const parts = series.map((s) => s.data.get(d) || 0);
+    const lastNonZero = parts.reduce((li, v, k) => (v ? k : li), -1);
+    parts.forEach((v, k) => {
+      if (!v) return;
+      const y0 = y(acc), y1 = y(acc + v);
+      const gap = acc ? 2 : 0;   // 2px surface gap between stacked segments
+      const hgt = Math.max(1, y0 - y1 - gap);
+      if (k === lastNonZero) {
+        const r = Math.min(4, hgt, bw / 2);
+        const x0 = cx - bw / 2, x1 = cx + bw / 2, yb = y1 + hgt, yt = y1;
+        svg.append(mk('path', { d: `M${x0},${yb}V${yt + r}Q${x0},${yt} ${x0 + r},${yt}H${x1 - r}Q${x1},${yt} ${x1},${yt + r}V${yb}Z`, fill: series[k].color }));
+      } else svg.append(mk('rect', { x: cx - bw / 2, y: y1, width: bw, height: hgt, fill: series[k].color }));
+      acc += v;
+    });
+    if (i % labelEvery === 0 || n <= 8) {
+      const t = mk('text', { x: cx, y: H - 6, 'text-anchor': 'middle', fill: 'var(--text-muted)', 'font-size': 11 });
+      const dt = new Date(d + 'T12:00:00');
+      t.textContent = n <= 8 ? dt.toLocaleDateString('en-US', { weekday: 'short' }) : (dt.getMonth() + 1) + '/' + dt.getDate();
+      svg.append(t);
+    }
+    // a hit target the full height of the band, bigger than the column
+    const hit = mk('rect', { x: padL + band * i, y: 0, width: band, height: H - padB, fill: 'transparent' });
+    const show = () => {
+      tip.textContent = '';
+      const dt = new Date(d + 'T12:00:00');
+      tip.append(Object.assign(h('b'), { textContent: dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) }));
+      series.forEach((s, k) => { tip.append(h('br'), document.createTextNode(s.name + ': ' + fmt(parts[k]))); });
+      const bb = svg.getBoundingClientRect();
+      const px = (cx / W) * bb.width, py = (y(Math.max(acc, 0)) / H) * bb.height;
+      tip.style.left = Math.min(Math.max(px, 60), bb.width - 60) + 'px'; tip.style.top = (svg.offsetTop + py - 6) + 'px';
+      tip.classList.remove('hidden');
+    };
+    hit.addEventListener('pointerenter', show); hit.addEventListener('pointerdown', show);
+    hit.addEventListener('pointerleave', () => tip.classList.add('hidden'));
+    svg.append(hit);
+  });
+  box.append(svg, tip);
+  return box;
+}
+
+// ---------- sections ----------
+function renderPlayers(D, dayList) {
+  const el = $('playersBody'); el.textContent = '';
+  const newP = D.count('player/first-run');
+  const daysPlayed = D.count('player/day');
+  const back = Math.max(0, daysPlayed - newP);
+  const named = D.count('player/named');
+  const opens = D.count('/') + D.count('/index.html');
+  el.append(tiles([
+    { id: 'tNew', label: 'New players', value: fmt(newP), sub: 'first run on a device' },
+    { id: 'tBack', label: 'Return days', value: fmt(back), sub: 'a known player, another day' },
+    { id: 'tDays', label: 'Player-days', value: fmt(daysPlayed), sub: newP ? (daysPlayed / Math.max(1, newP)).toFixed(1) + ' per new player' : 'devices × days played' },
+    { id: 'tNamed', label: 'Names saved', value: fmt(named), sub: D.count('player/renamed') ? fmt(D.count('player/renamed')) + ' renamed' : 'for the leaderboard' },
+  ]));
+  if (dayList.length > 1) {
+    el.append(sub('Players per day'));
+    const nd = D.daily('player/first-run'), pd = D.daily('player/day');
+    const ret = new Map(dayList.map((d) => [d, Math.max(0, (pd.get(d) || 0) - (nd.get(d) || 0))]));
+    el.append(dailyChart(dayList, [
+      { name: 'New', color: 'var(--series-1)', data: nd },
+      { name: 'Returning', color: 'var(--series-3)', data: ret },
+    ]));
+  }
+  const opened = D.match('open/').map((x) => ({ name: OPEN_NAMES[x.path.slice(5)] || x.path.slice(5), value: x.count })).sort((a, b) => b.value - a.value);
+  if (opened.length) {
+    el.append(sub('How they open the game (visits: ' + fmt(opens) + ')'));
+    el.append(bars(opened, { total: opened.reduce((a, r) => a + r.value, 0) }));
+  }
+  el.append(note('Each player event is sent once per device, so these are devices. Counting began fresh on speeder-game.com (Nov 16).'));
+}
+
+function renderWhere(locs, systems) {
+  const el = $('whereBody'); el.textContent = '';
+  const box = h('div', 'cols2');
+  const a = h('div'); a.append(sub('Countries'));
+  if (locs && locs.length) {
+    const total = locs.reduce((s, x) => s + x.count, 0);
+    const top = locs.slice(0, 10);
+    const rest = locs.slice(10).reduce((s, x) => s + x.count, 0);
+    const rows = top.map((x) => ({ name: (flag(x.id) ? flag(x.id) + ' ' : '') + (x.name || x.id || 'Unknown'), value: x.count }));
+    if (rest) rows.push({ name: 'Other (' + (locs.length - 10) + ')', value: rest });
+    a.append(bars(rows, { total }));
+  } else a.append(empty(locs ? 'No visits in this range' : 'Countries unavailable'));
+  const b = h('div'); b.append(sub('Phones & computers'));
+  if (systems && systems.length) {
+    const total = systems.reduce((s, x) => s + x.count, 0);
+    b.append(bars(systems.slice(0, 6).map((x) => ({ name: x.name || 'Unknown', value: x.count })), { total }));
+  } else b.append(empty(systems ? 'No visits in this range' : 'Systems unavailable'));
+  box.append(a, b); el.append(box);
+  el.append(note('Visits, from the network connection (GoatCounter never stores addresses).'));
+}
+
+function renderModes(D) {
+  const el = $('modesBody'); el.textContent = '';
+  const modes = ['warp', 'classic', 'lab'].map((m) => ({ name: MODE_NAMES[m], value: D.count('play/' + m) }));
+  el.append(sub('Started a run in…'));
+  el.append(bars(modes, { total: modes.reduce((a, r) => a + r.value, 0) }));
+
+  const box = h('div', 'cols2');
+  const w = h('div'); w.append(sub('Warp Run: where runs end (km)'));
+  w.append(bars(WARP_BUCKETS.map((b) => ({ name: b + ' km', value: D.count('warp/run/' + b + 'km') }))));
+  const c = h('div'); c.append(sub('Classic: where runs end (km)'));
+  c.append(bars(CLASSIC_BUCKETS.map((b) => ({ name: b + ' km', value: D.count('run/' + b + 'km') }))));
+  box.append(w, c); el.append(box);
+
+  // Warp Run: the loop and world each run ended in, as a grid
+  const reached = D.match('warp/reached/');
+  el.append(sub('Warp Run: the world runs end in'));
+  if (reached.length) {
+    const cell = new Map(); let maxL = 1, maxV = 1;
+    for (const x of reached) {
+      const m = /L(\d+)-W(\d+)/.exec(x.path); if (!m) continue;
+      const L = +m[1], Wd = +m[2]; maxL = Math.max(maxL, L);
+      cell.set(L + '-' + Wd, (cell.get(L + '-' + Wd) || 0) + x.count); maxV = Math.max(maxV, cell.get(L + '-' + Wd));
+    }
+    const grid = h('div', 'heat'); grid.style.gridTemplateColumns = '64px repeat(5, minmax(0, 1fr))';
+    grid.append(h('div', 'hd', ''));
+    for (const wn of ['Desert', 'City', 'Sky', 'Crystal', 'Cosmic']) grid.append(h('div', 'hd', wn));
+    for (let L = 1; L <= maxL; L++) {
+      grid.append(h('div', 'rh', 'Loop ' + L));
+      for (let Wd = 1; Wd <= 5; Wd++) {
+        const v = cell.get(L + '-' + Wd) || 0;
+        const d = h('div', null, v ? fmt(v) : '·');
+        const t = v / maxV;   // one hue, dark (few) to light (many)
+        const lerp = (a, b) => Math.round(a + (b - a) * Math.sqrt(t));
+        d.style.background = v ? `rgb(${lerp(28, 134)},${lerp(48, 182)},${lerp(90, 239)})` : 'var(--surface-2)';
+        d.style.color = v ? (t > 0.45 ? '#0b0b0b' : '#ffffff') : 'var(--text-muted)';
+        d.title = 'Loop ' + L + ', world ' + Wd + ': ' + fmt(v);
+        grid.append(d);
+      }
+    }
+    el.append(grid);
+  } else el.append(empty('No Warp Runs ended in this range'));
+
+  const loops = D.match('warp/loop/').map((x) => ({ k: +x.path.split('/')[2], v: x.count })).sort((a, b) => a.k - b.k);
+  const bosses = D.match('warp/boss/').map((x) => ({ k: +x.path.split('/')[2], v: x.count })).sort((a, b) => a.k - b.k);
+  if (loops.length || bosses.length) {
+    const ch = h('div', 'chips');
+    const steps = bosses.map((x) => ({ o: x.k * 2, t: 'Beat the Warden, loop ' + x.k, v: x.v })).concat(loops.map((x) => ({ o: x.k * 2 - 1, t: 'Reached loop ' + x.k, v: x.v }))).sort((p, q) => p.o - q.o);
+    for (const x of steps) { const s = h('span'); s.append(x.t + ': ', Object.assign(h('b'), { textContent: fmt(x.v) })); ch.append(s); }
+    el.append(sub('Milestones'), ch);
+  }
+  const top = D.count('board/top50');
+  if (top) el.append(note('Runs that made a world top 50: ' + fmt(top) + '.'));
+  el.append(note('Visits, not runs: five runs ending at 1–3 km in one sitting count once.'));
+}
+
+// "5-14-jumps" -> "5–14 jumps", "hits-0-per-lane" -> "0 hits per lane"
+function signal(t) {
+  const words = { 'took-most': 'took most ramps', 'took-some': 'took some ramps', 'took-few': 'took few ramps', 'rings-most': 'most lane rings', 'rings-some': 'some lane rings', 'rings-few': 'few lane rings', 'died-in-lane': 'run ended in a lane', 'no-lanes': 'ended before a lane' };
+  if (words[t]) return words[t];
+  const m = /^hits-(.+)-per-lane$/.exec(t); if (m) return m[1].replace('2plus', '2+') + ' hits per lane';
+  return t.replace(/(\d)-(\d)/g, '$1–$2').replace(/-/g, ' ').replace(/ rings$/, ' rings per flight');
+}
+function variantName(v) {
+  const parts = v.split('.'); const X = LAB_EXP[parts[0]];
+  if (!X) return v;
+  const words = X.opts.map((o, i) => o[parts[i + 1]] || parts[i + 1]).filter(Boolean);
+  return words.length ? words.join(' · ') : 'Standard';
+}
+function renderLab(D) {
+  const el = $('labBody'); el.textContent = '';
+  const labHits = D.match('lab/');
+  const plays = D.match('lab/play/');
+  const votes = D.match('lab/vote/');
+  const lead = h('div', 'chips');
+  const addChip = (label, n) => { const s = h('span'); s.append(label + ': ', Object.assign(h('b'), { textContent: fmt(n) })); lead.append(s); };
+  addChip('Chose the Lab', D.count('mode/lab')); addChip('Started a Lab run', D.count('play/lab')); addChip('Opened a ?lab link', D.count('lab/link'));
+  el.append(lead);
+  if (!labHits.length) { el.append(empty('No Lab activity in this range')); return; }
+  const leg = h('div', 'legend'); leg.style.marginTop = '12px';
+  for (const [n, c] of [['Thumbs up', 'var(--series-1)'], ['Thumbs down', 'var(--series-2)']]) { const s = h('span'); const i = h('i'); i.style.background = c; s.append(i, document.createTextNode(n)); leg.append(s); }
+  el.append(leg);
+
+  for (const id of Object.keys(LAB_EXP)) {
+    const X = LAB_EXP[id];
+    const vs = new Set();
+    for (const x of plays) { const v = x.path.slice(9); if (v.split('.')[0] === id) vs.add(v); }
+    for (const x of votes) { const v = x.path.slice(9).replace(/\/(up|down)$/, ''); if (v.split('.')[0] === id) vs.add(v); }
+    const sec = h('div', 'exp'); sec.id = 'lab-' + id;
+    sec.append(h('h3', null, X.name));
+    if (!vs.size) { sec.append(note('Nobody tried it in this range.')); el.append(sec); continue; }
+    for (const v of [...vs].sort()) {
+      const up = D.count('lab/vote/' + v + '/up'), down = D.count('lab/vote/' + v + '/down'), n = up + down;
+      const row = h('div', 'variant');
+      row.append(h('div', 'vname', variantName(v)));
+      row.append(h('div', 'vstat', n ? pct(up, n) + '% liked · ' + fmt(n) + ' vote' + (n === 1 ? '' : 's') : 'no votes yet'));
+      const seg = h('div', 'seg');
+      if (n) {
+        if (up) { const s = h('span', 'up'); s.style.flex = String(up); s.title = 'Thumbs up: ' + up; seg.append(s); }
+        if (down) { const s = h('span', 'down'); s.style.flex = String(down); s.title = 'Thumbs down: ' + down; seg.append(s); }
+      } else seg.append(h('span', 'none'));
+      row.append(seg);
+      const ch = h('div', 'chips'); ch.style.gridColumn = '1 / -1';
+      const s = h('span'); s.append('Visits that played it: ', Object.assign(h('b'), { textContent: fmt(D.count('lab/play/' + v)) })); ch.append(s);
+      // the experiment's own signals for this variant
+      const prefix = id === 'jump' ? 'lab/jump/' + v + '/' : id === 'lane' ? 'lab/lane/' + v + '/' : null;
+      if (prefix) for (const x of D.match(prefix)) { const c = h('span'); c.append(signal(x.path.slice(prefix.length)) + ': ', Object.assign(h('b'), { textContent: fmt(x.count) })); ch.append(c); }
+      if (id === 'ramps') for (const x of D.match('lab/ramps/')) { const c = h('span'); c.append(signal(x.path.slice(10)) + ': ', Object.assign(h('b'), { textContent: fmt(x.count) })); ch.append(c); }
+      row.append(ch);
+      sec.append(row);
+    }
+    el.append(sec);
+  }
+  el.append(sub('Lab runs: where they end (km)'));
+  el.append(bars(LAB_BUCKETS.map((b) => ({ name: b + ' km', value: D.count('lab/run/' + b + 'km') }))));
+  const setups = D.match('lab/setup/');
+  if (setups.length) {
+    const ch = h('div', 'chips');
+    for (const x of setups) { const s = h('span'); s.append(x.path.slice(10).replace('loop', 'Loop ').replace(/-/g, ' ') + ': ', Object.assign(h('b'), { textContent: fmt(x.count) })); ch.append(s); }
+    el.append(sub('Test setups used'), ch);
+  }
+  el.append(note('Votes are one per device (changing a vote counts again), so they are roughly people.'));
+}
+
+function renderSchool(D) {
+  const el = $('schoolBody'); el.textContent = '';
+  const offered = D.count('tut/offer'), offerSkip = D.count('tut/offer-skip');
+  const starts = D.match('tut/start/');
+  const started = starts.reduce((a, x) => a + x.count, 0);
+  const done = D.count('tut/done');
+  el.append(tiles([
+    { label: 'Offered', value: fmt(offered), sub: offerSkip ? fmt(offerSkip) + ' said no thanks' : 'to first-time players' },
+    { label: 'Started', value: fmt(started), sub: starts.map((x) => ({ offer: 'offer', help: 'How to play', pause: 'pause menu' }[x.path.slice(10)] || x.path.slice(10)) + ' ' + x.count).join(' · ') || ' ' },
+    { label: 'Finished', value: fmt(done), sub: started ? pct(done, started) + '% of starts' : ' ' },
+    { label: 'Left early', value: fmt(D.match('tut/quit/').reduce((a, x) => a + x.count, 0)), sub: 'closed it partway' },
+  ]));
+  if (!started && !D.match('tut/part/').length) { el.append(empty('Nobody opened Flight School in this range')); return; }
+  const parts = TUT_PARTS.map((name, i) => {
+    const x = D.match('tut/part/' + (i + 1) + '-')[0];
+    return { name: (i + 1) + '. ' + name, value: x ? x.count : 0 };
+  });
+  const base = Math.max(started, parts[0].value, 1);
+  el.append(sub('Reached each part'));
+  el.append(bars(parts.concat([{ name: 'Finished', value: done }]), { max: base, total: base }));
+  const quits = new Map();
+  for (const x of D.match('tut/quit/')) { const n = parseInt(x.path.slice(9), 10); const k = isNaN(n) ? 'Before starting' : (n + '. ' + TUT_PARTS[n - 1]); quits.set(k, (quits.get(k) || 0) + x.count); }
+  if (quits.size) { el.append(sub('Where they left')); el.append(bars([...quits].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value))); }
+  const skips = D.match('tut/skip/').sort((a, b) => b.count - a.count).slice(0, 8);
+  if (skips.length) { el.append(sub('Steps people skip')); el.append(bars(skips.map((x) => ({ name: x.path.slice(9), value: x.count })))); }
+}
+
+function renderBoards(rows, err) {
+  const el = $('boardsBody'); el.textContent = '';
+  if (err) { el.append(empty('Couldn’t load the leaderboards: ' + err)); return; }
+  const people = new Map();
+  for (const r of rows) {
+    const k = r.name.toLowerCase();
+    if (!people.has(k)) people.set(k, { name: r.name, warp: null, classic: null, n: 0, last: null });
+    const p = people.get(k); p.n++;
+    if (!p[r.mode] || r.score > p[r.mode].score) p[r.mode] = r;
+    if (r.ts && (!p.last || r.ts > p.last)) p.last = r.ts;
+  }
+  const list = [...people.values()].sort((a, b) => String(b.last || '').localeCompare(String(a.last || '')));
+  const recent = list.filter((p) => p.last && Date.now() - Date.parse(p.last) < 7 * 864e5).length;
+  el.append(tiles([
+    { label: 'Names on the boards', value: fmt(list.length), sub: fmt(rows.length) + ' board entries' },
+    { label: 'Active this week', value: fmt(recent), sub: 'a board entry in 7 days' },
+  ]));
+  const wrap = h('div', 'scroll'); wrap.style.marginTop = '12px';
+  const t = h('table'); const head = h('tr');
+  for (const [txt, n] of [['Name'], ['Warp best', 1], ['Classic best', 1], ['Runs', 1], ['Last', 1]]) head.append(h('th', n ? 'n' : null, txt));
+  t.append(head);
+  for (const p of list) {
+    const tr = h('tr');
+    tr.append(h('td', null, p.name));
+    const wtd = h('td', 'n', p.warp ? fmt(p.warp.score) : '–'); if (p.warp && p.warp.loop > 1) wtd.append(h('small', null, 'L' + p.warp.loop)); tr.append(wtd);
+    tr.append(h('td', 'n', p.classic ? fmt(p.classic.score) : '–'));
+    tr.append(h('td', 'n', fmt(p.n)));
+    tr.append(h('td', 'n', p.last ? new Date(p.last).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '–'));
+    t.append(tr);
+  }
+  wrap.append(t); el.append(wrap);
+  el.append(note('Only runs that made a top 50 or were someone’s best are saved, and names aren’t unique, so this undercounts quiet players. Not affected by the date range.'));
+}
+
+function renderOther(D) {
+  const el = $('otherBody'); el.textContent = '';
+  const box = h('div', 'cols2');
+  const a = h('div'); a.append(sub('Sharing'));
+  a.append(bars([
+    { name: 'Tapped Share (title)', value: D.count('share/game') },
+    { name: '…and sent it', value: D.count('share/game/sent') },
+    { name: 'Share & challenge', value: D.count('share') },
+    { name: 'Opened a challenge link', value: D.count('challenge-link') },
+  ]));
+  const b = h('div'); b.append(sub('Installing'));
+  b.append(bars([
+    { name: 'Opened install help', value: D.count('install/help') },
+    { name: 'Install prompt accepted', value: D.count('install/accepted') },
+    { name: 'Install prompt dismissed', value: D.count('install/dismissed') },
+    { name: 'Installed', value: D.count('install/done') },
+    { name: 'Copied link (in-app browser)', value: D.count('install/copy-link') },
+  ]));
+  box.append(a, b); el.append(box);
+  const back = D.count('back/paused');
+  el.append(note('Android Back gesture paused a run: ' + fmt(back) + (back ? ' visit' + (back === 1 ? '' : 's') + '. If this keeps climbing, steering may need less thumb travel.' : '.')));
+}
+
+function renderAll(D) {
+  const el = $('allBody'); el.textContent = '';
+  const f = ($('allFilter').value || '').trim().toLowerCase();
+  const rows = D.hits.filter((x) => !f || x.path.toLowerCase().includes(f) || (x.title || '').toLowerCase().includes(f)).sort((a, b) => b.count - a.count);
+  if (!rows.length) { el.append(empty('Nothing matches')); return; }
+  const t = h('table'); const head = h('tr'); head.append(h('th', null, 'Event'), h('th', 'n', 'Visits')); t.append(head);
+  const shown = f || allOpen ? rows : rows.slice(0, 25);
+  for (const x of shown) {
+    const tr = h('tr'); const td = h('td');
+    td.append(h('div', null, x.path));
+    if (x.title && x.title !== x.path) { const s = h('div', 'note', x.title); s.style.margin = '0'; td.append(s); }
+    tr.append(td, h('td', 'n', fmt(x.count))); t.append(tr);
+  }
+  const w = h('div', 'scroll'); w.append(t); el.append(w);
+  if (shown.length < rows.length) {
+    const more = h('button', 'btn', 'Show all ' + rows.length + ' events'); more.type = 'button'; more.style.marginTop = '10px';
+    more.addEventListener('click', () => { allOpen = true; renderAll(D); });
+    el.append(more);
+  }
+}
+let allOpen = false;
+
+// ---------- loading ----------
+let RANGE = store(RANGE_STORE) || '7';
+let busy = false, lastD = null;
+function showErr(text) { const e = $('err'); if (!text) { e.classList.add('hidden'); return; } e.textContent = text; e.classList.remove('hidden'); }
+function setChips() { for (const b of document.querySelectorAll('[data-range]')) b.setAttribute('aria-pressed', String(b.dataset.range === RANGE)); }
+
+async function render(forceBoards) {
+  if (busy) return; busy = true;
+  $('refresh').disabled = true; $('stamp').textContent = 'Loading…'; showErr('');
+  const { start, end } = rangeDates(RANGE);
+  const boardsP = loadBoards(forceBoards).then((r) => ({ r }), (e) => ({ e: e.message || String(e) }));
+  try {
+    const [hits, locs, systems] = await Promise.all([loadHits(start, end), loadList('locations', start, end), loadList('systems', start, end)]);
+    const D = index(hits); lastD = D;
+    const dayList = days(start, end);
+    for (const [fn, args] of [[renderPlayers, [D, dayList]], [renderWhere, [locs, systems]], [renderModes, [D]], [renderLab, [D]], [renderSchool, [D]], [renderOther, [D]], [renderAll, [D]]]) {
+      try { fn(...args); } catch (e) { console.error(e); }
+    }
+    $('stamp').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  } catch (e) {
+    $('stamp').textContent = '';
+    if (e.code === 'key') { showSetup('GoatCounter didn’t accept the key. Make a new one with “Read statistics” ticked and paste it again.'); }
+    else if (e instanceof TypeError) showErr('Couldn’t reach GoatCounter. Check your connection and tap Refresh.');
+    else showErr(e.message || String(e));
+  }
+  const b = await boardsP; renderBoards(b.r || [], b.e);
+  busy = false; $('refresh').disabled = false;
+}
+
+function showSetup(msg) {
+  $('main').classList.add('hidden'); $('setup').classList.remove('hidden'); $('refresh').classList.add('hidden');
+  $('setupMsg').textContent = msg || '';
+}
+function showMain() {
+  $('setup').classList.add('hidden'); $('main').classList.remove('hidden'); $('refresh').classList.remove('hidden');
+  setChips(); render();
+}
+
+$('saveKey').addEventListener('click', () => {
+  const k = $('keyIn').value.trim();
+  if (k.length < 20) { $('setupMsg').textContent = 'That looks too short for a GoatCounter key. Copy the whole thing.'; return; }
+  store(KEY_STORE, k); $('keyIn').value = ''; showMain();
+});
+$('forget').addEventListener('click', () => { store(KEY_STORE, null); showSetup('Key removed from this device.'); });
+$('refresh').addEventListener('click', () => render(true));
+for (const b of document.querySelectorAll('[data-range]')) b.addEventListener('click', () => { if (busy || RANGE === b.dataset.range) return; RANGE = b.dataset.range; store(RANGE_STORE, RANGE); setChips(); render(); });
+$('allFilter').addEventListener('input', () => { if (lastD) renderAll(lastD); });
+
+if (store(KEY_STORE)) showMain(); else showSetup();
+</script>
+</body>
+</html>
