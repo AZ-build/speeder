@@ -4,6 +4,21 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.16.0] — 2026-11-16
+
+### Session 15e — New logo, easier Back, Flight School from the pause menu
+
+- **New logo** on the title screen: the brand artwork's SPEEDER, cut out of its background
+  (`icons/logo.webp`, 47 KB, with `icons/logo.png` for older phones). Sized so it clears the
+  sound button on small phones. The tagline under it is bolder, so it reads over the scenery.
+- **Back in the corner:** Settings, Leaderboard, How to play and the Lab each have a Back button
+  pinned to the top-left that stays put while you scroll (it does what the panel's bottom button does).
+- **Flight School from the pause menu:** the button at the top of How to play now shows mid-run
+  too. The first tap warns that it ends the run you're on; the second starts Flight School
+  (analytics `tut/start/pause`).
+
+---
+
 ## [v0.15.0] — 2026-11-16
 
 ### Session 15d — Flight School: a hands-on tutorial

@@ -29,6 +29,7 @@
 <meta name="twitter:description" content="Drag to steer, dodge at 600+ km/h, beat your friends' scores. Free, in your browser.">
 <meta name="twitter:image" content="https://speeder-game.com/social/share-wide.jpg">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preload" as="image" href="icons/logo.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
@@ -103,7 +104,7 @@
     background: linear-gradient(to bottom, rgba(8, 2, 24, 0.55), rgba(8, 2, 24, 0) 40%, rgba(8, 2, 24, 0) 55%, rgba(8, 2, 24, 0.75));
   }
   @media (max-height: 740px) {
-    #title { padding-top: calc(env(safe-area-inset-top, 0px) + 6vh); gap: 10px; }
+    #title { padding-top: calc(env(safe-area-inset-top, 0px) + max(6vh, 52px)); gap: 10px; }
     #title .how { margin-top: 8px; font-size: 14px; line-height: 1.7; }
     #title .cta { margin-top: 4px; }
   }
@@ -114,7 +115,7 @@
   @media (max-height: 460px) {
     /* a phone on its side */
     #title { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); gap: 6px; }
-    #title .logo { font-size: 38px; }
+    #title .logo-img { width: 240px; }
     #title .tag { display: none; }
   }
   .logo {
@@ -131,6 +132,14 @@
     padding: 0 0.1em;
   }
   .logo.small { font-size: clamp(34px, 10vw, 64px); }
+  /* the title screen's logo (v0.16): the brand artwork, cut out of its background */
+  .logo-img { margin: 0; width: clamp(240px, 80vw, 500px); line-height: 0; }
+  @media (max-height: 740px) { #title .logo-img { width: min(70vw, 320px); } }
+  #title .tag { margin-top: 2px; font-weight: 700; text-shadow: 0 0 8px var(--cyan), 0 1px 3px rgba(0, 0, 0, 0.9); }
+  .logo-img img {
+    width: 100%; height: auto; display: block;
+    filter: drop-shadow(0 4px 10px rgba(6, 0, 18, 0.65)) drop-shadow(0 0 22px rgba(255, 43, 214, 0.35));
+  }
   .tag {
     font-size: 12px;
     letter-spacing: 0.5em;
@@ -266,6 +275,17 @@
     background: rgba(8, 2, 24, 0.84);
     z-index: 6;
   }
+  /* a Back button that stays in the top corner while the panel scrolls (v0.16) */
+  .overlay.panel.has-back { padding-top: calc(env(safe-area-inset-top, 0px) + 64px); }
+  .panel-back {
+    position: fixed; z-index: 7; top: calc(env(safe-area-inset-top, 0px) + 10px); left: 10px;
+    display: flex; align-items: center; gap: 4px; height: 40px; padding: 0 14px 0 8px; border-radius: 12px; cursor: pointer;
+    font: 800 12px/1 inherit; font-family: inherit; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #fff; background: rgba(20, 6, 40, 0.85); border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); touch-action: manipulation;
+  }
+  .panel-back svg { width: 20px; height: 20px; }
+  .panel-back:active { transform: scale(0.96); }
   .panel-title {
     font-weight: 800;
     font-style: italic;
@@ -565,6 +585,8 @@
     background: linear-gradient(135deg, rgba(41, 243, 255, 0.16), rgba(255, 43, 214, 0.14)); border: 1px solid rgba(41, 243, 255, 0.6);
     box-shadow: 0 0 18px rgba(41, 243, 255, 0.18); touch-action: manipulation;
   }
+  .tut-help-btn.armed { border-color: var(--yellow); background: rgba(255, 210, 60, 0.12); }
+  .tut-help-btn.armed small { color: var(--yellow); }
   .tut-help-btn b { display: block; font-size: 15px; letter-spacing: 0.14em; color: var(--cyan); }
   .tut-help-btn small { display: block; margin-top: 4px; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 12.5px; line-height: 1.35; color: #d9ccff; }
   .tut-help-play {
@@ -690,7 +712,7 @@
 </div>
 
 <div id="title" class="overlay">
-  <div class="logo">SPEEDER</div>
+  <h1 class="logo-img"><picture><source srcset="icons/logo.webp" type="image/webp"><img src="icons/logo.png" alt="Speeder" width="900" height="142" decoding="async"></picture></h1>
   <div class="tag">Neon hover run</div>
   <div class="how hidden" id="titleTips">
     <div><b>Drag</b> anywhere to steer</div>
@@ -764,7 +786,8 @@
   </div>
 </div>
 
-<div id="settings" class="overlay panel hidden">
+<div id="settings" class="overlay panel has-back hidden">
+  <button class="panel-back" type="button" data-back="settingsDone" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button>
   <div class="panel-title">SETTINGS</div>
   <div class="stack">
     <div class="setting"><label for="setSound">Sound</label><input type="checkbox" id="setSound" class="switch"></div>
@@ -781,7 +804,8 @@
   </div>
 </div>
 
-<div id="board" class="overlay panel hidden">
+<div id="board" class="overlay panel has-back hidden">
+  <button class="panel-back" type="button" data-back="boardBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button>
   <div class="panel-title">LEADERBOARD</div>
   <div class="tabs" role="tablist" aria-label="Game mode">
     <button class="btn" id="boardWarp" role="tab" aria-selected="true">Warp Run</button>
@@ -796,11 +820,12 @@
   <div class="stack"><button class="btn primary" id="boardBack">Back</button></div>
 </div>
 
-<div id="help" class="overlay panel hidden">
+<div id="help" class="overlay panel has-back hidden">
+  <button class="panel-back" type="button" data-back="helpBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button>
   <div class="panel-title">HOW TO PLAY</div>
   <button class="tut-help-btn" id="helpTutBtn" type="button">
     <span class="tut-help-play" aria-hidden="true">&#9654;</span>
-    <span><b>FLIGHT SCHOOL</b><small>Learn it hands-on: the controls, every icon, obstacle and enemy, the worlds, the boss and loops. About 5 minutes.</small></span>
+    <span><b>FLIGHT SCHOOL</b><small id="helpTutSub">Learn it hands-on: the controls, every icon, obstacle and enemy, the worlds, the boss and loops. About 5 minutes.</small></span>
   </button>
   <div class="help">
     <h3>Riding</h3>
@@ -861,7 +886,8 @@
   <div class="stack"><button class="btn primary" id="helpBack">Back</button></div>
 </div>
 
-<div id="lab" class="overlay panel hidden">
+<div id="lab" class="overlay panel has-back hidden">
+  <button class="panel-back" type="button" data-back="labBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button>
   <div class="panel-title">THE LAB</div>
   <p class="status">Ideas being tried out before they go into the real game. Switch on what you want to test, take a run, then give it a thumbs up or down.</p>
   <div class="stack" id="labList"></div>
@@ -933,7 +959,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.15.0';
+const VERSION = '0.16.0';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -9672,7 +9698,7 @@ function openPanel(id) {
   if (id === 'settings') fillSettings();
   if (id === 'board') { boardMode = boardFor(inRun() ? G.mode : SET.mode); loadBoard(boardTab); }
   if (id === 'lab') { renderLab(); $('lab').scrollTop = 0; }
-  if (id === 'help') { fillHelpIcons(); $('help').scrollTop = 0; $('helpTutBtn').classList.toggle('hidden', G.state === 'play' || G.state === 'dying'); }
+  if (id === 'help') { fillHelpIcons(); $('help').scrollTop = 0; tutHelpBtnReset(); }
 }
 
 function closePanel() {
@@ -10596,7 +10622,7 @@ function tutStart(src) {
   armBackGuard();
   audioInit();
   show('tut');
-  track('tut/start/' + src, 'Flight School started from ' + (src === 'offer' ? 'the first-time offer' : 'How to play'));
+  track('tut/start/' + src, 'Flight School started from ' + (src === 'offer' ? 'the first-time offer' : src === 'pause' ? 'How to play in the pause menu' : 'How to play'));
   tutGo(0);
 }
 function tutGo(i) {
@@ -10839,10 +10865,24 @@ function tutKey(e) {
   $('tutListBody').addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (b) tutGo(+b.dataset.i); });
   $('tutHelp').addEventListener('click', tutPause);
   $('tutSkip').addEventListener('click', () => { track('tut/skip/' + TUT.cur.id, 'Flight School: skipped ' + TUT.cur.id); tutGo(TUT.i + 1); });
-  $('helpTutBtn').addEventListener('click', () => { audioInit(); tutStart('help'); });
+  // From the pause menu a run is going on: the first tap warns that it ends the run, the second starts Flight School.
+  $('helpTutBtn').addEventListener('click', () => {
+    const b = $('helpTutBtn');
+    if (G.state === 'play' && !TUT.on && !b.classList.contains('armed')) {
+      b.classList.add('armed');
+      $('helpTutSub').textContent = 'This ends the run you\u2019re on. Tap again to start Flight School.';
+      return;
+    }
+    audioInit();
+    tutStart(G.state === 'play' ? 'pause' : 'help');
+  });
   $('tutOfferGo').addEventListener('click', () => { storeSet('speeder.tutOffer', '1'); audioInit(); tutStart('offer'); });
   $('tutOfferSkip').addEventListener('click', () => { storeSet('speeder.tutOffer', '1'); hide('tutOffer'); track('tut/offer-skip', 'Flight School: skipped the first-time offer'); });
 })();
+function tutHelpBtnReset() {
+  $('helpTutBtn').classList.remove('armed');
+  $('helpTutSub').textContent = 'Learn it hands-on: the controls, every icon, obstacle and enemy, the worlds, the boss and loops. About 5 minutes.';
+}
 // First open on a device: offer Flight School once (not on a Lab link, not to someone who has played)
 function tutMaybeOffer() {
   if (storeGet('speeder.tutOffer') || storeGet('speeder.played') || storeGet('speeder.tutDone') || LAB_LINK) return;
@@ -11380,6 +11420,8 @@ $('titleShareBtn').addEventListener('click', (e) => { e.stopPropagation(); audio
 $('titleHelpBtn').addEventListener('click', () => openPanel('help'));
 $('menuHelpBtn').addEventListener('click', () => openPanel('help'));
 $('helpBack').addEventListener('click', closePanel);
+// the Back button pinned in the corner of each panel does what that panel's own bottom button does
+for (const b of document.querySelectorAll('.panel-back')) b.addEventListener('click', (e) => { e.stopPropagation(); $(b.dataset.back).click(); });
 
 // Power-up pictures on the How to play page, drawn with the same code as the gate badges.
 let helpIconsDone = false;

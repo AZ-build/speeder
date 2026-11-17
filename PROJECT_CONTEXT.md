@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.15.0 |
+| **Current Version** | v0.16.0 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-16 |
@@ -375,7 +375,13 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.15.0, 2026-11-16):**
+**Where things stand (after v0.16.0, 2026-11-16):**
+- Title logo is now the brand artwork (`icons/logo.webp`). Panels have a pinned Back button.
+  Flight School can be started from the pause menu's How to play (two taps: it ends the run).
+- Tagline: Adrian asked for better options than "Neon hover run" (see the session). The brand
+  artwork (share card background, link preview image) has "NEON HOVER RUN" painted in.
+
+**Earlier (after v0.15.0, 2026-11-16):**
 - **Flight School** added: a hands-on tutorial (screen tour + practice of every mechanic, all five
   worlds, the Warden, loops). Opened from the top of How to play, and offered once to first-time
   players. Built in one go at Adrian's request; tested by an autopilot, **not yet played by a human**.
