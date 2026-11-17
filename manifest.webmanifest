@@ -1,7 +1,7 @@
 {
   "name": "Speeder",
   "short_name": "Speeder",
-  "description": "Neon hover-speeder run. Drag to steer, guns fire on their own.",
+  "description": "Left. Right. No brakes. A neon hover racer: drag to steer, your guns fire on their own.",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

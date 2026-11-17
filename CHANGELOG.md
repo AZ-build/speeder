@@ -4,6 +4,21 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.16.1] — 2026-11-16
+
+### Session 15f — New tagline: "Left. Right. No brakes."
+
+Adrian picked it from a few options (he liked "One thumb. No brakes." but not the word thumb).
+
+- Title screen tagline, page description, link preview title and description, install
+  description, and the Share invite text.
+- The artwork had "NEON HOVER RUN" painted in: repainted to the new tagline in matching lettering
+  (Montserrat Bold, the same cyan and glow) on the score card background (`social/card-bg.jpg`) and
+  the link preview image (`social/share-wide.jpg`). The originals stay in Adrian's brand zip.
+- Note: apps like iMessage keep old link previews for a while.
+
+---
+
 ## [v0.16.0] — 2026-11-16
 
 ### Session 15e — New logo, easier Back, Flight School from the pause menu

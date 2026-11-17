@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Speeder">
-<meta name="description" content="Neon hover-speeder run. Drag to steer, guns fire on their own.">
+<meta name="description" content="Left. Right. No brakes. A neon hover racer you play in your browser: drag to steer, your guns fire on their own.">
 <title>Speeder</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -17,15 +17,15 @@
 <!-- Link previews (iMessage, WhatsApp, Discord, X, Facebook...) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Speeder">
-<meta property="og:title" content="Speeder: neon hover run">
+<meta property="og:title" content="Speeder: Left. Right. No brakes.">
 <meta property="og:description" content="Drag to steer, dodge at 600+ km/h, beat your friends' scores. Free, in your browser.">
 <meta property="og:url" content="https://speeder-game.com/">
 <meta property="og:image" content="https://speeder-game.com/social/share-wide.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Speeder: a neon hover ship racing across a synthwave grid toward a striped sun">
+<meta property="og:image:alt" content="Speeder: Left. Right. No brakes. A neon hover ship racing across a synthwave grid toward a striped sun">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Speeder: neon hover run">
+<meta name="twitter:title" content="Speeder: Left. Right. No brakes.">
 <meta name="twitter:description" content="Drag to steer, dodge at 600+ km/h, beat your friends' scores. Free, in your browser.">
 <meta name="twitter:image" content="https://speeder-game.com/social/share-wide.jpg">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -135,7 +135,7 @@
   /* the title screen's logo (v0.16): the brand artwork, cut out of its background */
   .logo-img { margin: 0; width: clamp(240px, 80vw, 500px); line-height: 0; }
   @media (max-height: 740px) { #title .logo-img { width: min(70vw, 320px); } }
-  #title .tag { margin-top: 2px; font-weight: 700; text-shadow: 0 0 8px var(--cyan), 0 1px 3px rgba(0, 0, 0, 0.9); }
+  #title .tag { margin-top: 2px; letter-spacing: 0.32em; margin-right: -0.32em; font-weight: 700; text-shadow: 0 0 8px var(--cyan), 0 1px 3px rgba(0, 0, 0, 0.9); }
   .logo-img img {
     width: 100%; height: auto; display: block;
     filter: drop-shadow(0 4px 10px rgba(6, 0, 18, 0.65)) drop-shadow(0 0 22px rgba(255, 43, 214, 0.35));
@@ -713,7 +713,7 @@
 
 <div id="title" class="overlay">
   <h1 class="logo-img"><picture><source srcset="icons/logo.webp" type="image/webp"><img src="icons/logo.png" alt="Speeder" width="900" height="142" decoding="async"></picture></h1>
-  <div class="tag">Neon hover run</div>
+  <div class="tag">Left. Right. No brakes.</div>
   <div class="how hidden" id="titleTips">
     <div><b>Drag</b> anywhere to steer</div>
     <div>Your guns fire <b>on their own</b></div>
@@ -959,7 +959,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.16.0';
+const VERSION = '0.16.1';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -11393,7 +11393,7 @@ $('titleBoardBtn').addEventListener('click', () => openPanel('board'));
 // "Share" on the title screen: an invite to the game itself (the link preview shows the artwork).
 async function shareGame() {
   const url = shareUrl();
-  const text = 'Try Speeder: a neon hover racer you play right in your browser. Drag to steer, dodge at 600+ km/h.';
+  const text = 'Try Speeder. Left. Right. No brakes. A neon hover racer you play right in your browser.';
   const status = $('titleShareStatus');
   const say = (msg) => {
     status.textContent = msg; status.classList.remove('hidden');

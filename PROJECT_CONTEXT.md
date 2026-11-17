@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.16.0 |
+| **Current Version** | v0.16.1 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-16 |
@@ -274,6 +274,7 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Shooting | Automatic, forward only | Keeps the game to one input; aiming *is* steering, which creates tension with dodging. |
 | Structure | Endless run, rising speed | Best fit for quick phone sessions and chasing a high score. |
 | Look | Neon synthwave | Adrian's pick. Glowing grid, striped sun, wireframe mountains. |
+| Tagline (v0.16.1) | "Left. Right. No brakes." | Adrian's pick: says the one control (side to side) and the speed. He liked "One thumb. No brakes." but not the word thumb. |
 | Power-ups | Paired gates, choose by lane | Adds a real decision without another button. Claude suggested it, Adrian approved. |
 | Rendering | Canvas 2D pseudo-3D, no three.js | Light, fast on phones, nothing to install, suits the retro look. |
 | Gate preview banner | HUD chips at top | At speed, gate labels are only readable late, so the banner lets you choose early. |
@@ -378,8 +379,8 @@ See `CHANGELOG.md` for a full session-by-session history.
 **Where things stand (after v0.16.0, 2026-11-16):**
 - Title logo is now the brand artwork (`icons/logo.webp`). Panels have a pinned Back button.
   Flight School can be started from the pause menu's How to play (two taps: it ends the run).
-- Tagline: Adrian asked for better options than "Neon hover run" (see the session). The brand
-  artwork (share card background, link preview image) has "NEON HOVER RUN" painted in.
+- Tagline is now **"Left. Right. No brakes."** (Adrian's pick, v0.16.1): title screen, page and
+  link-preview text, manifest, and repainted into the share card and link preview artwork.
 
 **Earlier (after v0.15.0, 2026-11-16):**
 - **Flight School** added: a hands-on tutorial (screen tour + practice of every mechanic, all five
