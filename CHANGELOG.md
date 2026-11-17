@@ -4,6 +4,18 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.16.5] — 2026-11-16
+
+### Flight School instructions moved to the bottom
+
+- During a practice step, the yellow instruction bar (with **?** and **Skip**) now sits at the
+  bottom of the screen, under the speeder, instead of across the horizon. Adrian: it blocked the
+  horizon so you couldn't see what was coming.
+- A thumb that lands on the bar's text still steers; only the **?** and **Skip** buttons take taps.
+- The cards (game frozen) are unchanged.
+
+---
+
 ## [sound picker] — 2026-11-16
 
 ### Session 16b — Music and engine options, votes on Submit

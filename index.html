@@ -551,13 +551,17 @@
   .tut-btns .btn:disabled { opacity: 0.3; }
   .tut-btns .linkbtn { font-size: 12px; color: #bfaee6; }
   .tut-hint {
-    position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 122px);
+    /* at the bottom, under the speeder: that part of the screen shows road you've already passed,
+       so the practice instructions never hide the horizon (v0.16.5) */
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
     display: flex; align-items: center; gap: 6px; width: max-content; max-width: calc(100vw - 24px); box-sizing: border-box;
     padding: 5px 5px 5px 14px; border-radius: 999px; background: rgba(10, 3, 30, 0.85); border: 1px solid rgba(255, 210, 60, 0.7);
-    box-shadow: 0 0 16px rgba(255, 210, 60, 0.25); pointer-events: auto;
+    box-shadow: 0 0 16px rgba(255, 210, 60, 0.25); pointer-events: none;
     font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 13px; font-weight: 700; color: var(--yellow);
   }
   #tutHintText { flex: 1; }
+  /* only the two buttons take touches: a thumb landing on the text still steers */
+  .tut-hint .tut-mini { pointer-events: auto; }
   .tut-list {
     position: fixed; inset: 0; box-sizing: border-box; overflow-y: auto; pointer-events: auto; text-align: left;
     padding: calc(env(safe-area-inset-top, 0px) + 14px) 18px calc(env(safe-area-inset-bottom, 0px) + 20px);
@@ -959,7 +963,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.16.4';
+const VERSION = '0.16.5';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate

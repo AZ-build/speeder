@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.16.4 |
+| **Current Version** | v0.16.5 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-16 |
@@ -112,6 +112,8 @@ shot, or pick which gate to take), all with a single control.
   with the game frozen (`paused`) and its subject lit up (`spot`: a HUD part from `HUDR`, `'ship'`,
   `'pause'`, `'boss'`, or a function giving a screen rectangle); "Try it" runs it; `goal()` returns
   true when done (frozen again, waits for Next) or `{ retry: 'message' }` to set it up again.
+  While you practise, the instruction bar (`tutHint`) sits at the bottom of the screen, never over
+  the horizon (v0.16.5); only its ? and Skip buttons take taps.
 - **HUDR:** `drawHUD()` records where each HUD part was drawn ([x, y, w, h]); the tour lights them
   up and puts a tappable outline on each.
 - **Never saved:** no leaderboard, local scores, ladder, analytics for runs, or player counts.
