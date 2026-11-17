@@ -225,6 +225,12 @@
       <div id="labBody"><div class="skeleton">Loading…</div></div>
     </section>
 
+    <section class="card" id="sound">
+      <h2>Sound votes</h2>
+      <p class="q">Picks and answers sent from the sound picker (speeder-game.com/sound-picker/). Only sent when someone taps Submit.</p>
+      <div id="soundBody"><div class="skeleton">Loading…</div></div>
+    </section>
+
     <section class="card" id="school">
       <h2>Flight School</h2>
       <p class="q">How far people get through the tutorial, and where they leave.</p>
@@ -851,6 +857,43 @@ function renderLab(D) {
   el.append(note('Votes are one per device (changing a vote counts again), so they are roughly people.'));
 }
 
+// Sound picker votes (sound-picker/index.html). Names here must match its TABS.
+const SOUND_TABS = [
+  ['sfx', 'Sound effects', { now: 'A Today', smooth: 'B Today, smoothed', synth: 'C Synthwave', arcade: 'D Retro arcade', heavy: 'E Heavy' }],
+  ['music', 'Music', { today: 'A Today (Synthwave House)', nightdrive: 'B Night Drive', darkline: 'C Darkline', neondream: 'D Neon Dream', battle: 'E Battle Theme' }],
+  ['engine', 'Engine', { today: 'A Today', turbine: 'B Jet turbine', hover: 'C Electric hover', podracer: 'D Podracer', synth: 'E Synth drone' }],
+];
+const SOUND_QS = {
+  'sfx-problem': 'What bugs you most about the sound today?', 'sfx-guns': 'How should your guns sound?',
+  'music-mood': 'What should the music feel like?', 'music-worlds': 'Should each world have its own music?',
+  'music-speed': 'As you go faster, the music should…', 'music-boss': 'During the Warden boss fight…',
+  'engine-what': 'What is your speeder?', 'engine-level': 'How loud should the engine be?',
+};
+function renderSound(D) {
+  const el = $('soundBody'); el.textContent = '';
+  const lead = h('div', 'chips'); const s0 = h('span'); s0.append('Submitted: ', Object.assign(h('b'), { textContent: fmt(D.count('sound/submit')) })); lead.append(s0); el.append(lead);
+  if (!D.match('sound/').length) { el.append(empty('No sound votes in this range')); return; }
+  for (const [id, name, opts] of SOUND_TABS) {
+    const rows = Object.entries(opts).map(([k, label]) => ({ name: label, value: D.count('sound/pick/' + id + '/' + k) }));
+    const total = rows.reduce((a, r) => a + r.value, 0);
+    el.append(sub(name + ' (' + fmt(total) + ' pick' + (total === 1 ? '' : 's') + ')'), bars(rows, { total }));
+  }
+  const qs = new Map();
+  for (const x of D.match('sound/q/')) { const [q, a] = x.path.slice(8).split('/'); if (!qs.has(q)) qs.set(q, []); qs.get(q).push({ name: ((x.title || '').split('? ').pop().split('… ').pop()) || a, value: x.count }); }
+  for (const [q, rows] of qs) { const total = rows.reduce((a, r) => a + r.value, 0); el.append(sub(SOUND_QS[q] || q), bars(rows.sort((a, b) => b.value - a.value), { total })); }
+  const WORLDS = [['desert', 'Neon Desert'], ['city', 'Neon City'], ['sky', 'Sky Islands'], ['crystal', 'Crystal Wastes'], ['cosmic', 'Cosmic Highway'], ['warden', 'The Warden (boss)']];
+  if (D.match('sound/world/').length) {
+    el.append(sub('Music for each world'));
+    const music = SOUND_TABS[1][2];
+    for (const [wid, wname] of WORLDS) {
+      const rows = Object.entries(music).map(([k, label]) => ({ name: label, value: D.count('sound/world/' + wid + '/' + k) })).filter((r) => r.value);
+      const total = rows.reduce((a, r) => a + r.value, 0);
+      const p = h('p', 'note', wname + ': ' + (total ? rows.sort((a, b) => b.value - a.value).map((r) => r.name + ' (' + r.value + ')').join(', ') : 'no picks'));
+      el.append(p);
+    }
+  }
+  el.append(note('One vote per device per pick; changing a pick and submitting again adds a vote for the new one.'));
+}
 function renderSchool(D) {
   const el = $('schoolBody'); el.textContent = '';
   const offered = D.count('tut/offer'), offerSkip = D.count('tut/offer-skip');
@@ -1013,7 +1056,7 @@ async function render(forceBoards) {
     }
     const D = index(hits, T); lastD = D;
     const dayList = T.keys;
-    for (const [fn, args] of [[renderPlayers, [D, dayList]], [renderWhere, [locs, systems]], [renderModes, [D, dayList]], [renderLab, [D]], [renderSchool, [D]], [renderOther, [D]], [renderAll, [D]]]) {
+    for (const [fn, args] of [[renderPlayers, [D, dayList]], [renderWhere, [locs, systems]], [renderModes, [D, dayList]], [renderLab, [D]], [renderSound, [D]], [renderSchool, [D]], [renderOther, [D]], [renderAll, [D]]]) {
       try { fn(...args); } catch (e) { console.error(e); }
     }
     $('stamp').textContent = 'Updated ' + new Date(cached && !forceBoards && Date.now() - cached.at < 5 * 60000 ? cached.at : Date.now()).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });

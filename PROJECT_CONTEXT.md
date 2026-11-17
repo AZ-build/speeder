@@ -396,8 +396,12 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Adrian found the sound jarring and asked for it off while we pick new sounds one at a time,
   with tuning and balancing. v0.16.3 switches sound off (new players, and once for everyone).
 - **Sound picker**, https://speeder-game.com/sound-picker/ (`sound-picker/`, see its README).
-  **Round 1, direction:** A today, B today smoothed, C Synthwave, D Retro arcade, E Heavy, each
-  with a 12-second RIDE demo on the game's mix and single-sound buttons. Waiting for his pick.
+  Three tabs: **Effects** (A today, B today smoothed, C Synthwave, D Retro arcade, E Heavy, each
+  with a 12-second RIDE demo on the game's mix), **Music** (A today, B Night Drive, C Darkline,
+  D Neon Dream, E Battle Theme) and **Engine** (A today, B turbine, C hover, D podracer, E synth).
+  Players PICK, answer questions and choose a track per world; nothing is sent until **Submit**
+  (Adrian's rule). Results: "Sound votes" on the stats page. Waiting for Adrian's and players' picks.
+- A player suggested **different music per world**; the picker asks which track fits each world.
 - Plan after that: Round 2, one sound at a time in the chosen direction (shots, bullet hits,
   enemy pop, explosion, crash, hurt, power-up, shield, then the rest: zap, jump, land, swarm,
   launch, pass, fanfare, ui, engine hum); maybe music; Round 3, a balance mixer (sliders over the

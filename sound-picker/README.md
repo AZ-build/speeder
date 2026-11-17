@@ -3,7 +3,25 @@
 A separate page (https://speeder-game.com/sound-picker/) where Adrian auditions sound options,
 one round at a time. The service worker leaves it alone (v0.16.2), so it never affects the game.
 
-- **Round 1 (v0.16.3): direction.** `r1/<option>/` holds each option's files. A = the game today
+- **Three tabs (2026-11-16):** Effects, Music, Engine. Each option has a play button and a PICK
+  button; each tab has a few multiple-choice questions; the Music tab also asks which track would
+  fit each Warp Run world and the Warden (a player's idea: different music per world).
+- **Nothing is sent until Submit.** Picks are kept on the phone (`speeder.soundPicks`). Submit
+  loads GoatCounter and sends `sound/pick/<tab>/<option>`, `sound/q/<question>/<answer>`,
+  `sound/world/<world>/<track>` and `sound/submit`. A later Submit sends only what changed
+  (`speeder.soundSent`). Results: the "Sound votes" section of speeder-game.com/stats/.
+  If you add an option or question, add its name to `SOUND_TABS` / `SOUND_QS` in stats/index.html.
+- **Music:** A today (Fupi), B Night Drive (118 BPM, A minor), C Darkline (128 BPM, A minor),
+  D Neon Dream (100 BPM, C major), all made with `tools/music.py`; E "Battle Theme A" by
+  cynicmusic (CC0, from the @netforge/asset-library-files npm package). All matched to today's
+  loudness (-13.5 LUFS) so the game's `MUSIC_VOL` fits any of them. Our tracks are 16-bar
+  loops (30-38 s); a chosen one should get a longer arrangement before it goes in the game,
+  and `MUSIC_BPM` / `MUSIC_LOOP` in index.html must follow it.
+- **Engine:** A today, B jet turbine, C electric hover, D podracer, E synth drone (in C), made
+  with `tools/engine.py` as seamless 4 s WAV loops (MP3 would click at the loop). REV plays the
+  game's own pitch and filter curve from 160 to 655 km/h. `gain` on each option matches its
+  loudness to today's engine as a phone hears it.
+- **Round 1 (v0.16.3): effects direction.** `r1/<option>/` holds each option's files. A = the game today
   (same volumes), B = today's sounds smoothed and evened out, C = Synthwave, D = Retro arcade,
   E = Heavy. C-E were made from scratch with `tools/synth.py` (CC0, ours).
 - Each option's `vol` table on the page uses the same numbers as the game's `sfx` table, so a

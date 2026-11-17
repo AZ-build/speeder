@@ -12,98 +12,150 @@
 <style>
   :root { --cyan: #29f3ff; --pink: #ff2bd6; --purple: #a64cff; --yellow: #ffd23c; --lime: #b6ff3c; --bg: #0b0418; --card: #170a2c; --line: #3a1d63; --text: #ece6ff; --dim: #a99cc9; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { margin: 0; background: radial-gradient(120% 60% at 50% 0%, #2a0d4f 0%, var(--bg) 60%) fixed; color: var(--text); font: 16px/1.45 system-ui, -apple-system, sans-serif; padding: max(16px, env(safe-area-inset-top)) 16px 120px; }
+  body { margin: 0; background: radial-gradient(120% 60% at 50% 0%, #2a0d4f 0%, var(--bg) 60%) fixed; color: var(--text); font: 16px/1.45 system-ui, -apple-system, sans-serif; padding: max(16px, env(safe-area-inset-top)) 16px 150px; }
+  button { font: inherit; cursor: pointer; }
   .wrap { max-width: 560px; margin: 0 auto; }
-  h1 { font: 800 22px/1.1 Orbitron, sans-serif; letter-spacing: .06em; margin: 8px 0 2px; color: var(--cyan); text-shadow: 0 0 14px rgba(41,243,255,.5); }
-  .round { font: 500 12px Orbitron, sans-serif; letter-spacing: .12em; color: var(--pink); text-transform: uppercase; }
-  h2 { font-size: 19px; margin: 14px 0 6px; }
+  h1 { font: 800 22px/1.1 Orbitron, sans-serif; letter-spacing: .06em; margin: 8px 0 12px; color: var(--cyan); text-shadow: 0 0 14px rgba(41,243,255,.5); }
+  h2 { font-size: 19px; margin: 16px 0 6px; }
+  h3 { font: 800 13px Orbitron, sans-serif; letter-spacing: .1em; color: var(--pink); text-transform: uppercase; margin: 26px 0 4px; }
   p { margin: 6px 0; color: var(--dim); }
+  .tabs { display: flex; gap: 6px; position: sticky; top: 0; z-index: 5; padding: 8px 0; background: linear-gradient(var(--bg) 75%, transparent); }
+  .tab { flex: 1; border: 1px solid var(--line); background: var(--card); color: var(--dim); border-radius: 12px; padding: 10px 4px; font: 800 12px Orbitron, sans-serif; letter-spacing: .06em; position: relative; }
+  .tab.on { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 14px rgba(41,243,255,.25); }
+  .tab .dot { position: absolute; top: 5px; right: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--lime); display: none; }
+  .tab.done .dot { display: block; }
   .tips { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 12px 0; font-size: 14px; color: var(--dim); }
   .tips b { color: var(--text); }
   .toggles { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 4px; }
   .tog { border: 1px solid var(--line); background: transparent; color: var(--dim); border-radius: 999px; padding: 7px 12px; font-size: 14px; }
   .tog.on { border-color: var(--cyan); color: var(--cyan); }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin: 14px 0; position: relative; }
-  .card.playing { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan), 0 0 24px rgba(41,243,255,.25); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin: 14px 0; }
+  .card.playing { border-color: var(--c); box-shadow: 0 0 0 1px var(--c), 0 0 24px rgba(41,243,255,.2); }
+  .card.picked { border-color: var(--lime); box-shadow: 0 0 0 2px var(--lime); }
   .head { display: flex; align-items: center; gap: 12px; }
   .letter { flex: 0 0 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font: 800 22px Orbitron, sans-serif; color: var(--bg); background: var(--c, var(--cyan)); }
   .name { font: 800 16px Orbitron, sans-serif; letter-spacing: .04em; }
   .blurb { font-size: 14px; color: var(--dim); margin-top: 2px; }
-  .ride { margin-top: 12px; width: 100%; border: 0; border-radius: 12px; padding: 14px; font: 800 15px Orbitron, sans-serif; letter-spacing: .08em; color: var(--bg); background: var(--c, var(--cyan)); }
-  .ride.stop { background: transparent; color: var(--c, var(--cyan)); box-shadow: inset 0 0 0 2px var(--c, var(--cyan)); }
+  .btns { display: flex; gap: 8px; margin-top: 12px; }
+  .play { flex: 1; border: 0; border-radius: 12px; padding: 14px; font: 800 15px Orbitron, sans-serif; letter-spacing: .08em; color: var(--bg); background: var(--c, var(--cyan)); }
+  .play.stop { background: transparent; color: var(--c, var(--cyan)); box-shadow: inset 0 0 0 2px var(--c, var(--cyan)); }
+  .pick { flex: 0 0 96px; border: 1px solid var(--line); border-radius: 12px; background: transparent; color: var(--text); font: 800 13px Orbitron, sans-serif; letter-spacing: .06em; }
+  .picked .pick { background: var(--lime); color: var(--bg); border-color: var(--lime); }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .chip { border: 1px solid var(--line); background: rgba(255,255,255,.03); color: var(--text); border-radius: 999px; padding: 7px 11px; font-size: 13px; }
-  .chip:active, .chip.lit { border-color: var(--c, var(--cyan)); color: var(--c, var(--cyan)); }
+  .chip.lit { border-color: var(--c, var(--cyan)); color: var(--c, var(--cyan)); }
   .bar { height: 3px; border-radius: 2px; background: rgba(255,255,255,.08); margin-top: 10px; overflow: hidden; }
   .bar i { display: block; height: 100%; width: 0; background: var(--c, var(--cyan)); }
   .now { font-size: 13px; color: var(--c, var(--cyan)); min-height: 18px; margin-top: 6px; font-weight: 600; }
-  .ask { border: 1px dashed var(--pink); border-radius: 14px; padding: 12px 14px; margin-top: 20px; }
-  .ask b { color: var(--pink); }
+  .q { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; margin: 12px 0; }
+  .q .qt { font-weight: 700; margin-bottom: 8px; }
+  .q .ans { display: flex; flex-direction: column; gap: 6px; }
+  .q .a { text-align: left; border: 1px solid var(--line); background: rgba(255,255,255,.03); color: var(--text); border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+  .q .a.on { border-color: var(--lime); background: rgba(182,255,60,.12); color: var(--lime); font-weight: 600; }
+  .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; padding: 10px 16px max(12px, env(safe-area-inset-bottom)); background: rgba(11,4,24,.94); border-top: 1px solid var(--line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .dock .in { max-width: 560px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
+  .dock .sum { flex: 1; font-size: 13px; color: var(--dim); line-height: 1.35; }
+  .dock .sum b { color: var(--text); }
+  .submit { border: 0; border-radius: 12px; padding: 13px 16px; font: 800 14px Orbitron, sans-serif; letter-spacing: .06em; background: var(--lime); color: var(--bg); }
+  .submit:disabled { background: #2b2140; color: #6f6290; }
   .foot { font-size: 12px; color: #6f6290; margin-top: 24px; }
   .loading { opacity: .6; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="round" id="roundLabel"></div>
   <h1>SPEEDER · SOUND PICKER</h1>
-  <h2 id="roundTitle"></h2>
-  <p id="roundIntro"></p>
-
-  <div class="tips">
-    <b>How to listen:</b> tap <b>RIDE</b> on each card to hear about 12 seconds of a run (shooting,
-    hits, a power-up, an explosion, getting hit, a shield, a crash). Try the <b>phone speaker</b> first,
-    since that's how most friends play, then headphones. Tap a single sound to hear it alone.
-    <br><b>iPhone:</b> if you hear nothing, turn off silent mode (the switch or Action button on the side).
-  </div>
-
-  <div class="toggles">
-    <button class="tog on" id="togMusic">♫ Music</button>
-    <button class="tog on" id="togEngine">⚙ Engine hum</button>
-  </div>
-
-  <div id="cards"></div>
-
-  <div class="ask" id="askBox"></div>
-  <div class="foot">Every sound here is free to use (CC0): the current set is from Kenney's packs, the new sets were
-    made from scratch for Speeder. Music: "Synthwave House Loop" by Fupi.</div>
+  <div class="tabs" id="tabs"></div>
+  <div id="pane"></div>
+  <div class="foot">Everything here is free to use (CC0). Today's sound effects are from Kenney's packs; the new
+    effects, engines and the tracks Night Drive, Darkline and Neon Dream were made for Speeder. Music:
+    "Synthwave House Loop" by Fupi, "Battle Theme A" by cynicmusic.</div>
 </div>
+<div class="dock"><div class="in"><div class="sum" id="sum"></div><button class="submit" id="submit" disabled>SUBMIT</button></div></div>
 
 <script>
 'use strict';
-// ---------------- Rounds ----------------
-// Each round is a set of options. An option names its folder of sounds and how loud each one
-// plays (vol, the same numbers the game's sfx table uses). "recipe" lets an option play
-// several files for one event, the way the game does today (hurt = hurt + pop, crash = wreck + boom).
-const ROUND = {
-  label: 'Round 1 · Direction',
-  title: 'Which way should Speeder sound?',
-  intro: 'Five directions. A is exactly what the game plays today. B is the same sounds, cleaned up and evened out. C, D and E are new sets made for Speeder. They are all balanced the same way against the music, so you can compare the sounds themselves.',
-  ask: '<b>Tell Claude:</b> the letter you like best, and anything you liked in the others, e.g. "C, but the explosions from E". Rough reactions help too: "too thin", "too cartoony", "the shots are annoying".',
-  dir: 'r1/',
-  options: [
-    { id: 'now', letter: 'A', color: '#a99cc9', name: 'Today', blurb: 'Exactly what the game plays now, same volumes. For comparison.',
-      vol: { shoot1: .16, shoot2: .16, shoot3: .16, hit: .22, pop: .45, boom1: .7, boom2: .7, wreck: 1, hurt: .9, power: .65, shield: .7 },
-      recipe: { boom: [[['boom1', 'boom2']]], hurt: [['hurt', .9, .9], ['pop', .5, .7]], wreck: [['wreck', 1, 1], ['boom2', .7, .8]] } },
-    { id: 'smooth', letter: 'B', color: '#29f3ff', name: 'Today, smoothed', blurb: 'The same sounds with the harsh metal clang softened, the shots quieter and every level evened out.',
-      vol: { shoot1: .091, shoot2: .16, shoot3: .071, hit: .115, pop: .295, boom: .466, wreck: .887, hurt: 1.252, power: .254, shield: .197 } },
-    { id: 'synth', letter: 'C', color: '#ff2bd6', name: 'Synthwave', blurb: 'Soft analog synths that match the music: shots are little notes in its key, pickups are chords, explosions are deep and warm.',
-      vol: { shoot1: .115, shoot2: .069, shoot3: .093, hit: .041, pop: .166, boom: .427, wreck: .578, hurt: .23, power: .168, shield: .119 } },
-    { id: 'arcade', letter: 'D', color: '#ffd23c', name: 'Retro arcade', blurb: 'Classic 8-bit arcade: chirpy lasers, crunchy pixel explosions, bleepy power-ups.',
-      vol: { shoot1: .036, shoot2: .035, shoot3: .035, hit: .027, pop: .081, boom: .113, wreck: .169, hurt: .147, power: .115, shield: .061 } },
-    { id: 'heavy', letter: 'E', color: '#ff9d2e', name: 'Heavy', blurb: 'Punchy and cinematic: thumping blasters, big rumbling explosions, a riser and chord on power-ups.',
-      vol: { shoot1: .088, shoot2: .087, shoot3: .088, hit: .051, pop: .188, boom: .528, wreck: .88, hurt: .316, power: .583, shield: .123 } },
-  ],
-};
-const CHIPS = [['shoot', 'Shot'], ['hit', 'Bullet hit'], ['pop', 'Enemy pop'], ['boom', 'Explosion'], ['hurt', 'You get hit'], ['power', 'Power-up'], ['shield', 'Shield'], ['wreck', 'Crash']];
+// ======================================================================================
+// Three tabs (sound effects, music, engine). Each has options to listen to and pick, plus
+// a few questions. Picks stay on the phone (localStorage) and NOTHING is sent until Submit.
+// Events sent on Submit (GoatCounter site "speeder", shown on stats/index.html):
+//   sound/pick/<tab>/<option>   sound/q/<question>/<answer>   sound/world/<world>/<track>   sound/submit
+// A second Submit only sends picks that are new or changed since the last one.
+// ======================================================================================
+const TABS = [
+  {
+    id: 'sfx', name: 'Effects',
+    title: 'Which way should the sound effects go?',
+    intro: 'Tap RIDE to hear about 12 seconds of a run: shooting, hits, a power-up, an explosion, getting hit, a shield, a crash. Tap a single sound to hear it alone. A is exactly what the game plays today. B to E are balanced the same way against the music, so you are comparing the sounds, not the loudness.',
+    dir: 'r1/',
+    options: [
+      { id: 'now', letter: 'A', color: '#a99cc9', name: 'Today', blurb: 'Exactly what the game plays now, same volumes. For comparison.',
+        vol: { shoot1: .16, shoot2: .16, shoot3: .16, hit: .22, pop: .45, boom1: .7, boom2: .7, wreck: 1, hurt: .9, power: .65, shield: .7 },
+        recipe: { boom: [[['boom1', 'boom2']]], hurt: [['hurt', .9, .9], ['pop', .5, .7]], wreck: [['wreck', 1, 1], ['boom2', .7, .8]] } },
+      { id: 'smooth', letter: 'B', color: '#29f3ff', name: 'Today, smoothed', blurb: 'The same sounds with the harsh metal clang softened, the shots quieter and every level evened out.',
+        vol: { shoot1: .091, shoot2: .16, shoot3: .071, hit: .115, pop: .295, boom: .466, wreck: .887, hurt: 1.252, power: .254, shield: .197 } },
+      { id: 'synth', letter: 'C', color: '#ff2bd6', name: 'Synthwave', blurb: 'Soft analog synths that match the music: shots are little notes in its key, pickups are chords, explosions are deep and warm.',
+        vol: { shoot1: .115, shoot2: .069, shoot3: .093, hit: .041, pop: .166, boom: .427, wreck: .578, hurt: .23, power: .168, shield: .119 } },
+      { id: 'arcade', letter: 'D', color: '#ffd23c', name: 'Retro arcade', blurb: 'Classic 8-bit arcade: chirpy lasers, crunchy pixel explosions, bleepy power-ups.',
+        vol: { shoot1: .036, shoot2: .035, shoot3: .035, hit: .027, pop: .081, boom: .113, wreck: .169, hurt: .147, power: .115, shield: .061 } },
+      { id: 'heavy', letter: 'E', color: '#ff9d2e', name: 'Heavy', blurb: 'Punchy and cinematic: thumping blasters, big rumbling explosions, a riser and chord on power-ups.',
+        vol: { shoot1: .088, shoot2: .087, shoot3: .088, hit: .051, pop: .188, boom: .528, wreck: .88, hurt: .316, power: .583, shield: .123 } },
+    ],
+    questions: [
+      { id: 'sfx-problem', q: 'What bugs you most about the sound today?', a: [['shooting', 'The non-stop shooting'], ['loud', 'Too loud overall'], ['cheap', 'Sounds cheap or tinny'], ['unclear', "Hard to tell what's happening"], ['fine', "Nothing, it's fine"]] },
+      { id: 'sfx-guns', q: 'How should your guns sound?', a: [['soft', 'Barely there, a soft tick'], ['pew', 'A clear pew-pew'], ['punchy', 'Punchy blasts'], ['off', 'Silent: only hits and explosions']] },
+    ],
+  },
+  {
+    id: 'music', name: 'Music',
+    title: 'Which music should Speeder ride to?',
+    intro: 'Tap PLAY to loop a track. "Top speed" plays it the way the game does near top speed (the music speeds up as you go faster). A is today\'s track; B, C and D were made for Speeder; E is a different genre, for contrast.',
+    options: [
+      { id: 'today', letter: 'A', color: '#a99cc9', name: 'Today: Synthwave House', blurb: 'The current track, "Synthwave House Loop" by Fupi. 114 BPM, warm and bouncy, a 50-second loop.', file: '../audio/music.mp3', loop: 24 * 4 * 60 / 114 },
+      { id: 'nightdrive', letter: 'B', color: '#29f3ff', name: 'Night Drive', blurb: 'Classic driving synthwave: pulsing bass, big snare, arpeggios, a lead melody in the second half. 118 BPM.', file: 'music/nightdrive.mp3', loop: 16 * 4 * 60 / 118 },
+      { id: 'darkline', letter: 'C', color: '#ff2bd6', name: 'Darkline', blurb: 'Darker and heavier: rolling bass, harder kick, a menacing riff in the second half. 128 BPM.', file: 'music/darkline.mp3', loop: 16 * 4 * 60 / 128 },
+      { id: 'neondream', letter: 'D', color: '#b6ff3c', name: 'Neon Dream', blurb: 'Dreamy and lighter: soft chords, a gentle arpeggio, slow melody. 100 BPM.', file: 'music/neondream.mp3', loop: 16 * 4 * 60 / 100 },
+      { id: 'battle', letter: 'E', color: '#ff9d2e', name: 'Battle Theme', blurb: 'Not synthwave: an energetic video-game battle theme ("Battle Theme A" by cynicmusic). For contrast.', file: 'music/battle.mp3' },
+    ],
+    questions: [
+      { id: 'music-mood', q: 'What should the music feel like?', a: [['driving', 'Driving and upbeat'], ['dark', 'Dark and intense'], ['dreamy', 'Dreamy and chill'], ['any', "Doesn't matter much"]] },
+      { id: 'music-worlds', q: 'Should each world have its own music?', a: [['per-world', 'Yes, a different track per world'], ['layers', 'Same track, but it changes per world'], ['one', 'One track is fine']] },
+      { id: 'music-speed', q: 'As you go faster, the music should…', a: [['faster', 'Speed up (like now)'], ['bigger', 'Get bigger, add layers'], ['same', 'Stay the same']] },
+      { id: 'music-boss', q: 'During the Warden boss fight…', a: [['boss-track', 'Its own boss track'], ['intense', 'Same music, more intense'], ['drop', 'Music drops out for tension']] },
+    ],
+    // A player's idea (via Adrian, v0.16.5): different music per world. Pick a track for each Warp Run world.
+    worlds: [['desert', 'Neon Desert'], ['city', 'Neon City'], ['sky', 'Sky Islands'], ['crystal', 'Crystal Wastes'], ['cosmic', 'Cosmic Highway'], ['warden', 'The Warden (boss)']],
+  },
+  {
+    id: 'engine', name: 'Engine',
+    title: 'What should the speeder sound like?',
+    intro: 'Tap REV to hear the engine the way the game plays it: from the 160 km/h start up to top speed (655 km/h), rising in pitch as you go. All five play at the same loudness.',
+    options: [
+      { id: 'today', letter: 'A', color: '#a99cc9', name: 'Today', blurb: 'The current low sci-fi engine (Kenney).', file: '../audio/engine.wav', gain: 1 },
+      { id: 'turbine', letter: 'B', color: '#29f3ff', name: 'Jet turbine', blurb: 'A whining jet with rushing air and a low rumble.', file: 'engine/turbine.wav', gain: .806 },
+      { id: 'hover', letter: 'C', color: '#ff2bd6', name: 'Electric hover', blurb: 'A smooth electric hum with a light buzz, like a light-cycle.', file: 'engine/hover.wav', gain: .726 },
+      { id: 'podracer', letter: 'D', color: '#ff9d2e', name: 'Podracer', blurb: 'A rough, rattling growl. Loud and mechanical.', file: 'engine/podracer.wav', gain: .586 },
+      { id: 'synth', letter: 'E', color: '#b6ff3c', name: 'Synth drone', blurb: 'A musical drone in the same key as the music, pulsing gently in time.', file: 'engine/synth.wav', gain: 1.596 },
+    ],
+    questions: [
+      { id: 'engine-what', q: 'What is your speeder?', a: [['jet', 'A jet'], ['electric', 'An electric hover bike'], ['podracer', 'A rough podracer'], ['any', "Doesn't matter"]] },
+      { id: 'engine-level', q: 'How loud should the engine be?', a: [['quiet', 'Barely there'], ['some', 'Noticeable'], ['loud', 'Front and center'], ['off', 'Off by default']] },
+    ],
+  },
+];
+const SFX_CHIPS = [['shoot', 'Shot'], ['hit', 'Bullet hit'], ['pop', 'Enemy pop'], ['boom', 'Explosion'], ['hurt', 'You get hit'], ['power', 'Power-up'], ['shield', 'Shield'], ['wreck', 'Crash']];
 
-// ---------------- The game's mix (same chain and levels as index.html) ----------------
-const MASTER = 0.7 * 0.85;     // default volume 70%
-const MUSIC_VOL = 0.42;
-const ENGINE_VOL = 0.13;
-const V = '?v=1';
-const AU = { ctx: null, master: null, sfx: null, music: null, eng: null, buf: {}, nodes: [], timers: [], playing: null };
-const S = { music: true, engine: true };
+// ---------------- Picks (kept on this phone until Submit) ----------------
+const KEY = 'speeder.soundPicks', SENT = 'speeder.soundSent';
+const store = { get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode */ } } };
+const P = Object.assign({ pick: {}, q: {}, world: {} }, store.get(KEY) || {});
+if (!P.world) P.world = {};
+const savePicks = () => { store.set(KEY, P); renderDock(); };
+
+// ---------------- Audio: the game's own mix chain and levels ----------------
+const MASTER = 0.7 * 0.85, MUSIC_VOL = 0.42, ENGINE_VOL = 0.13, V = '?v=2';
+const AU = { ctx: null, buf: {}, nodes: [], timers: [], playing: null };
+const S = { music: true, engine: true, top: false, engMusic: false };
 
 function ctxInit() {
   if (AU.ctx) { if (AU.ctx.state === 'suspended') AU.ctx.resume(); return; }
@@ -112,157 +164,297 @@ function ctxInit() {
   AU.master = c.createGain(); AU.master.gain.value = MASTER; AU.master.connect(c.destination);
   AU.sfx = c.createGain(); AU.sfx.connect(AU.master);
   AU.music = c.createGain(); AU.music.gain.value = 0; AU.music.connect(AU.master);
-  const f = AU.engF = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1380;
-  AU.eng = c.createGain(); AU.eng.gain.value = 0; f.connect(AU.eng); AU.eng.connect(AU.master);
-  // a silent blip unlocks audio on iPhones
-  const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0);
+  AU.engF = c.createBiquadFilter(); AU.engF.type = 'lowpass'; AU.engF.frequency.value = 1380;
+  AU.eng = c.createGain(); AU.eng.gain.value = 0; AU.engF.connect(AU.eng); AU.eng.connect(AU.master);
+  const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0);   // unlocks iPhone audio
 }
-function decode(data) {
-  return new Promise((ok, fail) => { const p = AU.ctx.decodeAudioData(data, ok, fail); if (p && p.then) p.then(ok, fail); });
-}
+function decode(data) { return new Promise((ok, fail) => { const p = AU.ctx.decodeAudioData(data, ok, fail); if (p && p.then) p.then(ok, fail); }); }
 function load(url) {
-  if (AU.buf[url]) return AU.buf[url];
-  return AU.buf[url] = fetch(url + V).then((r) => r.arrayBuffer()).then(decode).catch(() => null);
+  if (!AU.buf[url]) AU.buf[url] = fetch(url + V).then((r) => r.arrayBuffer()).then(decode).then((b) => { b._wav = /\.wav$/.test(url); return b; }).catch(() => null);
+  return AU.buf[url];
 }
-const fileUrl = (opt, name) => ROUND.dir + opt.id + '/' + name + '.mp3';
-function loadOption(opt) { return Promise.all(Object.keys(opt.vol).map((n) => load(fileUrl(opt, n)))); }
-
-async function playFile(opt, name, when, vol, rate) {
-  const b = await load(fileUrl(opt, name));
-  if (!b) return;
-  const c = AU.ctx, s = c.createBufferSource(), g = c.createGain();
-  s.buffer = b; s.playbackRate.value = rate || 1; g.gain.value = vol;
-  s.connect(g); g.connect(AU.sfx); s.start(Math.max(c.currentTime, when));
-  AU.nodes.push(s);
-  s.onended = () => { s.disconnect(); g.disconnect(); };
+// MP3s start with a few ms of encoder silence: find where the sound really starts, so loops don't click
+function leadIn(b) {
+  if (b._wav) return 0;
+  const d = b.getChannelData(0), n = Math.min(d.length, 4000);
+  for (let i = 0; i < n; i++) if (Math.abs(d[i]) > 1e-3) return i / b.sampleRate;
+  return 0;
 }
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
-const jit = (amt) => 1 + (Math.random() * 2 - 1) * amt;
-// Play one game event (shoot, hit, ...) for an option, the way the game would.
-function event(opt, kind, when) {
-  const r = opt.recipe && opt.recipe[kind];
-  const J = { shoot: .05, hit: .1, pop: .08, boom: .06 }[kind] || 0;
-  if (kind === 'shoot') { const n = pick(['shoot1', 'shoot2', 'shoot3']); return playFile(opt, n, when, opt.vol[n], jit(J)); }
-  if (r) {
-    for (const part of r) {
-      const name = Array.isArray(part[0]) ? pick(part[0]) : part[0];
-      const v = part.length > 1 ? part[1] * 1 : opt.vol[name];
-      playFile(opt, name, when, Array.isArray(part[0]) ? opt.vol[name] : v, part.length > 2 ? part[2] : jit(J));
-    }
-    return;
-  }
-  playFile(opt, kind, when, opt.vol[kind], jit(J));
-}
-
-// ---------------- The 12-second run ----------------
-// [time in seconds, event]. Normal guns fire every 0.15 s; RAPID every 0.075 s, but the game
-// never repeats the shot sound faster than every 0.09 s, so the demo uses 0.09.
-function script() {
-  const ev = [];
-  const fire = (a, b, gap) => { for (let t = a; t < b; t += gap) ev.push([t, 'shoot']); };
-  fire(0.5, 3.1, 0.15);
-  [1.2, 1.35, 1.5].forEach((t) => ev.push([t, 'hit'])); ev.push([1.62, 'pop']);
-  [2.2, 2.35].forEach((t) => ev.push([t, 'hit'])); ev.push([2.5, 'pop']);
-  ev.push([3.3, 'power']);
-  fire(3.6, 6.7, 0.09);
-  [4.1, 4.25, 4.4, 4.55].forEach((t) => ev.push([t, 'hit'])); ev.push([4.65, 'boom']);
-  [5.3, 5.42, 5.54].forEach((t) => ev.push([t, 'hit'])); ev.push([5.66, 'pop']);
-  ev.push([6.9, 'hurt']);
-  ev.push([7.7, 'shield']);
-  fire(8.2, 9.8, 0.15);
-  [8.8, 8.95].forEach((t) => ev.push([t, 'hit'])); ev.push([9.1, 'pop']);
-  ev.push([10.2, 'wreck']);
-  return ev;
-}
-const LEN = 12.5;
-const SAY = [[0, 'Riding…'], [0.5, 'Shooting (normal guns)'], [1.2, 'Hitting a drone'], [1.62, 'Drone destroyed'], [3.3, 'Power-up: RAPID'],
-  [3.6, 'Shooting (RAPID)'], [4.65, 'A mine explodes'], [5.66, 'Drone destroyed'], [6.9, 'You get hit!'], [7.7, 'Shield picked up'],
-  [8.2, 'Shooting'], [10.2, 'Crash'], [12, '']];
-
-async function startMusic(t0) {
-  const b = await load('../audio/music.mp3');
-  if (!b || AU.playing === null) return;
-  const s = AU.ctx.createBufferSource(); s.buffer = b; s.loop = true; s.playbackRate.value = 1.06;
-  s.connect(AU.music); s.start(t0, 9.5);
-  AU.musicSrc = s; AU.nodes.push(s);
-  const g = AU.music.gain; g.cancelScheduledValues(0); g.setValueAtTime(0, t0);
-  if (S.music) { g.linearRampToValueAtTime(MUSIC_VOL, t0 + 0.4); g.setValueAtTime(MUSIC_VOL, t0 + 10.2); g.linearRampToValueAtTime(MUSIC_VOL * 0.25, t0 + 11); }
-  // the game's "tape stop" when you crash
-  s.playbackRate.setValueAtTime(1.06, t0 + 10.2); s.playbackRate.linearRampToValueAtTime(0.35, t0 + 11.4);
-  g.linearRampToValueAtTime(0, t0 + 11.6);
-}
-async function startEngine(t0) {
-  const b = await load('../audio/engine.wav');
-  if (!b || AU.playing === null) return;
-  const s = AU.ctx.createBufferSource(); s.buffer = b; s.loop = true; s.playbackRate.value = 1.22;
-  s.connect(AU.engF); s.start(t0);
-  AU.nodes.push(s);
-  const g = AU.eng.gain; g.cancelScheduledValues(0); g.setValueAtTime(0, t0);
-  if (S.engine) { g.linearRampToValueAtTime(ENGINE_VOL, t0 + 0.4); g.setValueAtTime(ENGINE_VOL, t0 + 10.2); g.linearRampToValueAtTime(0, t0 + 10.6); }
+function loopSrc(b, dest, loopLen, offset) {
+  const s = AU.ctx.createBufferSource(); s.buffer = b; s.loop = true;
+  const lead = leadIn(b);
+  s.loopStart = lead; s.loopEnd = loopLen ? Math.min(b.duration, lead + loopLen) : b.duration;
+  s.connect(dest); AU.nodes.push(s);
+  return { s, lead, start: (t) => s.start(t, lead + (offset || 0)) };
 }
 
 function stopAll() {
-  for (const s of AU.nodes) { try { s.stop(); } catch (e) { /* already stopped */ } }
-  AU.nodes = [];
-  AU.timers.forEach(clearTimeout); AU.timers = [];
-  if (AU.ctx) { AU.music.gain.cancelScheduledValues(0); AU.music.gain.value = 0; AU.eng.gain.cancelScheduledValues(0); AU.eng.gain.value = 0; }
-  if (AU.playing) { const el = AU.playing.el; el.classList.remove('playing'); el.querySelector('.ride').textContent = '▶ RIDE'; el.querySelector('.ride').classList.remove('stop'); el.querySelector('.now').textContent = ''; el.querySelector('.bar i').style.width = '0'; }
+  for (const s of AU.nodes) { try { s.stop(); } catch (e) { /* not started */ } }
+  AU.nodes = []; AU.timers.forEach(clearTimeout); AU.timers = []; cancelAnimationFrame(AU.raf);
+  if (AU.ctx) {
+    for (const g of [AU.music.gain, AU.eng.gain]) { g.cancelScheduledValues(0); g.value = 0; }
+    AU.engF.frequency.cancelScheduledValues(0);
+  }
+  if (AU.playing) { const el = AU.playing.el; el.classList.remove('playing'); const b = el.querySelector('.play'); b.textContent = b.dataset.label; b.classList.remove('stop'); el.querySelector('.now').textContent = ''; el.querySelector('.bar i').style.width = '0'; }
   AU.playing = null;
-  cancelAnimationFrame(AU.raf);
 }
-
-async function ride(opt, el) {
+async function begin(opt, el, loader) {
   ctxInit();
   const was = AU.playing && AU.playing.opt;
   stopAll();
-  if (was === opt) return;
+  if (was === opt) return false;
   AU.playing = { opt, el };
-  const btn = el.querySelector('.ride');
+  const btn = el.querySelector('.play');
   btn.textContent = 'LOADING…'; el.classList.add('loading');
-  await Promise.all([loadOption(opt), load('../audio/music.mp3'), load('../audio/engine.wav')]);
+  await loader();
   el.classList.remove('loading');
-  if (!AU.playing || AU.playing.opt !== opt) return;
+  if (!AU.playing || AU.playing.opt !== opt) return false;
   btn.textContent = '■ STOP'; btn.classList.add('stop'); el.classList.add('playing');
-  const t0 = AU.ctx.currentTime + 0.1;
-  startMusic(t0); startEngine(t0);
-  for (const [t, k] of script()) event(opt, k, t0 + t);
-  const now = el.querySelector('.now'), bar = el.querySelector('.bar i');
-  for (const [t, msg] of SAY) AU.timers.push(setTimeout(() => { now.textContent = msg; }, (t + 0.1) * 1000));
-  AU.timers.push(setTimeout(stopAll, (LEN + 0.2) * 1000));
-  const tick = () => { if (!AU.playing) return; bar.style.width = Math.min(100, (AU.ctx.currentTime - t0) / LEN * 100) + '%'; AU.raf = requestAnimationFrame(tick); };
+  return true;
+}
+function progress(el, t0, len, loop) {
+  const bar = el.querySelector('.bar i');
+  const tick = () => { if (!AU.playing) return; let f = (AU.ctx.currentTime - t0) / len; if (loop) f %= 1; bar.style.width = Math.max(0, Math.min(100, f * 100)) + '%'; AU.raf = requestAnimationFrame(tick); };
   tick();
 }
 
+// ---------------- Sound effects tab ----------------
+const fxUrl = (opt, name) => TABS[0].dir + opt.id + '/' + name + '.mp3';
+const loadFx = (opt) => Promise.all(Object.keys(opt.vol).map((n) => load(fxUrl(opt, n))));
+const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
+const jit = (amt) => 1 + (Math.random() * 2 - 1) * amt;
+async function playFile(opt, name, when, vol, rate) {
+  const b = await load(fxUrl(opt, name)); if (!b) return;
+  const c = AU.ctx, s = c.createBufferSource(), g = c.createGain();
+  s.buffer = b; s.playbackRate.value = rate || 1; g.gain.value = vol;
+  s.connect(g); g.connect(AU.sfx); s.start(Math.max(c.currentTime, when)); AU.nodes.push(s);
+  s.onended = () => { s.disconnect(); g.disconnect(); };
+}
+function fxEvent(opt, kind, when) {   // one game event, played the way the game would
+  const J = { shoot: .05, hit: .1, pop: .08, boom: .06 }[kind] || 0;
+  if (kind === 'shoot') { const n = pickOne(['shoot1', 'shoot2', 'shoot3']); return playFile(opt, n, when, opt.vol[n], jit(J)); }
+  const r = opt.recipe && opt.recipe[kind];
+  if (!r) return playFile(opt, kind, when, opt.vol[kind], jit(J));
+  for (const part of r) {
+    if (Array.isArray(part[0])) { const n = pickOne(part[0]); playFile(opt, n, when, opt.vol[n], jit(J)); }
+    else playFile(opt, part[0], when, part[1], part[2]);
+  }
+}
+function rideScript() {
+  const ev = [], fire = (a, b, gap) => { for (let t = a; t < b; t += gap) ev.push([t, 'shoot']); };
+  fire(0.5, 3.1, 0.15);   // normal guns: a shot every 0.15 s
+  [1.2, 1.35, 1.5].forEach((t) => ev.push([t, 'hit'])); ev.push([1.62, 'pop']);
+  [2.2, 2.35].forEach((t) => ev.push([t, 'hit'])); ev.push([2.5, 'pop'], [3.3, 'power']);
+  fire(3.6, 6.7, 0.09);   // RAPID (the game never repeats the shot sound faster than every 0.09 s)
+  [4.1, 4.25, 4.4, 4.55].forEach((t) => ev.push([t, 'hit'])); ev.push([4.65, 'boom']);
+  [5.3, 5.42, 5.54].forEach((t) => ev.push([t, 'hit'])); ev.push([5.66, 'pop'], [6.9, 'hurt'], [7.7, 'shield']);
+  fire(8.2, 9.8, 0.15);
+  ev.push([8.8, 'hit'], [8.95, 'hit'], [9.1, 'pop'], [10.2, 'wreck']);
+  return ev;
+}
+const RIDE_LEN = 12.5;
+const RIDE_SAY = [[0, 'Riding…'], [0.5, 'Shooting (normal guns)'], [1.2, 'Hitting a drone'], [1.62, 'Drone destroyed'], [3.3, 'Power-up: RAPID'],
+  [3.6, 'Shooting (RAPID)'], [4.65, 'A mine explodes'], [5.66, 'Drone destroyed'], [6.9, 'You get hit!'], [7.7, 'Shield picked up'], [8.2, 'Shooting'], [10.2, 'Crash'], [12, '']];
+async function ride(opt, el) {
+  if (!await begin(opt, el, () => Promise.all([loadFx(opt), load('../audio/music.mp3'), load('../audio/engine.wav')]))) return;
+  const t0 = AU.ctx.currentTime + 0.1;
+  const m = loopSrc(await load('../audio/music.mp3'), AU.music, 24 * 4 * 60 / 114, 9.5);
+  m.s.playbackRate.value = 1.06; m.start(t0);
+  m.s.playbackRate.setValueAtTime(1.06, t0 + 10.2); m.s.playbackRate.linearRampToValueAtTime(0.35, t0 + 11.4);   // the game's "tape stop" on a crash
+  const mg = AU.music.gain; mg.setValueAtTime(0, t0);
+  if (S.music) { mg.linearRampToValueAtTime(MUSIC_VOL, t0 + 0.4); mg.setValueAtTime(MUSIC_VOL, t0 + 10.2); mg.linearRampToValueAtTime(0, t0 + 11.6); }
+  const e = loopSrc(await load('../audio/engine.wav'), AU.engF); e.s.playbackRate.value = 1.22; AU.engF.frequency.value = 1380; e.start(t0);
+  const eg = AU.eng.gain; eg.setValueAtTime(0, t0);
+  if (S.engine) { eg.linearRampToValueAtTime(ENGINE_VOL, t0 + 0.4); eg.setValueAtTime(ENGINE_VOL, t0 + 10.2); eg.linearRampToValueAtTime(0, t0 + 10.6); }
+  for (const [t, k] of rideScript()) fxEvent(opt, k, t0 + t);
+  const now = el.querySelector('.now');
+  for (const [t, msg] of RIDE_SAY) AU.timers.push(setTimeout(() => { now.textContent = msg; }, (t + 0.1) * 1000));
+  AU.timers.push(setTimeout(stopAll, (RIDE_LEN + 0.2) * 1000));
+  progress(el, t0, RIDE_LEN);
+}
 async function single(opt, kind, chip) {
-  ctxInit();
-  if (AU.playing) stopAll();
+  ctxInit(); if (AU.playing) stopAll();
   chip.classList.add('lit'); setTimeout(() => chip.classList.remove('lit'), 300);
-  await loadOption(opt);
-  event(opt, kind, AU.ctx.currentTime + 0.02);
+  await loadFx(opt); fxEvent(opt, kind, AU.ctx.currentTime + 0.02);
+}
+
+// ---------------- Music tab ----------------
+async function playMusic(opt, el) {
+  if (!await begin(opt, el, () => load(opt.file))) return;
+  const b = await load(opt.file);
+  const m = loopSrc(b, AU.music, opt.loop);
+  const rate = S.top ? 1.14 : 1;          // MUSIC_RATE_MAX in the game
+  m.s.playbackRate.value = rate;
+  const t0 = AU.ctx.currentTime + 0.05; m.start(t0);
+  AU.music.gain.setValueAtTime(0, t0); AU.music.gain.linearRampToValueAtTime(MUSIC_VOL, t0 + 0.3);
+  el.querySelector('.now').textContent = S.top ? 'Playing at top-speed tempo (+14%)' : 'Playing (it loops)';
+  progress(el, t0, (opt.loop || (b.duration - m.lead)) / rate, true);
+}
+
+// ---------------- Engine tab ----------------
+// The game: playbackRate = 0.75 + speed/90*0.6, lowpass = 400 + speed*14 Hz, level 0.13.
+// Speed is in game units: 1 unit = 5 km/h, so 32 = 160 km/h at the start, 131 = 655 km/h top.
+const REV = [[0, 32], [1.2, 32], [5.5, 90], [8.5, 131], [11, 131]];
+async function rev(opt, el) {
+  const music = S.engMusic ? TABS[1].options.find((o) => o.id === (P.pick.music || 'today')) : null;
+  if (!await begin(opt, el, () => Promise.all([load(opt.file), music ? load(music.file) : 0]))) return;
+  const t0 = AU.ctx.currentTime + 0.05;
+  const e = loopSrc(await load(opt.file), AU.engF);
+  const pr = e.s.playbackRate, ff = AU.engF.frequency;
+  pr.setValueAtTime(0.75 + 32 / 90 * 0.6, t0); ff.setValueAtTime(400 + 32 * 14, t0);
+  for (const [t, sp] of REV.slice(1)) { pr.linearRampToValueAtTime(0.75 + sp / 90 * 0.6, t0 + t); ff.linearRampToValueAtTime(400 + sp * 14, t0 + t); }
+  e.start(t0);
+  const g = AU.eng.gain, L = REV[REV.length - 1][0];
+  g.setValueAtTime(0, t0); g.linearRampToValueAtTime(ENGINE_VOL * opt.gain, t0 + 0.3); g.setValueAtTime(ENGINE_VOL * opt.gain, t0 + L - 0.5); g.linearRampToValueAtTime(0, t0 + L);
+  if (music) {
+    const m = loopSrc(await load(music.file), AU.music, music.loop); m.start(t0);
+    const mg = AU.music.gain; mg.setValueAtTime(0, t0); mg.linearRampToValueAtTime(MUSIC_VOL, t0 + 0.3); mg.setValueAtTime(MUSIC_VOL, t0 + L - 0.5); mg.linearRampToValueAtTime(0, t0 + L);
+  }
+  const now = el.querySelector('.now');
+  const kmh = () => {
+    const t = AU.ctx.currentTime - t0;
+    for (let i = 1; i < REV.length; i++) if (t < REV[i][0]) { const [a, va] = REV[i - 1], [b, vb] = REV[i]; return Math.round((va + (vb - va) * Math.max(0, (t - a) / (b - a))) * 5); }
+    return REV[REV.length - 1][1] * 5;
+  };
+  const tick = () => { if (!AU.playing || AU.playing.opt !== opt) return; now.textContent = kmh() + ' km/h'; AU.timers.push(setTimeout(tick, 100)); };
+  tick();
+  AU.timers.push(setTimeout(stopAll, (L + 0.2) * 1000));
+  progress(el, t0, L);
 }
 
 // ---------------- Page ----------------
-document.getElementById('roundLabel').textContent = ROUND.label;
-document.getElementById('roundTitle').textContent = ROUND.title;
-document.getElementById('roundIntro').textContent = ROUND.intro;
-document.getElementById('askBox').innerHTML = ROUND.ask;
-const cards = document.getElementById('cards');
-for (const opt of ROUND.options) {
-  const el = document.createElement('div');
-  el.className = 'card'; el.style.setProperty('--c', opt.color);
-  el.innerHTML = `<div class="head"><div class="letter">${opt.letter}</div><div><div class="name">${opt.name}</div><div class="blurb">${opt.blurb}</div></div></div>
-    <button class="ride">▶ RIDE</button><div class="bar"><i></i></div><div class="now"></div>
-    <div class="chips">${CHIPS.map(([k, n]) => `<button class="chip" data-k="${k}">${n}</button>`).join('')}</div>`;
-  el.querySelector('.ride').addEventListener('click', () => ride(opt, el));
-  el.querySelectorAll('.chip').forEach((ch) => ch.addEventListener('click', () => single(opt, ch.dataset.k, ch)));
-  cards.appendChild(el);
+let tabId = (location.hash || '').slice(1);
+if (!TABS.find((t) => t.id === tabId)) tabId = 'sfx';
+const $ = (id) => document.getElementById(id);
+function renderTabs() {
+  const el = $('tabs'); el.textContent = '';
+  for (const t of TABS) {
+    const b = document.createElement('button');
+    b.className = 'tab' + (t.id === tabId ? ' on' : '') + (P.pick[t.id] ? ' done' : '');
+    b.innerHTML = t.name.toUpperCase() + '<span class="dot"></span>';
+    b.addEventListener('click', () => { stopAll(); tabId = t.id; history.replaceState(null, '', '#' + t.id); renderTabs(); renderPane(); window.scrollTo(0, 0); });
+    el.appendChild(b);
+  }
 }
-for (const [id, key] of [['togMusic', 'music'], ['togEngine', 'engine']]) {
-  const b = document.getElementById(id);
-  b.addEventListener('click', () => { S[key] = !S[key]; b.classList.toggle('on', S[key]); if (AU.playing) { const p = AU.playing; stopAll(); ride(p.opt, p.el); } });
+function toggle(label, key, onChange) {
+  const b = document.createElement('button'); b.className = 'tog' + (S[key] ? ' on' : ''); b.textContent = label;
+  b.addEventListener('click', () => { S[key] = !S[key]; b.classList.toggle('on', S[key]); if (onChange) onChange(); });
+  return b;
 }
+function renderPane() {
+  const t = TABS.find((x) => x.id === tabId), pane = $('pane');
+  pane.innerHTML = `<h2>${t.title}</h2><p>${t.intro}</p>`;
+  if (t.id === 'sfx') pane.insertAdjacentHTML('beforeend', '<div class="tips"><b>Listen on the phone speaker first</b> (that\'s how most people play), then headphones. <b>iPhone:</b> if you hear nothing, turn off silent mode. Your picks stay on this phone until you tap <b>Submit</b>.</div>');
+  const tg = document.createElement('div'); tg.className = 'toggles';
+  const replay = () => { if (AU.playing) { const p = AU.playing; stopAll(); p.el.querySelector('.play').click(); } };
+  if (t.id === 'sfx') tg.append(toggle('♫ Music', 'music', replay), toggle('⚙ Engine hum', 'engine', replay));
+  if (t.id === 'music') tg.append(toggle('⚡ Top speed', 'top', replay));
+  if (t.id === 'engine') tg.append(toggle('♫ Your music under it', 'engMusic', replay));
+  pane.appendChild(tg);
+  pane.insertAdjacentHTML('beforeend', '<h3>Listen and pick one</h3>');
+  const label = t.id === 'sfx' ? '▶ RIDE' : t.id === 'music' ? '▶ PLAY' : '▶ REV';
+  for (const opt of t.options) {
+    const el = document.createElement('div');
+    el.className = 'card' + (P.pick[t.id] === opt.id ? ' picked' : ''); el.style.setProperty('--c', opt.color);
+    el.innerHTML = `<div class="head"><div class="letter">${opt.letter}</div><div><div class="name">${opt.name}</div><div class="blurb">${opt.blurb}</div></div></div>
+      <div class="btns"><button class="play" data-label="${label}">${label}</button><button class="pick">${P.pick[t.id] === opt.id ? '✓ PICKED' : 'PICK'}</button></div>
+      <div class="bar"><i></i></div><div class="now"></div>` +
+      (t.id === 'sfx' ? `<div class="chips">${SFX_CHIPS.map(([k, n]) => `<button class="chip" data-k="${k}">${n}</button>`).join('')}</div>` : '');
+    const play = t.id === 'sfx' ? ride : t.id === 'music' ? playMusic : rev;
+    el.querySelector('.play').addEventListener('click', () => play(opt, el));
+    el.querySelector('.pick').addEventListener('click', () => {
+      if (P.pick[t.id] === opt.id) delete P.pick[t.id]; else P.pick[t.id] = opt.id;
+      savePicks();
+      pane.querySelectorAll('.card').forEach((c) => { c.classList.remove('picked'); c.querySelector('.pick').textContent = 'PICK'; });
+      if (P.pick[t.id]) { el.classList.add('picked'); el.querySelector('.pick').textContent = '✓ PICKED'; }
+      renderTabs();
+    });
+    el.querySelectorAll('.chip').forEach((ch) => ch.addEventListener('click', () => single(opt, ch.dataset.k, ch)));
+    pane.appendChild(el);
+  }
+  pane.insertAdjacentHTML('beforeend', '<h3>A few questions</h3>');
+  for (const q of t.questions) {
+    const box = document.createElement('div'); box.className = 'q';
+    box.innerHTML = `<div class="qt">${q.q}</div><div class="ans">${q.a.map(([id, txt]) => `<button class="a${P.q[q.id] === id ? ' on' : ''}" data-a="${id}">${txt}</button>`).join('')}</div>`;
+    box.querySelectorAll('.a').forEach((b) => b.addEventListener('click', () => {
+      if (P.q[q.id] === b.dataset.a) delete P.q[q.id]; else P.q[q.id] = b.dataset.a;
+      box.querySelectorAll('.a').forEach((x) => x.classList.toggle('on', x.dataset.a === P.q[q.id]));
+      savePicks();
+    }));
+    pane.appendChild(box);
+  }
+  if (t.worlds) {
+    pane.insertAdjacentHTML('beforeend', '<h3>A track for each world?</h3><p>If each Warp Run world had its own music, which track would fit it? Tap a letter for each world (optional). Tap PLAY above to remind yourself how each one sounds.</p>');
+    for (const [wid, wname] of t.worlds) {
+      const box = document.createElement('div'); box.className = 'q';
+      box.innerHTML = `<div class="qt">${wname}</div><div class="chips">${t.options.map((o) => `<button class="chip${P.world[wid] === o.id ? ' lit' : ''}" style="--c:${o.color}" data-o="${o.id}">${o.letter} · ${o.name.replace('Today: ', '')}</button>`).join('')}</div>`;
+      box.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => {
+        if (P.world[wid] === b.dataset.o) delete P.world[wid]; else P.world[wid] = b.dataset.o;
+        box.querySelectorAll('.chip').forEach((x) => x.classList.toggle('lit', x.dataset.o === P.world[wid]));
+        savePicks();
+      }));
+      pane.appendChild(box);
+    }
+  }
+  const next = TABS[TABS.indexOf(t) + 1];
+  if (next) {
+    const b = document.createElement('button'); b.className = 'tog on'; b.style.marginTop = '14px'; b.textContent = 'Next: ' + next.name + ' →';
+    b.addEventListener('click', () => $('tabs').children[TABS.indexOf(next)].click());
+    pane.appendChild(b);
+  } else pane.insertAdjacentHTML('beforeend', '<p style="margin-top:14px">All done? Tap <b style="color:var(--lime)">SUBMIT</b> below. You can come back, change your picks and submit again.</p>');
+}
+
+// ---------------- Submit: the only time anything is sent ----------------
+function events() {
+  const out = [];
+  for (const t of TABS) if (P.pick[t.id]) out.push(['sound/pick/' + t.id + '/' + P.pick[t.id], 'Sound picker, ' + t.name + ': ' + t.options.find((o) => o.id === P.pick[t.id]).name]);
+  for (const t of TABS) for (const [wid, wname] of (t.worlds || [])) if (P.world[wid]) out.push(['sound/world/' + wid + '/' + P.world[wid], 'Sound picker: music for ' + wname + ': ' + t.options.find((o) => o.id === P.world[wid]).name]);
+  for (const t of TABS) for (const q of t.questions) if (P.q[q.id]) out.push(['sound/q/' + q.id + '/' + P.q[q.id], 'Sound picker: ' + q.q + ' ' + q.a.find((a) => a[0] === P.q[q.id])[1]]);
+  return out;
+}
+function renderDock() {
+  const sent = store.get(SENT) || [];
+  const fresh = events().filter((e) => !sent.includes(e[0]));
+  const parts = TABS.map((t) => { const o = t.options.find((x) => x.id === P.pick[t.id]); return t.name + ' <b>' + (o ? o.letter : '–') + '</b>'; });
+  const nq = Object.keys(P.q).length, nw = Object.keys(P.world).length;
+  $('sum').innerHTML = parts.join(' · ') + '<br>' + nq + ' question' + (nq === 1 ? '' : 's') + ' answered' + (nw ? ' · ' + nw + ' world' + (nw === 1 ? '' : 's') : '') + (sent.length && !fresh.length ? ' · <span style="color:var(--lime)">sent ✓</span>' : '');
+  const b = $('submit');
+  b.disabled = !fresh.length;
+  b.textContent = sent.length && fresh.length ? 'SUBMIT CHANGES' : sent.length ? 'SENT ✓' : 'SUBMIT';
+}
+function analytics() {
+  return new Promise((ok, fail) => {
+    if (!location.protocol.startsWith('http') || /^(localhost|127\.)/.test(location.hostname)) return fail(new Error('local'));
+    if (window.goatcounter && window.goatcounter.count) return ok(window.goatcounter);
+    window.goatcounter = { no_onload: true };
+    const s = document.createElement('script'); s.async = true; s.src = 'https://gc.zgo.at/count.js';
+    s.dataset.goatcounter = 'https://speeder.goatcounter.com/count';
+    s.onload = () => (window.goatcounter && window.goatcounter.count ? ok(window.goatcounter) : fail(new Error('no counter')));
+    s.onerror = () => fail(new Error('blocked'));
+    document.head.appendChild(s);
+    setTimeout(() => fail(new Error('timeout')), 8000);
+  });
+}
+$('submit').addEventListener('click', async () => {
+  const b = $('submit'); const sent = store.get(SENT) || [];
+  const fresh = events().filter((e) => !sent.includes(e[0]));   // only what is new or changed since the last submit
+  if (!fresh.length) return;
+  b.disabled = true; b.textContent = 'SENDING…';
+  try {
+    const gc = await analytics();
+    for (const [path, title] of fresh) gc.count({ path, title, event: true });
+    gc.count({ path: 'sound/submit', title: 'Sound picker: submitted', event: true });
+    store.set(SENT, events().map((e) => e[0]));
+    renderDock();
+  } catch (e) {
+    b.disabled = false; b.textContent = 'TRY AGAIN';
+    $('sum').innerHTML = "Couldn't send. Check your connection" + (e.message === 'blocked' ? ', or an ad blocker may be stopping it' : '') + '.';
+  }
+});
+window.PICKER = { TABS, AU, P, stopAll, events, sendTest: null };
+
+renderTabs(); renderPane(); renderDock();
 document.addEventListener('visibilitychange', () => { if (document.hidden) stopAll(); });
-window.PICKER = { ROUND, AU, ride, single, stopAll };
 </script>
 </body>
 </html>

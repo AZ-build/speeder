@@ -4,6 +4,23 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [sound picker] — 2026-11-16
+
+### Session 16b — Music and engine options, votes on Submit
+
+- The sound picker (speeder-game.com/sound-picker/) now has three tabs: **Effects**, **Music**
+  (today's track, three new ones made for Speeder: Night Drive, Darkline, Neon Dream, and
+  cynicmusic's Battle Theme for contrast; a Top speed button plays them at the game's top tempo)
+  and **Engine** (today's plus jet turbine, electric hover, podracer and synth drone; REV plays
+  them from 160 to 655 km/h the way the game pitches them).
+- PICK an option on each tab, answer a few questions, and say which track would fit each world
+  and the Warden (a player suggested different music per world). **Nothing is sent until
+  Submit** (Adrian's rule); then the choices go to analytics as `sound/...` events.
+- Stats page: new **Sound votes** section.
+- The game itself is unchanged.
+
+---
+
 ## Stats page update — 2026-11-16 (no game change)
 
 ### Session 16c — Trends over time
