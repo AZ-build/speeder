@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.16.2 |
+| **Current Version** | v0.16.3 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-16 |
@@ -216,6 +216,7 @@ Speeder/
 ├── stats/index.html       ← private stats page (speeder-game.com/stats/): GoatCounter API + leaderboards; not part of the game
 ├── CNAME                  ← the custom domain (speeder-game.com) for GitHub Pages; never delete
 ├── audio/                 ← sound effects, engine loop, music + CREDITS.md (all CC0)
+├── sound-picker/          ← page for auditioning new sounds (speeder-game.com/sound-picker/), its files and tools; see its README.md
 ├── README.md              ← how to play it locally and publish it
 ├── firestore-rules-speeder.txt ← the database rules block for the Classic leaderboard
 ├── firestore-rules-warp.txt ← the database rules block for the Warp Run leaderboard
@@ -301,6 +302,8 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Graphics quality | Auto steps down if the frame rate drops | Keeps older phones smooth without asking players to tune anything. |
 | Sound (v0.6) | Free CC0 sound files instead of generated tones | Adrian found the generated sounds cheap. CC0 means no licence worries or credit needed. |
 | Analytics (v0.6.3) | GoatCounter, events only, no cookies | Free, privacy-friendly, phone-friendly dashboard, no cookie banner. Offline runs aren't counted. |
+| Sound off (v0.16.3) | Off by default, and switched off once on every device (`SOUND_RESET`), while new sounds are picked | Adrian found the sound jarring. Raise `SOUND_RESET` (and set the default back on) when the new set ships, so everyone hears it. |
+| Picking sounds (v0.16.3) | A separate picker page, one round at a time: direction first, then each sound, then balance | Adrian wants to choose each sound himself. The page plays a scripted run through the game's own mix, so options are judged in context, at matched levels. |
 | Stats page (v0.16.2) | Our own page at speeder-game.com/stats/ reading GoatCounter's API, not a Claude artifact | Adrian asked for an artifact, but artifacts can't reach outside sites, so it couldn't be live. The key lives only in Adrian's browser; the page shows nothing without it. Trade-off: the address is public (harmless without the key). |
 | Leaderboard reads (v0.6.3) | Reuse a recent download; only re-download after a run that could make the board | Free Firebase plan is ~50k reads/day, shared with ORBit. |
 | Built-in browsers (v0.6.3) | Detect TikTok/Instagram etc. and say "Open in browser" | They can't install the game, and the game is being shared on TikTok. |
@@ -378,7 +381,24 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.16.2, 2026-11-16):**
+**Where things stand (after v0.16.3, 2026-11-16): sound rework under way.**
+- Adrian found the sound jarring and asked for it off while we pick new sounds one at a time,
+  with tuning and balancing. v0.16.3 switches sound off (new players, and once for everyone).
+- **Sound picker**, https://speeder-game.com/sound-picker/ (`sound-picker/`, see its README).
+  **Round 1, direction:** A today, B today smoothed, C Synthwave, D Retro arcade, E Heavy, each
+  with a 12-second RIDE demo on the game's mix and single-sound buttons. Waiting for his pick.
+- Plan after that: Round 2, one sound at a time in the chosen direction (shots, bullet hits,
+  enemy pop, explosion, crash, hurt, power-up, shield, then the rest: zap, jump, land, swarm,
+  launch, pass, fanfare, ui, engine hum); maybe music; Round 3, a balance mixer (sliders over the
+  demo). Then put the set into the game, raise `SOUND_RESET` and turn sound back on by default.
+- Measured problems with today's set: shots almost as loud as the music at up to 11 a second;
+  power-up and shield far louder than the music; crash and hurt mostly bass a phone can't play;
+  bullet hits are a sharp metal clang up to 16 times a second.
+- Sources: kenney.nl and opengameart.org are blocked from Claude's workspace. New sets are made
+  with `sound-picker/tools/synth.py`. The **uisfx** npm package (CC0 audio, 12 styles x 78 UI and
+  game cues, e.g. level-up, bonus, reward) is a reachable library for pickups and menu sounds.
+
+**Earlier (after v0.16.2, 2026-11-16):**
 - New private stats page, **https://speeder-game.com/stats/** (`stats/index.html`): players and
   returns, countries and phones, modes and run length, Lab verdicts per variant, Flight School
   funnel, everyone on the world boards, sharing and installs, every event. Needs a GoatCounter API
@@ -538,6 +558,8 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
+- **Sound rework** (see "Where things stand"): Adrian's Round 1 pick on the sound picker, then
+  Round 2 one sound at a time.
 - Adrian's playtest of the HYPERLANE (switch on "Start in a hyperlane"): does the v0.12.1 look
   work (contrast, zoom, effects)? Barrel rolls or Smooth
   banks? Does up/down steering feel natural? Is 11 s right, and is there too much or too little
