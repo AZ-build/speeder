@@ -392,7 +392,7 @@ See `CHANGELOG.md` for a full session-by-session history.
   `group=day`, keeps partial results, and quotes GoatCounter's error. **Ask whether it loads
   now**; if not, the message on the page is the clue (the 404's cause isn't confirmed).
 
-**Earlier (after v0.16.3, 2026-11-16): sound rework under way (another session).**
+**Sound rework, ongoing (v0.16.3 and the sound picker, 2026-11-16):**
 - Adrian found the sound jarring and asked for it off while we pick new sounds one at a time,
   with tuning and balancing. v0.16.3 switches sound off (new players, and once for everyone).
 - **Sound picker**, https://speeder-game.com/sound-picker/ (`sound-picker/`, see its README).
@@ -590,7 +590,7 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Then tune: `W_WORLD_T`, `BOSS_TOUGH`, `BOSS_PACE`, `RAIL_HOT_T`, each world's `pat` / `sig`
   weights, slalom and laser spacing, crosswind strength.
 - Check frame rate on a real mid-range phone (new buildings and roadside props).
-- Ideas raised, not built: a different boss per loop, music per world, a near-miss bonus in
+- Ideas raised, not built: a different boss per loop, music per world (a player's idea; the sound picker now asks which track fits each world), a near-miss bonus in
   Classic, roadside markers showing your best distance.
 - Start from friends' feedback (now including the new sound and music): Share & challenge, the moving obstacles, missiles, gun levels 5-8, the new edge bank and small middle lean (v0.6.2).
 - Scoring balance: today kills are roughly 2/3 of a score and distance about 1/5. Adrian said the
