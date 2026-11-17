@@ -121,6 +121,10 @@ own hazards, a world gate between each (you can see the next world through it), 
 multiply your score. Classic is the original endless run. Each has its own leaderboard.
 The How to play page in the game explains everything in Warp Run.
 
+**Flight School:** a hands-on tutorial that teaches everything (the screen, controls, obstacles,
+enemies, the worlds, the Warden and loops). It's at the top of **How to play**, and first-time
+players are offered it when they open the game.
+
 **The Lab:** the lime **LAB** button (flask icon) on the title screen opens a test mode where new ideas
 are tried out (a jump you can do anywhere; sky ramps with rings to fly through). It can also
 start a run on a later loop, fully loaded, for testing at speed. Lab runs don't count on any leaderboard,

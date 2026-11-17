@@ -478,6 +478,100 @@
     text-shadow: 0 0 24px rgba(255, 210, 60, 0.7);
   }
   .version { font-size: 10px; letter-spacing: 0.2em; color: rgba(203, 183, 255, 0.5); }
+  /* ---- Flight School (v0.15) ---- */
+  #tut { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+  #tutShade { position: fixed; inset: 0; background: rgba(4, 0, 14, 0.42); }
+  #tutSpot {
+    position: fixed; left: 0; top: 0; border-radius: 12px; border: 2px solid var(--cyan);
+    box-shadow: 0 0 0 200vmax rgba(4, 0, 14, 0.58), 0 0 18px rgba(41, 243, 255, 0.7), inset 0 0 12px rgba(41, 243, 255, 0.35);
+    transition: transform 0.28s ease, width 0.28s ease, height 0.28s ease;
+  }
+  .tut-hot {
+    position: fixed; left: 0; top: 0; pointer-events: auto; cursor: pointer; padding: 0;
+    background: rgba(41, 243, 255, 0.04); border: 1.5px dashed rgba(41, 243, 255, 0.6); border-radius: 10px;
+    animation: tutHot 1.6s ease-in-out infinite; touch-action: manipulation;
+  }
+  @keyframes tutHot { 50% { border-color: rgba(41, 243, 255, 0.2); } }
+  .tut-card {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+    width: min(440px, calc(100% - 20px)); box-sizing: border-box; max-height: 72vh; display: flex; flex-direction: column;
+    padding: 12px 14px 12px; border-radius: 18px; background: rgba(14, 4, 34, 0.95);
+    border: 1px solid rgba(41, 243, 255, 0.5); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(41, 243, 255, 0.15);
+    pointer-events: auto; text-align: left;
+  }
+  .tut-card.top { bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 10px); }
+  .tut-card.done { border-color: rgba(182, 255, 46, 0.6); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(182, 255, 46, 0.2); }
+  .tut-card.done .tut-title { color: var(--lime); text-shadow: 0 0 12px rgba(182, 255, 46, 0.5); }
+  .tut-top { display: flex; align-items: center; gap: 6px; }
+  #tutChap { flex: 1; font-size: 9px; font-weight: 800; letter-spacing: 0.16em; color: #a98fe0; }
+  .tut-mini {
+    flex: none; width: 32px; height: 32px; border-radius: 10px; padding: 0; font: 700 14px system-ui, sans-serif;
+    color: #fff; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.2); cursor: pointer; touch-action: manipulation;
+  }
+  .tut-mini.wide { width: auto; padding: 0 12px; font-size: 12px; }
+  .tut-mini.glow { color: var(--yellow); border-color: var(--yellow); }
+  .tut-title { margin: 6px 0 4px; font-size: 19px; font-weight: 800; color: #fff; text-shadow: 0 0 12px rgba(41, 243, 255, 0.45); }
+  .tut-body {
+    overflow-y: auto; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.45; color: #e6dcff;
+  }
+  .tut-body b { color: #fff; }
+  .tut-small { margin: 8px 0 0; font-size: 13px; color: #bfaee6; }
+  .tut-pows { display: grid; gap: 6px; margin-top: 2px; }
+  .tut-pows > div { display: flex; align-items: center; gap: 10px; font-size: 13.5px; line-height: 1.3; }
+  .tut-pows canvas { flex: none; position: static; display: block; }
+  .tut-score { display: grid; gap: 4px; }
+  .tut-score > div { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; line-height: 1.3; border-bottom: 1px solid rgba(255, 255, 255, 0.07); padding: 2px 0; }
+  .tut-score span { color: #ffd23c; text-align: right; }
+  .tut-prog { height: 3px; margin: 10px 0 10px; border-radius: 2px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+  .tut-prog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--cyan), var(--pink)); transition: width 0.3s ease; }
+  .tut-btns { display: flex; align-items: center; gap: 8px; }
+  .tut-btns .btn { min-height: 44px; }
+  .tut-btns .btn.ghost { flex: none; padding: 0 14px; }
+  .tut-btns .btn.primary { flex: 1; }
+  .tut-btns .btn:disabled { opacity: 0.3; }
+  .tut-btns .linkbtn { font-size: 12px; color: #bfaee6; }
+  .tut-hint {
+    position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 122px);
+    display: flex; align-items: center; gap: 6px; width: max-content; max-width: calc(100vw - 24px); box-sizing: border-box;
+    padding: 5px 5px 5px 14px; border-radius: 999px; background: rgba(10, 3, 30, 0.85); border: 1px solid rgba(255, 210, 60, 0.7);
+    box-shadow: 0 0 16px rgba(255, 210, 60, 0.25); pointer-events: auto;
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 13px; font-weight: 700; color: var(--yellow);
+  }
+  #tutHintText { flex: 1; }
+  .tut-list {
+    position: fixed; inset: 0; box-sizing: border-box; overflow-y: auto; pointer-events: auto; text-align: left;
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) 18px calc(env(safe-area-inset-bottom, 0px) + 20px);
+    background: rgba(8, 2, 22, 0.97);
+  }
+  .tut-list-head { display: flex; align-items: center; justify-content: space-between; letter-spacing: 0.2em; color: var(--cyan); margin-bottom: 4px; }
+  .tut-list h4 { margin: 16px 0 6px; font-size: 11px; letter-spacing: 0.18em; color: #a98fe0; text-transform: uppercase; }
+  .tut-li {
+    display: block; width: 100%; text-align: left; margin: 0 0 4px; padding: 9px 12px; border-radius: 10px; cursor: pointer;
+    font: 600 14px system-ui, -apple-system, 'Segoe UI', sans-serif; color: #efe6ff; background: rgba(255, 255, 255, 0.04); border: 1px solid transparent;
+  }
+  .tut-li small { margin-left: 6px; font-size: 10px; color: var(--lime); text-transform: uppercase; letter-spacing: 0.1em; }
+  .tut-li.cur { border-color: var(--cyan); background: rgba(41, 243, 255, 0.08); }
+  #tutOffer { z-index: 15; background: rgba(4, 0, 14, 0.6); justify-content: flex-end; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); }
+  .tut-offer {
+    width: min(400px, 100%); box-sizing: border-box; padding: 18px 18px 16px; border-radius: 20px; display: flex; flex-direction: column; gap: 10px;
+    background: rgba(14, 4, 34, 0.96); border: 1px solid rgba(41, 243, 255, 0.5); box-shadow: 0 0 30px rgba(41, 243, 255, 0.2);
+  }
+  .tut-offer .tut-title { margin: 0; font-size: 22px; }
+  .tut-offer p { margin: 0 0 4px; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 14.5px; line-height: 1.45; color: #e6dcff; }
+  .tut-chip { align-self: center; font-size: 10px; letter-spacing: 0.25em; color: var(--lime); border: 1px solid rgba(182, 255, 46, 0.5); border-radius: 999px; padding: 4px 10px; }
+  .tut-help-btn {
+    display: flex; align-items: center; gap: 14px; width: min(440px, 100%); box-sizing: border-box; margin: 4px auto 6px; padding: 12px 14px;
+    text-align: left; cursor: pointer; border-radius: 16px; color: #fff; font-family: inherit;
+    background: linear-gradient(135deg, rgba(41, 243, 255, 0.16), rgba(255, 43, 214, 0.14)); border: 1px solid rgba(41, 243, 255, 0.6);
+    box-shadow: 0 0 18px rgba(41, 243, 255, 0.18); touch-action: manipulation;
+  }
+  .tut-help-btn b { display: block; font-size: 15px; letter-spacing: 0.14em; color: var(--cyan); }
+  .tut-help-btn small { display: block; margin-top: 4px; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 12.5px; line-height: 1.35; color: #d9ccff; }
+  .tut-help-play {
+    flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 15px;
+    color: #160626; background: var(--yellow); box-shadow: 0 0 14px rgba(255, 210, 60, 0.5);
+  }
+  @media (prefers-reduced-motion: reduce) { .tut-hot { animation: none; } #tutSpot, .tut-prog i { transition: none; } }
   .modes { display: flex; gap: 10px; width: min(340px, 100%); }
   /* Title screen (v0.14): one slim mode switch and a row of icon buttons under "Touch to ride" */
   #title .modes {
@@ -553,6 +647,47 @@
 <button id="pauseBtn" class="hud-btn ui hidden" aria-label="Pause">
   <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
 </button>
+
+<div id="tut" class="hidden">
+  <div id="tutShade" class="hidden"></div>
+  <div id="tutSpot" class="hidden"></div>
+  <div id="tutHot"></div>
+  <div id="tutHint" class="tut-hint ui hidden" aria-live="polite">
+    <span id="tutHintText"></span>
+    <button class="tut-mini" id="tutHelp" type="button" aria-label="Show the instructions again">?</button>
+    <button class="tut-mini wide" id="tutSkip" type="button">Skip ›</button>
+  </div>
+  <div id="tutCard" class="tut-card ui hidden" role="dialog" aria-labelledby="tutTitle">
+    <div class="tut-top">
+      <span id="tutChap"></span>
+      <button class="tut-mini" id="tutMenu" type="button" aria-label="All parts of Flight School">&#9776;</button>
+      <button class="tut-mini" id="tutClose" type="button" aria-label="Leave Flight School">&#10005;</button>
+    </div>
+    <div class="tut-title" id="tutTitle"></div>
+    <div class="tut-body" id="tutBody"></div>
+    <div class="tut-prog"><i id="tutProg"></i></div>
+    <div class="tut-btns">
+      <button class="btn ghost" id="tutBack" type="button">‹ Back</button>
+      <button class="linkbtn hidden" id="tutSkipCard" type="button">Skip this</button>
+      <button class="btn ghost hidden" id="tutAlt" type="button">Back to title</button>
+      <button class="btn primary" id="tutNext" type="button">Next ›</button>
+    </div>
+  </div>
+  <div id="tutList" class="tut-list ui hidden" role="dialog" aria-label="Flight School parts">
+    <div class="tut-list-head"><b>FLIGHT SCHOOL</b><button class="tut-mini" id="tutListClose" type="button" aria-label="Close">&#10005;</button></div>
+    <div id="tutListBody"></div>
+  </div>
+</div>
+
+<div id="tutOffer" class="overlay ui hidden">
+  <div class="tut-offer">
+    <div class="tut-chip">NEW HERE?</div>
+    <div class="tut-title">Take Flight School</div>
+    <p>A hands-on intro to Speeder: the controls, every obstacle and enemy, the five worlds, the boss, and how scoring works. About 5 minutes, and you can&rsquo;t crash.</p>
+    <button class="btn primary" id="tutOfferGo" type="button">Start Flight School</button>
+    <button class="btn ghost" id="tutOfferSkip" type="button">Skip, just let me ride</button>
+  </div>
+</div>
 
 <div id="title" class="overlay">
   <div class="logo">SPEEDER</div>
@@ -663,6 +798,10 @@
 
 <div id="help" class="overlay panel hidden">
   <div class="panel-title">HOW TO PLAY</div>
+  <button class="tut-help-btn" id="helpTutBtn" type="button">
+    <span class="tut-help-play" aria-hidden="true">&#9654;</span>
+    <span><b>FLIGHT SCHOOL</b><small>Learn it hands-on: the controls, every icon, obstacle and enemy, the worlds, the boss and loops. About 5 minutes.</small></span>
+  </button>
   <div class="help">
     <h3>Riding</h3>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 22 h28 M12 17 l-5 5 5 5 M32 17 l5 5 -5 5" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="22" r="6" fill="none" stroke="#29f3ff" stroke-width="2"/></svg><div class="htxt"><div class="hname">Steer</div><div>Put your thumb down anywhere and slide left or right. It leans a little as it moves. Near the side rails it banks up on its side and gets skinnier, so tight gaps by the edge are easier to slip through. On a computer, use the arrow keys or A and D.</div></div></div>
@@ -794,7 +933,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.14.0';
+const VERSION = '0.15.0';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -863,6 +1002,11 @@ const POWERS = {
   p_magnet: { label: 'MAGNET', color: '#6dff7a', perk: 'magnet', sub: 'cells fly to you, longer overdrive' },
   p_chain:  { label: 'CHAIN BLAST', color: '#ffd23c', perk: 'chain', sub: 'kills blast what\'s nearby' },
 };
+// Flight School (the tutorial) state. Declared up here because speed, difficulty and hits check
+// TUT.on; the tutorial itself is in the "Flight School" section further down.
+const TUT = { on: false, v: 40, lvl: 0.6, i: 0, cur: null, mode: 'card', s: {}, ev: {}, src: '', prev: '', tries: 0, seen: null, noRail: false };
+// Where each part of the HUD was drawn on the last frame, as [x, y, width, height] (Flight School lights them up)
+const HUDR = {};
 // Labels that depend on what you already have (the 2X gate says 4X if 2X is running, etc.)
 function powerLabel(type) {
   if (type === 'mult') return Math.min(MULT_MAX, G.mult > 0 ? G.mx * 2 : 2) + 'X SCORE';
@@ -1208,10 +1352,11 @@ function hillAt(d) {
 function inRun() { return G.state === 'play' || G.state === 'dying' || G.state === 'over'; }
 // How hard things are at distance d. Classic: it just follows distance, as always.
 // Warp Run: distance counts up to level 5, then each loop adds W_LVL_STEP on top.
-function lvlAt(d) { return WP.on ? Math.min(Math.max(0, d) / 1000, 5) + (WP.loop - 1) * W_LVL_STEP : d / 1000; }
+function lvlAt(d) { if (TUT.on) return TUT.lvl; return WP.on ? Math.min(Math.max(0, d) / 1000, 5) + (WP.loop - 1) * W_LVL_STEP : d / 1000; }
 function lvlNow() { return lvlAt(G.d); }
 // The speed you settle at, at distance d.
 function baseSpeed(d) {
+  if (TUT.on) return TUT.v;          // (Flight School: one steady, gentle speed)
   const top = WP.on ? warpTop(d) : 90;
   return 32 + (top - 32) * (1 - Math.exp(-d / 4500));
 }
@@ -3288,6 +3433,7 @@ function spawnGates(at) {
 }
 
 function runSpawner() {
+  if (TUT.on) return;                        // (Flight School places everything itself)
   if (WP.on && WP.phase !== 'run') return;   // boss fights keep the road clear
   const ahead = G.d + SPAWN_AHEAD;
   while (G.nextSpawn < ahead) {
@@ -3391,6 +3537,7 @@ function killEnemy(e) {
   if (e.dead) return;
   e.dead = true;
   G.kills++;
+  if (TUT.on) TUT.ev.kills++;
   addScore(e.pts);
   const vd = e.type === 'drone' || e.type === 'boss' ? G.speed * 0.9 : (e.vd || 0);
   explode(e.x, e.y + 0.3, e.d, COLORS.red, true, vd);
@@ -3424,6 +3571,7 @@ function makeCracks() {
 }
 
 function hurt() {
+  if (TUT.on) return tutHurt();              // (Flight School: a hit only flashes)
   if (G.invuln > 0 || !player.alive) return false;
   if (G.shield > 0) {
     G.shield--;
@@ -3788,6 +3936,7 @@ function update(dt) {
         sfx.land();
         vibrate(20);
         if (G.air > 0 && G.state === 'play') {
+          if (TUT.on) TUT.ev.air++;
           const pts = 150 * G.air;
           addScore(pts);
           popup('AIR +' + pts * scoreX(), player.x, 1.2, G.d + 4, RAMP_C);
@@ -4037,6 +4186,7 @@ function update(dt) {
       for (const pg of g.pair.gates) {
         if (pg === took) {
           pg.taken = true;
+          if (TUT.on) { TUT.ev.gates++; TUT.ev.gate = pg.type; }
           burst(pg.x, 1.3, pg.d, POWERS[pg.type].color, 40, 6, G.speed * 0.7, 0.8);
           shockRing(pg.x, 1.3, pg.d, POWERS[pg.type].color, 3, 0.4, G.speed * 0.85);
           flashAt(pg.x, 1.3, pg.d, SPR.white, 2.4, 0.25, G.speed * 0.85);
@@ -5621,6 +5771,7 @@ function beginSector(d0) {
       WP.gusts.push({ d0: a, d1: a + Math.max(260, v * 4), dir: Math.random() < 0.5 ? -1 : 1, str: 2.6 + 0.3 * Math.min(WP.loop, 4) });
     }
   }
+  if (TUT.on) tutStripSector();        // (Flight School puts its own gate and hazards in each world)
 }
 function startWarpRun() {
   WP.on = true;
@@ -5632,6 +5783,7 @@ function startWarpRun() {
 // time this runs the whole screen is already showing it: the old world is dropped, the new
 // one is set up from right here, and its sky and scenery load in over the next REZ_T seconds.
 function enterWorld() {
+  if (TUT.on) TUT.ev.worlds++;
   addScore(1000);
   const pts = '+' + (1000 * scoreX()).toLocaleString();
   WP.sec++;
@@ -5654,7 +5806,7 @@ function enterWorld() {
   if (newLoop) {
     toast('LOOP ' + WP.loop, COLORS.yellow, 'score x' + WP.loop + ' · faster · tougher');
     sfx.fanfare();
-    if (!LAB.on) track('warp/loop/' + Math.min(WP.loop, 8), 'Warp Run: reached loop ' + Math.min(WP.loop, 8));
+    if (!LAB.on && !TUT.on) track('warp/loop/' + Math.min(WP.loop, 8), 'Warp Run: reached loop ' + Math.min(WP.loop, 8));
   } else {
     toast('WORLD CLEARED', COLORS.yellow, pts);
   }
@@ -5675,6 +5827,7 @@ function steerLim() {
 }
 function railRiding() { return WP.on && player.alive && WP.railLock <= 0 && Math.abs(player.x) > RAIL_X && player.y < 0.3; }
 function updateRail(dt) {
+  if (TUT.on && TUT.noRail) { WP.rail = 0; return; }   // (Flight School's edge-bank lesson: no overheating)
   if (WP.railLock > 0) {
     WP.railLock = Math.max(0, WP.railLock - dt);
     WP.rail = WP.railLock > 0 ? 1 : 0.35;      // (not fully cooled: go straight back and it overloads sooner)
@@ -5696,6 +5849,7 @@ function updateRail(dt) {
   }
 }
 function railOverload() {
+  if (TUT.on) TUT.ev.rail++;
   const side = Math.sign(player.x) || 1;
   WP.rail = 1;
   WP.railLock = RAIL_COOL_T;
@@ -5718,6 +5872,7 @@ function railOverload() {
 // ---- Overdrive, power cells, close calls ----
 function chargeOD(n) { WP.od = Math.min(OD_NEED, WP.od + n); }
 function startOverdrive() {
+  if (TUT.on) TUT.ev.od++;
   WP.od = 0;
   WP.odMax = OD_TIME + (WP.perks.magnet ? 4 : 0);
   WP.odT = WP.odMax;
@@ -5747,6 +5902,7 @@ function updateCells(dt, playing) {
     if (playing && rel < 0.9 && pr > -1.2 && Math.abs(player.x - c.x) < 1.15 && player.y < 2.2) {
       c.dead = true;
       chargeOD(1);
+      if (TUT.on) TUT.ev.cells++;
       addScore(25);
       burst(c.x, 0.6, G.d + 0.5, '#6dff7a', 8, 3, G.speed, 0.35);
       play('ui', 0.45, 1.5 + WP.od * 0.06, 0.03);
@@ -5758,6 +5914,7 @@ function updateCells(dt, playing) {
 }
 // You slipped past something with almost no room to spare.
 function nearMiss() {
+  if (TUT.on) TUT.ev.close++;
   WP.nm = WP.nmT > 0 ? WP.nm + 1 : 1;
   WP.nmT = 2.6;
   const pts = 40 * Math.min(WP.nm, 10);
@@ -6016,6 +6173,7 @@ function updateBoss(e, dt, playing) {
   e.d = G.d + e.rel;
 }
 function bossDown(e) {
+  if (TUT.on) TUT.ev.boss++;
   WP.boss = null;
   WP.bossKills++;
   WP.phase = 'reward';
@@ -6041,7 +6199,7 @@ function bossDown(e) {
   spawnGatePair(G.d + 380, a, b);
   WP.gateD = G.d + 680;
   addPortal(WP.gateD);
-  if (!LAB.on) track('warp/boss/' + Math.min(WP.loop, 8), 'Warp Run: beat the loop ' + Math.min(WP.loop, 8) + ' boss');
+  if (!LAB.on && !TUT.on) track('warp/boss/' + Math.min(WP.loop, 8), 'Warp Run: beat the loop ' + Math.min(WP.loop, 8) + ' boss');
 }
 // CHAIN BLAST: a kill damages whatever is close by
 function chainBlast(e) {
@@ -6745,6 +6903,7 @@ function drawBoss(e, z, a, s) {
 
 // ---- HUD pieces that only Warp Run shows ----
 function drawWarpHUD(top, left, py, perkX) {
+  HUDR.loop = [W - 86, top + 72, 76, 32];
   // where you are: loop number and five world pips (the last one is the boss world)
   ctx.textAlign = 'right';
   ctx.textBaseline = 'top';
@@ -6775,8 +6934,10 @@ function drawWarpHUD(top, left, py, perkX) {
   }
   // the boss's health
   const B = WP.boss;
+  HUDR.boss = null;
   if (B && !B.dead) {
     const bw = Math.min(W - 32, 420), bx = CX - bw / 2, by = top + 112;
+    HUDR.boss = [bx - 4, by - 16, bw + 8, 28];
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.font = '800 10px ' + FONT;
@@ -8983,15 +9144,19 @@ function drawHUD() {
     ctx.restore();
     ctx.textBaseline = 'top';
   }
+  HUDR.score = [left - 6, top - 6, sw + (G.mult > 0 || scoreX() > 1 ? 46 : 0) + 12, 38];
 
   // leaderboard ladder: the next score to beat, so you can feel yourself climbing
   const nx = G.state === 'play' ? nextRung() : null;
+  HUDR.ladder = null;
   if (nx) {
     ctx.font = '700 10px ' + FONT;
     ctx.fillStyle = nx.color;
     ctx.globalAlpha = 0.85;
-    ctx.fillText('▲ ' + nx.label + '  ' + nx.score.toLocaleString(), left, top + 31);
+    const lt = '▲ ' + nx.label + '  ' + nx.score.toLocaleString();
+    ctx.fillText(lt, left, top + 31);
     ctx.globalAlpha = 1;
+    HUDR.ladder = [left - 6, top + 26, ctx.measureText(lt).width + 12, 20];
   }
 
   // hull + shield pips
@@ -9007,10 +9172,13 @@ function drawHUD() {
     }
     x += 19;
   }
+  const hullEnd = x;
   for (let i = 0; i < G.shield; i++) {
     hex(x + 4, py, 7, true, COLORS.cyan);
     x += 19;
   }
+  HUDR.hull = [left - 2, py - 11, hullEnd - left - 8, 22];
+  HUDR.shield = G.shield > 0 ? [hullEnd - 6, py - 11, x - hullEnd + 2, 22] : null;
   // gun level: 4 yellow bars, then 4 orange "overdrive" bars
   ctx.font = '800 10px ' + FONT;
   ctx.textBaseline = 'middle';
@@ -9026,19 +9194,25 @@ function drawHUD() {
     const tall = i >= 4 ? 12 : 10;
     ctx.fillRect(gx + i * 6 + (i >= 4 ? 3 : 0), py - tall / 2, 4, tall);
   }
+  HUDR.guns = [x + 4, py - 11, gx + GUN_MAX * 6 + 7 - (x + 4), 22];
 
   // timers
   let tx = left;
   const ty = py + 20;
+  HUDR.cells = null; HUDR.loop = null;
   if (WP.on) {
     drawWarpHUD(top, left, py, gx + GUN_MAX * 6 + 12);
-    tx += odChip(tx, ty);
+    const cw = odChip(tx, ty);
+    HUDR.cells = [tx - 4, ty - 12, cw + 2, 24];
+    tx += cw;
     if (LAB.on) tx += labChips(tx, ty);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
   }
+  const t0 = tx;
   if (G.rapid > 0) tx += timerChip(tx, ty, 'RAPID', POWERS.rapid.color, G.rapid / 12);
   if (G.mult > 0) tx += timerChip(tx, ty, G.mx + 'X', POWERS.mult.color, G.mult / MULT_TIME);
+  HUDR.timers = tx > t0 ? [t0 - 4, ty - 12, tx - t0, 24] : null;
 
   // speed (top right, under the sound button)
   ctx.textAlign = 'right';
@@ -9049,6 +9223,7 @@ function drawHUD() {
   ctx.font = '500 9px ' + FONT;
   ctx.fillStyle = '#cbb7ff';
   ctx.fillText('KM/H', W - 16, top + 62);
+  HUDR.speed = [W - 66, top + 38, 56, 38];
 
   // zone title card when you cross into a new area: a neon line wipes open,
   // the name settles into place, then everything fades
@@ -9118,6 +9293,7 @@ function drawHUD() {
     const rel = g.d - G.d;
     if (!g.pair.resolved && rel > 6 && rel < 200) { next = g.pair; break; }
   }
+  HUDR.gates = next ? [8, chipY - 18, W - 16, 36] : null;
   const plate = (label, color, x0, w, alpha) => {
     ctx.globalAlpha = 0.85 * alpha;
     ctx.fillStyle = 'rgba(11, 4, 32, 0.75)';
@@ -9239,7 +9415,7 @@ function drawHUD() {
   }
 
   // first-run steering hint
-  if (G.state === 'play' && !G.dragged && G.runT < 6) {
+  if (G.state === 'play' && !G.dragged && G.runT < 6 && !TUT.on) {
     const a = 0.6 + 0.4 * Math.sin(G.t * 5);
     const hx = CX + Math.sin(G.t * 2.5) * 40;
     ctx.globalAlpha = a;
@@ -9496,7 +9672,7 @@ function openPanel(id) {
   if (id === 'settings') fillSettings();
   if (id === 'board') { boardMode = boardFor(inRun() ? G.mode : SET.mode); loadBoard(boardTab); }
   if (id === 'lab') { renderLab(); $('lab').scrollTop = 0; }
-  if (id === 'help') { fillHelpIcons(); $('help').scrollTop = 0; }
+  if (id === 'help') { fillHelpIcons(); $('help').scrollTop = 0; $('helpTutBtn').classList.toggle('hidden', G.state === 'play' || G.state === 'dying'); }
 }
 
 function closePanel() {
@@ -9531,6 +9707,7 @@ function armBackGuard() {
 window.addEventListener('popstate', () => {
   if (!backGuard) return;
   backGuard = false;
+  if (TUT.on) { tutPause(); return; }
   if (G.state === 'play') {
     track('back/paused', 'Back gesture paused a run');
     openMenu();
@@ -10015,6 +10192,663 @@ function updateLadder(dt) {
       G.passScore = r.score;
     }
   }
+}
+
+// ---------- Flight School (v0.15): the hands-on tutorial ----------
+// A guided Warp Run, slowed down to TUT.v, where nothing spawns on its own. Each step is a card
+// (the game is frozen behind it, with what it explains lit up), and most then say "Try it": the
+// game runs, the step's goal() watches, and once it's done the game freezes again and waits for
+// Next. Hits only flash (tutHurt), nothing is saved or uploaded, and none of it counts as a run.
+// Any step can be reached from the contents list (☰), and on the screen tour by tapping the thing.
+// To add a step: put it in TUT_STEPS. setup(s) places what it needs (it runs again on a retry),
+// goal(s) returns true when done or { retry: 'message' } to set it up again.
+const TUT_CH = [
+  ['welcome', 'Welcome'], ['screen', 'The screen'], ['controls', 'Controls'], ['powers', 'Power-ups'],
+  ['hazards', 'Obstacles'], ['enemies', 'Enemies'], ['cells', 'Cells & close calls'], ['worlds', 'The five worlds'],
+  ['boss', 'The Warden & loops'], ['ready', 'Ready to ride'],
+];
+const TUT_PRAISE = ['Nice!', 'Nailed it', 'Smooth', 'Got it', 'Perfect', 'Sharp flying'];
+const tutAhead = (n) => G.d + n;
+function tutEv() { return { cells: 0, kills: 0, gates: 0, gate: '', hits: 0, close: 0, air: 0, worlds: 0, boss: 0, rail: 0, od: 0 }; }
+function tutDelta(k) { return TUT.ev[k] - TUT.s.ev0[k]; }
+// everything in the list has been destroyed or is behind you
+function tutPassed(list, by) { return list.every((o) => o.dead || o.d < G.d - (by || 3)); }
+function tutHitAny(s) { return TUT.ev.hits > s.ev0.hits; }
+// where some things on the road are on screen right now, as [x, y, width, height]
+function tutRectOf(list) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const o of list || []) {
+    if (!o || o.dead) continue;
+    const z = o.d - VIEW_D;
+    if (z < 2 || z > FAR + 90) continue;
+    const hw = (o.w || 1) / 2, y = o.y || 0;
+    const h = o.kind === 'cell' ? 0.7 : o.type === 'boss' ? 2.4 : o.kind === 'enemy' ? 1.1 : o.type === 'gap' ? 0.2 : (o.h || 1);
+    const a = sx(o.x - hw, z), b = sx(o.x + hw, z), t = sy(y + h, z), u = sy(y, z);
+    x0 = Math.min(x0, a, b); x1 = Math.max(x1, a, b); y0 = Math.min(y0, t, u); y1 = Math.max(y1, t, u);
+  }
+  return x0 === Infinity ? null : [x0, y0, x1 - x0, y1 - y0];
+}
+function tutShipRect() { const x = sx(player.x, VIEW_Z), y = sy(0.42, VIEW_Z); return [x - 48, y - 40, 96, 64]; }
+function tutPowerRows(types) {
+  const say = {
+    shield: 'Blocks the next hit. You can carry two.',
+    weapon: 'Another gun, then special shots. Lasts the whole run.',
+    rapid: 'Your guns fire twice as fast for 12 seconds.',
+    repair: 'Gives back one hull point.',
+    missile: 'Eight homing missiles hunt down enemies, then mines.',
+    mult: 'Double score for 15 seconds.',
+  };
+  return '<div class="tut-pows">' + types.map((t) => '<div><canvas data-tpow="' + t + '" aria-hidden="true"></canvas><span><b style="color:' + POWERS[t].color + '">' + POWERS[t].label + '</b> ' + say[t] + '</span></div>').join('') + '</div>';
+}
+
+const TUT_STEPS = [
+  // ---- Welcome ----
+  { id: 'welcome', ch: 0, title: 'Welcome to Flight School',
+    body: 'This is a real run of Speeder, slowed down so you can learn it. <b>You can&rsquo;t crash here</b>: a hit just flashes.<br><br>Tap <b>Next</b> to go on. Tap <b>&#9776;</b> any time to jump to a part, or <b>&#10005;</b> to leave.' },
+
+  // ---- The screen (a tour of the frozen game; tap any part to jump to it) ----
+  { id: 'score', ch: 1, tour: true, spot: 'score', title: 'Your score',
+    body: 'It climbs as you fly, and with everything you destroy, every close call and every jump. The <b style="color:#b98cff">x2</b> beside it means your score is being doubled right now.<br><br><i>Tip: tap anything with a dotted outline to jump to it.</i>' },
+  { id: 'ladder', ch: 1, tour: true, spot: 'ladder', title: 'Next score to beat',
+    body: 'The next score above yours on the world leaderboard. Pass it and the next one shows up, so you can feel yourself climbing.' },
+  { id: 'hull', ch: 1, tour: true, spot: 'hull', title: 'Hull',
+    body: 'The pink hexes are your hull. Every hit costs one. Lose all three and you&rsquo;re <b>wrecked</b>: the run is over. A <b style="color:#ff5fa8">REPAIR</b> gate gives one back.' },
+  { id: 'shield', ch: 1, tour: true, spot: 'shield', title: 'Shield',
+    body: 'A blue hex is a shield. It takes the next hit for you, so your hull doesn&rsquo;t. You can carry two.' },
+  { id: 'guns', ch: 1, tour: true, spot: 'guns', title: 'Gun level',
+    body: 'Eight bars. Yellow bars add guns, up to four. Orange bars add special shots: bullets that go through things, wing missiles, heavy rounds. <b style="color:#ffd23c">GUNS+</b> gates fill them, and they last the whole run.' },
+  { id: 'cells', ch: 1, tour: true, spot: 'cells', title: 'Power cells',
+    body: 'Destroyed enemies drop green cells. Collect <b>8</b> and <b style="color:#ff5fe0">OVERDRIVE</b> kicks in: double fire and extra damage for 8 seconds.' },
+  { id: 'timers', ch: 1, tour: true, spot: 'timers', title: 'Timers',
+    body: 'Power-ups that wear off count down here: <b style="color:#6dff7a">RAPID</b> fire and <b style="color:#b98cff">2X</b> score.' },
+  { id: 'speed', ch: 1, tour: true, spot: 'speed', title: 'Speed',
+    body: 'How fast you&rsquo;re going, in km/h. It keeps climbing the farther you get, and every loop is faster again.' },
+  { id: 'loop', ch: 1, tour: true, spot: 'loop', title: 'Where you are',
+    body: 'Your loop, and the five worlds in it. The lit square is the world you&rsquo;re in. The diamond at the end is the boss, <b style="color:#ff2b4e">the Warden</b>.' },
+  { id: 'gates', ch: 1, tour: true, spot: 'gates', title: 'Gate preview',
+    body: 'When a pair of power-up gates is coming, both choices show here, under you. The side you&rsquo;re lined up with lights up, so you can choose early.' },
+  { id: 'pause', ch: 1, tour: true, spot: 'pause', title: 'Pause',
+    body: 'Pause any time. Settings and Quit are in there too. Leaving the app pauses the run for you.' },
+
+  // ---- Controls ----
+  { id: 'steer', ch: 2, title: 'Steering',
+    body: 'Put your thumb down <b>anywhere</b> and slide it left or right. The speeder moves with your thumb, so it never hides under it. On a computer: arrow keys or A and D.',
+    hint: 'Drag to fly through the 3 green cells',
+    setup(s) { s.list = [-3.2, 3.2, 0].map((x, k) => { dropCell(x, 0.6, tutAhead(110 + k * 75)); return cells[cells.length - 1]; }); },
+    spot: (s) => tutRectOf(s.list.slice(0, 1)),
+    goal(s) {
+      if (tutDelta('cells') >= 3) return true;
+      if (tutPassed(s.list, 4)) return { retry: 'Missed one. Steer into each cell.' };
+      return false;
+    },
+    done: 'That&rsquo;s the only control there is: one thumb, anywhere on the screen.' },
+  { id: 'aim', ch: 2, title: 'Your guns fire on their own',
+    body: 'You never press fire: your guns shoot straight ahead all the time. <b>To aim, you steer.</b> Line up under the drone and stay with it.',
+    hint: 'Destroy the drone',
+    setup(s) { s.list = [addEnemy('drone', { x: rand(-2, 2), tx: 0, y: 0.95, rel: 80, d: tutAhead(80), mode: 'enter', target: 36, hp: 3, pts: 250, w: 1.3, fireT: 2.4, stay: 1e9, retarget: 0.8 })]; },
+    spot: (s) => tutRectOf(s.list),
+    goal(s) {
+      if (tutDelta('kills') >= 1) return true;
+      if (s.list.every((e) => e.dead)) return { retry: 'It got away. Here comes another.' };
+      return false;
+    },
+    done: 'Drones hover ahead of you and shoot back. Their red shots can be dodged, and so can most things that come at you.' },
+  { id: 'edge', ch: 2, title: 'Edge bank',
+    body: 'Fly right up against a rail and the speeder rolls onto its side and gets <b>half as wide</b>. That&rsquo;s how you squeeze through a gap right by the edge.',
+    hint: 'Squeeze through the gaps at the rails',
+    setup(s) {
+      TUT.noRail = true;
+      addWallSpan(-TRACK_HALF, TRACK_HALF - 0.75, tutAhead(140));
+      addWallSpan(-TRACK_HALF + 0.75, TRACK_HALF, tutAhead(270));
+      s.list = objs.slice(-2);
+    },
+    spot: (s) => tutRectOf(s.list.slice(0, 1)),
+    goal(s) {
+      if (!tutPassed(s.list)) return false;
+      if (tutHitAny(s) && (s.tries || 0) < 2) return { retry: 'Bumped it. Steer all the way into the rail.' };
+      return true;
+    },
+    done: (s) => (tutHitAny(s) ? 'Close. Steer hard into the rail and the speeder does the rest.' : 'Perfect squeeze.') + ' The speeder tips onto its side by itself; you just steer.' },
+  { id: 'rail', ch: 2, title: 'Rails overheat',
+    body: 'Riding a rail is a trick, not a place to hide. Stay on one for about <b>3 seconds</b> and it <b style="color:#ff2b4e">overloads</b>: you&rsquo;re thrown back onto the road (no damage) and both rails lock while they cool. (Warp Run only.)',
+    hint: 'Ride a rail until it overloads',
+    spot: 'ship',
+    goal: () => tutDelta('rail') >= 1,
+    done: 'See the <b>RAIL HOT</b> warning under the speeder? That&rsquo;s your cue to move off before it blows.' },
+
+  // ---- Power-ups ----
+  { id: 'gatepair', ch: 3, title: 'Power-up gates',
+    body: 'Gates come in <b>pairs</b>. Drive through the one you want; the other one disappears. Sometimes mines guard one of them.',
+    hint: 'Pick a gate',
+    setup(s) {
+      const p = s.tries ? ['rapid', 'missile'] : ['shield', 'weapon'];
+      spawnGatePair(tutAhead(170), p[0], p[1]);
+      s.pair = gates[gates.length - 1].pair;
+    },
+    spot: (s) => tutRectOf(s.pair.gates),
+    goal(s) {
+      if (tutDelta('gates') >= 1) return true;
+      if (s.pair.resolved) return { retry: 'You went between them. Drive through one.' };
+      return false;
+    },
+    done: () => 'You took <b style="color:' + POWERS[TUT.ev.gate].color + '">' + POWERS[TUT.ev.gate].label + '</b>. Look at the top of the screen: it shows up there.',
+    spotDone: () => TUT.ev.gate === 'shield' ? HUDR.shield : TUT.ev.gate === 'weapon' ? HUDR.guns : TUT.ev.gate === 'rapid' ? HUDR.timers : null },
+  { id: 'powers', ch: 3, title: 'All six power-ups',
+    body: () => tutPowerRows(['shield', 'weapon', 'rapid', 'repair', 'missile', 'mult']) + '<p class="tut-small">Things you&rsquo;ve maxed out stop being offered.</p>' },
+
+  // ---- Obstacles ----
+  { id: 'pylons', ch: 4, title: 'Pylons',
+    body: 'Tall pylons <b>can&rsquo;t be destroyed</b>. Steer around them.',
+    hint: 'Weave through the pylons',
+    setup(s) { s.list = [-2.6, 1.8, -0.6, 3.2, -3.4].map((x, k) => addPylon(x, tutAhead(130 + k * 26))); },
+    spot: (s) => tutRectOf(s.list),
+    goal: (s) => tutPassed(s.list),
+    done: (s) => tutHitAny(s) ? 'You clipped one. In a real run that&rsquo;s a hull point gone.' : 'Clean. Not a scratch.' },
+  { id: 'walls', ch: 4, title: 'Walls',
+    body: 'Walls block most of the road. Find the <b>gap</b> and line up early.',
+    hint: 'Fly through the gaps',
+    setup(s) {
+      for (const [gc, d] of [[-1.8, 130], [2.4, 220]]) {
+        addWallSpan(-TRACK_HALF, gc - 1.4, tutAhead(d));
+        addWallSpan(gc + 1.4, TRACK_HALF, tutAhead(d));
+      }
+      s.list = objs.slice(-4);
+    },
+    spot: (s) => tutRectOf(s.list.slice(0, 2)),
+    goal: (s) => tutPassed(s.list),
+    done: (s) => tutHitAny(s) ? 'Walls are wide: start moving as soon as you see one.' : 'Right through the middle.' },
+  { id: 'mines', ch: 4, title: 'Mines',
+    body: 'Orange mines take <b>2 shots</b>. Shoot your way through or steer around them. Each one you destroy is +50.',
+    hint: 'Get past the mines',
+    setup(s) { s.list = []; for (let i = 0; i < 7; i++) s.list.push(addMine(rand(-3, 3), tutAhead(130 + i * 9))); },
+    spot: (s) => tutRectOf(s.list),
+    goal: (s) => tutPassed(s.list),
+    done: 'Mines stay red-orange in every world, so you can always spot them.' },
+  { id: 'lasers', ch: 4, title: 'Laser fences',
+    body: 'A laser fence&rsquo;s gap <b>slides from side to side</b>. Bullets go straight through lasers, so dodging is the only way.',
+    hint: 'Slip through the moving gaps',
+    setup(s) { addLaserFence(tutAhead(150), 3.0, 2.0, 0.9); addLaserFence(tutAhead(260), 3.0, 2.0, 0.9); s.list = objs.slice(-4); },
+    spot: (s) => tutRectOf(s.list.slice(0, 2)),
+    goal: (s) => tutPassed(s.list),
+    done: 'Watch where the gap is heading, not where it is.' },
+  { id: 'ramps', ch: 4, title: 'Ramps',
+    body: 'Drive onto a <b style="color:#b6ff2e">lime ramp</b> to jump. Some barriers cross the whole road: then the ramp is the only way over. Jumping over things scores <b>AIR</b> points.',
+    hint: 'Hit the ramp',
+    setup(s) {
+      const at = tutAhead(130);
+      addRamp(0, at);
+      addObj('wall', 0, at + RAMP_LEN + baseSpeed(at) * jumpT() * 0.42, TRACK_HALF * 2, { h: 1.2, dep: 0.5, jump: true });
+      s.list = objs.slice(-2);
+    },
+    spot: (s) => tutRectOf(s.list),
+    goal(s) {
+      if (!tutPassed(s.list)) return false;
+      if (tutHitAny(s) && (s.tries || 0) < 2) return { retry: 'Line up with the lime ramp and hold steady.' };
+      return true;
+    },
+    done: (s) => tutHitAny(s) ? 'Hit the ramp head on next time: that barrier covers the whole road.' : 'Big air! Clearing things in the air is worth points.' },
+  { id: 'movers', ch: 4, title: 'Things that move',
+    body: 'Some pylons slide along grooves, and some lines of mines sway like a snake. Watch the rhythm, then go.',
+    hint: 'Time it through the movers',
+    setup(s) {
+      s.list = [];
+      for (let i = 0; i < 3; i++) { const o = addPylon(0, tutAhead(130 + i * 30)); o.osc = swing(0, 3.2, 1.1); moveObj(o); s.list.push(o); }
+      const ph = rand(0, 6.283);
+      for (let i = 0; i < 7; i++) { const o = addMine(0, tutAhead(250 + i * 7)); o.osc = { base: 0, amp: 3, freq: 1.2, ph: ph + i * 0.55 }; moveObj(o); s.list.push(o); }
+    },
+    spot: (s) => tutRectOf(s.list.slice(0, 3)),
+    goal: (s) => tutPassed(s.list),
+    done: 'Moving things always follow a steady swing, so you can read them.' },
+
+  // ---- Enemies ----
+  { id: 'turrets', ch: 5, title: 'Turrets',
+    body: 'Turrets sit on the road and open fire as you get close. <b>3 shots</b> take one out (+200).',
+    hint: 'Take out the turrets',
+    setup(s) { s.list = [[-3.2, 150], [2.6, 205]].map(([x, d]) => addEnemy('turret', { x, d: tutAhead(d), y: 0, hp: 3, pts: 200, w: 1.0, fireT: 0.6 })); },
+    spot: (s) => tutRectOf(s.list),
+    goal: (s) => tutPassed(s.list),
+    done: (s) => 'You destroyed ' + tutDelta('kills') + ' of 2. Line up early: they shoot as soon as you&rsquo;re in range.' },
+  { id: 'rams', ch: 5, title: 'Ram bikes',
+    body: 'Ram bikes drive straight at you and <b>steer toward you</b>. 2 shots each (+150), or sidestep at the last moment.',
+    hint: 'Shoot or dodge the ram bikes',
+    setup(s) { s.list = [-2.5, 2.0, -0.5].map((x, k) => addEnemy('ram', { x, d: tutAhead(180 + k * 40), y: 0.42, vd: -18, hp: 2, pts: 150, w: 0.8, steer: 1.6 })); },
+    spot: (s) => tutRectOf(s.list),
+    goal: (s) => tutPassed(s.list),
+    done: 'Drones, turrets and ram bikes: those are the enemies. They get tougher every loop.' },
+
+  // ---- Cells, overdrive, close calls, scoring ----
+  { id: 'overdrive', ch: 6, title: 'Cells and OVERDRIVE',
+    body: 'Destroyed enemies drop green <b>power cells</b>. They stay on the road where they fell, so steer into them. You&rsquo;ve got 3 already: collect 5 more for <b style="color:#ff5fe0">OVERDRIVE</b>.',
+    hint: 'Collect cells until OVERDRIVE',
+    setup(s) {
+      WP.od = 3;
+      s.list = [];
+      for (let i = 0; i < 6; i++) { dropCell(Math.sin(i * 0.9) * 2.4, 0.6, tutAhead(110 + i * 22)); s.list.push(cells[cells.length - 1]); }
+    },
+    spot: (s) => tutRectOf(s.list.slice(0, 2)),
+    goal(s) {
+      if (tutDelta('od') >= 1) return true;
+      if (tutPassed(s.list, 4)) return { retry: 'A few got past you. Here they come again.' };
+      return false;
+    },
+    done: 'OVERDRIVE: double fire and +1 damage for 8 seconds. Save it for when things get busy.',
+    spotDone: () => HUDR.cells },
+  { id: 'close', ch: 6, title: 'Close calls',
+    body: 'Skim past something with almost no room to spare for a <b>close call</b>: points, and a bit of cell charge. Chain them for more.',
+    hint: 'Fly straight through the middle',
+    setup(s) {
+      s.list = [];
+      for (let k = 0; k < 3; k++) for (const x of [-1.15, 1.15]) s.list.push(addPylon(x, tutAhead(130 + k * 55)));
+    },
+    spot: (s) => tutRectOf(s.list.slice(0, 2)),
+    goal(s) {
+      if (!tutPassed(s.list)) return false;
+      if (tutDelta('close') < 2 && (s.tries || 0) < 2) return { retry: 'Get closer. Fly right through the middle of each pair.' };
+      return true;
+    },
+    done: (s) => 'You got ' + tutDelta('close') + ' close call' + (tutDelta('close') === 1 ? '' : 's') + '. Each is worth +40, and a chain is worth more each time, up to +400.' },
+  { id: 'scoring', ch: 6, title: 'How you build score', spot: 'score',
+    body: '<div class="tut-score">' +
+      '<div><b>Distance</b><span>always ticking</span></div>' +
+      '<div><b>Destroying things</b><span>drone 250 · turret 200 · ram 150 · mine 50</span></div>' +
+      '<div><b>Close calls</b><span>+40, chains up to +400</span></div>' +
+      '<div><b>Jumping over things</b><span>+150 each</span></div>' +
+      '<div><b>World gate</b><span>+1,000</span></div>' +
+      '<div><b>The Warden</b><span>+5,000</span></div>' +
+      '</div><p class="tut-small">Then it&rsquo;s all multiplied: <b style="color:#b98cff">2X SCORE</b> doubles it, and in Warp Run everything is multiplied by your <b style="color:#ffd23c">loop number</b>.</p>' },
+
+  // ---- The five worlds ----
+  { id: 'worldgate', ch: 7, sec: 0, title: 'World gates',
+    body: 'Each world ends at a <b>world gate</b> built across the road. It&rsquo;s a window into the next world: fly through it (+1,000). A world lasts about 40 seconds.',
+    hint: 'Fly through the world gate',
+    setup(s) { addPortal(tutAhead(190)); WP.gateD = WP.portal.d; s.list = [WP.portal]; },
+    spot: (s) => tutRectOf(s.list),
+    goal: () => tutDelta('worlds') >= 1 && WP.rez > 2.2,
+    done: 'Welcome to <b>Neon City</b>, world 2 of 5. Every world looks different and has its own hazard. Let&rsquo;s see them all.' },
+  { id: 'city', ch: 7, sec: 1, title: 'Neon City',
+    body: 'Hover-trucks share the road. They go your way, just slower, so you catch up and <b>weave through</b>. There are tunnels too: it gets dark inside.',
+    hint: 'Weave through the traffic',
+    setup(s) {
+      WP.tunnels.push({ a: tutAhead(40), b: tutAhead(330) });
+      spawnWarpPattern('traffic', tutAhead(130), 1.6);
+      s.list = objs.filter((o) => o.type === 'traffic');
+    },
+    spot: (s) => tutRectOf(s.list),
+    goal: (s) => tutWorldGoal(s),
+    done: 'Next: <b>Sky Islands</b>, world 3.' },
+  { id: 'sky', ch: 7, sec: 2, title: 'Sky Islands',
+    body: 'The road breaks into <b>chasms</b>. A ramp across the whole road throws you over: just keep going. <b>Crosswinds</b> blow too: arrows under you warn you first, then steer against the push.',
+    hint: 'Jump the chasm, then fight the wind',
+    setup(s) {
+      spawnWarpPattern('chasm', tutAhead(130), 1);
+      s.list = objs.slice(-2);
+      const g = tutAhead(320);
+      WP.gusts.push({ d0: g, d1: g + 200, dir: Math.random() < 0.5 ? -1 : 1, str: 2.6 });
+      s.after = g + 200;
+    },
+    spot: (s) => tutRectOf(s.list),
+    goal: (s) => tutWorldGoal(s),
+    done: 'Next: <b>Crystal Wastes</b>, world 4.' },
+  { id: 'crystal', ch: 7, sec: 3, title: 'Crystal Wastes',
+    body: 'Crystals <b>burst up out of the road</b> as you get close. Three shots shatter one (+100). They&rsquo;re too tall to jump.',
+    hint: 'Shoot or dodge the crystals',
+    setup(s) { spawnWarpPattern('spikes', tutAhead(140), 1); s.list = objs.filter((o) => o.type === 'spike'); },
+    spot: (s) => tutRectOf(s.list),
+    goal: (s) => tutWorldGoal(s),
+    done: 'Last world of the loop: <b>Cosmic Highway</b>.' },
+  { id: 'cosmic', ch: 7, sec: 4, title: 'Cosmic Highway',
+    body: 'Glowing rings on the road mark where <b>meteors</b> are about to land: stay off them. Out here jumps are floaty, so you stay up longer.',
+    hint: 'Dodge the meteors, then jump',
+    setup(s) {
+      spawnWarpPattern('meteors', tutAhead(130), 1.5);
+      s.list = objs.filter((o) => o.type === 'meteor');
+      const at = Math.max(...s.list.map((o) => o.d)) + 50;
+      addRamp(0, at);
+      for (let i = 0; i < 3; i++) s.list.push(addMine(rand(-1.2, 1.2), at + RAMP_LEN + baseSpeed(at) * jumpT() * (0.3 + i * 0.15)));
+    },
+    spot: (s) => tutRectOf(s.list.slice(0, 2)),
+    goal: (s) => tutPassed(s.list),
+    done: 'At the end of Cosmic Highway, someone is waiting for you.' },
+
+  // ---- The Warden and loops ----
+  { id: 'warden', ch: 8, sec: 4, title: 'The Warden',
+    body: 'The boss guards the end of every loop. <b>Line up under it to shoot.</b> It fights in three stages: aimed shots, walls of mines, then lit lanes that fire (get out of them) and laser fences. Its health bar is at the top.',
+    hint: 'Beat the Warden',
+    spot: 'boss',
+    setup(s) {
+      G.weapon = Math.max(G.weapon, 3);
+      startBoss();
+      const B = WP.boss;
+      B.hp = B.hp0 = Math.max(24, Math.round(B.hp0 * 0.4));    // (a shorter fight than the real one)
+      s.list = [B];
+    },
+    goal(s, dt) {
+      if (tutDelta('boss') >= 1) {
+        // wait until the prototype gates it leaves behind are in sight
+        s.t = (s.t || 0) + dt;
+        const g = gates.find((q) => !q.pair.resolved);
+        return s.t > 1.4 && (!g || g.d - G.d < 190);
+      }
+      if (!WP.boss) return { retry: 'Here it comes again.' };
+      return false;
+    },
+    done: 'WARDEN DOWN: +5,000. In a real run it&rsquo;s tougher, and it grows with your guns and with every loop.' },
+  { id: 'proto', ch: 8, sec: 4, keep: () => TUT.prev === 'warden', title: 'Prototypes',
+    body: 'Beating the Warden lets you pick a <b>prototype</b>: a permanent upgrade for the rest of the run. Drive through the one you want.',
+    hint: 'Pick a prototype',
+    setup(s) {
+      if (!gates.some((g) => !g.pair.resolved)) { const [a, b] = choosePerks(); spawnGatePair(tutAhead(200), a, b); }
+      if (!WP.portal || WP.portal.dead) { addPortal(tutAhead(520)); WP.gateD = WP.portal.d; }
+      s.pair = gates.find((g) => !g.pair.resolved).pair;
+    },
+    spot: (s) => tutRectOf(s.pair.gates),
+    goal(s) {
+      if (tutDelta('gates') >= 1 && POWERS[TUT.ev.gate].perk) return true;
+      if (s.pair.resolved) return { retry: 'You missed both. Drive through one.' };
+      return false;
+    },
+    done: () => 'You took <b style="color:' + POWERS[TUT.ev.gate].color + '">' + POWERS[TUT.ev.gate].label + '</b>: ' + POWERS[TUT.ev.gate].sub + '. You get a new pick after every Warden.' },
+  { id: 'loops', ch: 8, sec: 4, keep: () => TUT.prev === 'proto', title: 'Loops',
+    body: 'Through the next gate the five worlds start again as <b>loop 2</b>. Each loop is <b>faster and tougher</b>, and your score is <b>multiplied by the loop number</b>: x2 in loop 2, x3 in loop 3, and so on.',
+    hint: 'Fly into loop 2',
+    setup(s) {
+      if (!WP.portal || WP.portal.dead) addPortal(tutAhead(190));
+      else if (WP.portal.d > G.d + 200) WP.portal.d = G.d + 190;     // (bring it into sight)
+      WP.gateD = WP.portal.d;
+      s.list = [WP.portal];
+    },
+    spot: (s) => tutRectOf(s.list),
+    goal: () => tutDelta('worlds') >= 1 && WP.rez > 2.2,
+    done: 'LOOP 2. Everything now scores double. How many loops can you survive?',
+    spotDone: () => HUDR.loop },
+
+  // ---- Ready ----
+  { id: 'modes', ch: 9, title: 'Two ways to play',
+    body: '<b style="color:#ffd23c">WARP RUN</b> is everything you just learned: worlds, the Warden and loops.<br><br><b>CLASSIC</b> is the original: one endless road that keeps getting faster. No worlds, cells or boss. Each has its own world leaderboard.' },
+  { id: 'extras', ch: 9, title: 'After a run',
+    body: 'Put your name on the <b>world leaderboard</b> after a good run. <b style="color:#29f3ff">Share &amp; challenge</b> sends a friend your score to beat. And <b style="color:#b6ff2e">the Lab</b> is where new ideas get tested: try them and vote.' },
+  { id: 'ready', ch: 9, final: true, title: 'You&rsquo;re ready',
+    body: 'That&rsquo;s everything. The written version is in <b>How to play</b> any time.<br><br>Now go set a score.' },
+];
+function tutWorldGoal(s) {
+  if (tutDelta('worlds') >= 1) return WP.rez > 2.2;
+  if (!s.gate && tutPassed(s.list) && G.d > (s.after || 0)) { addPortal(tutAhead(170)); WP.gateD = WP.portal.d; s.gate = true; }
+  return false;
+}
+const TUT_TOUR = ['score', 'ladder', 'hull', 'shield', 'guns', 'cells', 'timers', 'speed', 'loop', 'gates', 'pause'];
+function tutIndex(id) { return TUT_STEPS.findIndex((st) => st.id === id); }
+
+function tutStart(src) {
+  clearPanels();
+  hide('tutOffer');
+  stopConfetti();
+  resetRun();
+  TUT.on = true; TUT.src = src; TUT.ev = tutEv(); TUT.seen = new Set(); TUT.cur = null; TUT.prev = ''; TUT.noRail = false;
+  G.mode = 'warp';
+  G.best = bestFor('warp');
+  G.state = 'play';
+  startWarpRun();
+  G.dragged = true;            // (no "drag to steer" hint: Flight School teaches it)
+  G.speed = TUT.v;
+  for (let k = 0; k < 40; k++) update(1 / 60);   // (fly a moment, so the world is built before the first frozen frame)
+  resumeT = 0;
+  hide('countdown');
+  armBackGuard();
+  audioInit();
+  show('tut');
+  track('tut/start/' + src, 'Flight School started from ' + (src === 'offer' ? 'the first-time offer' : 'How to play'));
+  tutGo(0);
+}
+function tutGo(i) {
+  const prev = TUT.cur;
+  i = clamp(i, 0, TUT_STEPS.length - 1);
+  const st = TUT_STEPS[i];
+  TUT.prev = prev ? prev.id : '';
+  TUT.i = i; TUT.cur = st; TUT.mode = 'card'; TUT.tries = 0; TUT.noRail = false;
+  TUT.s = { ev0: Object.assign({}, TUT.ev), tries: 0 };
+  const keep = st.keep && st.keep();
+  if (!keep) {
+    if (st.sec !== undefined && WP.sec !== st.sec) tutSetWorld(st.sec);
+    else tutClear();
+  }
+  if (st.tour) tutTourStage();
+  if (st.setup) st.setup(TUT.s);
+  update(0.001);               // (settle everything just placed, so the frozen frame shows it)
+  paused = true; drag = null; keys.left = false; keys.right = false;
+  $('pauseBtn').classList.toggle('hidden', !st.tour);   // (shown on the screen tour, so it can be pointed at)
+  hide('tutList');
+  const ch = TUT_CH[st.ch][0];
+  if (!TUT.seen.has(ch)) { TUT.seen.add(ch); track('tut/part/' + (st.ch + 1) + '-' + ch, 'Flight School: reached part ' + (st.ch + 1) + ', ' + TUT_CH[st.ch][1]); }
+  tutCard();
+}
+// A clean road: nothing on it, nothing pending, full hull. (Score, guns and shields carry on.)
+function tutClear() {
+  objs.length = 0; enemies.length = 0; eshots.length = 0; gates.length = 0; cells.length = 0; missiles.length = 0; shots.length = 0; popups.length = 0;
+  WP.portal = null; WP.gateD = Infinity; WP.boss = null; WP.phase = 'run';
+  WP.tunnels.length = 0; WP.gusts.length = 0; WP.wind = 0; WP.windWarn = 0;
+  TUN.cur = null; TUN.inside = false; TUN.dark = false; TUN.wasIn = false;
+  WP.rail = 0; WP.railLock = 0; WP.od = 0; WP.odT = 0; WP.nm = 0; WP.nmT = 0; WP.nmShow = 0;
+  G.rapid = 0; G.mult = 0; G.mx = 1; G.invuln = 0; G.slow = 0; G.hull = hullMax(); G.toastT = 0;
+  G.ladder = null; G.passT = 0; G.air = 0;
+  player.y = 0; player.vy = 0; player.ramp = null; player.hop = false; player.mega = false;
+}
+// Jump straight to a world (sec 0-4 is loop 1, 5 is the first world of loop 2)
+function tutSetWorld(sec) {
+  WP.sec = sec;
+  WP.loop = 1 + Math.floor(sec / SKINS.length);
+  tutClear();
+  resetScenery();
+  beginSector(G.d);
+  WP.rez = 0; WP.card = true;
+}
+// beginSector() sets up the world's own gate, tunnels and winds: Flight School places its own.
+function tutStripSector() {
+  if (WP.portal) WP.portal.dead = true;
+  WP.portal = null; WP.gateD = Infinity;
+  WP.tunnels.length = 0; WP.gusts.length = 0;
+  gates.length = 0;
+}
+// The screen tour freezes on a busy moment, so every part of the HUD has something to show.
+function tutTourStage() {
+  G.score = Math.max(G.score, 12450);
+  G.mult = 9; G.mx = 2; G.rapid = 7; G.weapon = Math.max(G.weapon, 3); G.shield = Math.max(G.shield, 1);
+  WP.od = 5;
+  G.ladder = [{ label: '#14 NOVA', score: Math.floor(G.score) + 3350, color: '#29f3ff', kind: 'player' }]; G.rung = 0;
+  spawnGatePair(tutAhead(95), 'shield', 'weapon');
+}
+// In Flight School a hit only flashes: nothing is lost.
+function tutHurt() {
+  if (G.invuln > 0 || !player.alive) return false;
+  TUT.ev.hits++;
+  G.invuln = 0.7;
+  G.flash = 0.6; G.flashColor = COLORS.red;
+  G.shake = Math.max(G.shake, 0.35);
+  burst(player.x, 0.5, G.d, COLORS.orange, 14, 4, G.speed * 0.8, 0.5);
+  sfx.hurt();
+  vibrate(60);
+  toast('HIT!', COLORS.red, 'in a real run that costs 1 hull');
+  return true;
+}
+
+// ---- The card, the light-up and the hint ----
+function tutCard() {
+  const st = TUT.cur, done = TUT.mode === 'done', again = TUT.mode === 'paused';
+  $('tutChap').textContent = 'PART ' + (st.ch + 1) + ' OF ' + TUT_CH.length + ' · ' + TUT_CH[st.ch][1].toUpperCase();
+  $('tutTitle').innerHTML = done ? TUT_PRAISE[TUT.i % TUT_PRAISE.length] : st.title;
+  const body = done ? st.done : st.body;
+  $('tutBody').innerHTML = (typeof body === 'function' ? body(TUT.s) : body) || '';
+  for (const c of $('tutBody').querySelectorAll('canvas[data-tpow]')) drawPowerHex(c, c.dataset.tpow, 30);
+  $('tutProg').style.width = (100 * (TUT.i + (done || !st.goal ? 1 : 0.5)) / TUT_STEPS.length).toFixed(1) + '%';
+  $('tutBack').disabled = TUT.i === 0;
+  $('tutNext').textContent = st.final ? 'Ride Warp Run' : again ? 'Back to it ▶' : TUT.mode === 'card' && st.goal ? 'Try it ▶' : 'Next ›';
+  $('tutAlt').classList.toggle('hidden', !st.final);
+  $('tutBack').classList.toggle('hidden', !!st.final);
+  $('tutSkipCard').classList.toggle('hidden', !(st.goal && !done));
+  $('tutCard').classList.toggle('done', done);
+  hide('tutHint');
+  show('tutCard');
+  tutLayout();
+  try { $('tutNext').focus({ preventScroll: true }); } catch (e) { /* fine */ }
+}
+function tutSpotRect() {
+  const st = TUT.cur;
+  let spot = TUT.mode === 'done' ? st.spotDone : st.spot;
+  if (typeof spot === 'function') return spot(TUT.s);
+  if (spot === 'pause') { const r = $('pauseBtn').getBoundingClientRect(); return r.width ? [r.left, r.top, r.width, r.height] : null; }
+  if (spot === 'ship') return tutShipRect();
+  return spot ? HUDR[spot] || null : null;
+}
+let tutSpotKey = '';
+function tutLayout() {
+  if (!TUT.on || !TUT.cur) return;
+  const cardOn = TUT.mode !== 'play';
+  const r = cardOn ? tutSpotRect() : null;
+  const spot = $('tutSpot');
+  let midY = -1;
+  if (r) {
+    const p = 8, w = Math.max(44, r[2] + 2 * p), h = Math.max(36, r[3] + 2 * p);
+    const x = clamp(r[0] + r[2] / 2 - w / 2, 4 - w / 2, W - 4 - w / 2), y = r[1] + r[3] / 2 - h / 2;
+    const key = Math.round(x) + ',' + Math.round(y) + ',' + Math.round(w) + ',' + Math.round(h);
+    if (key !== tutSpotKey) {
+      tutSpotKey = key;
+      spot.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+      spot.style.width = Math.round(w) + 'px';
+      spot.style.height = Math.round(h) + 'px';
+    }
+    spot.classList.remove('hidden');
+    midY = y + h / 2;
+  } else {
+    spot.classList.add('hidden');
+    tutSpotKey = '';
+  }
+  $('tutShade').classList.toggle('hidden', !cardOn || !!r);
+  // the card moves to the top when what it points at is in the lower half of the screen
+  $('tutCard').classList.toggle('top', midY > H * 0.5);
+  // screen tour: every part of the HUD can be tapped to jump to it
+  const tour = cardOn && TUT.cur.tour;
+  for (const b of $('tutHot').children) {
+    const k = b.dataset.k;
+    let rr = null;
+    if (tour && k !== TUT.cur.spot) {
+      if (k === 'pause') { const q = $('pauseBtn').getBoundingClientRect(); rr = q.width ? [q.left, q.top, q.width, q.height] : null; }
+      else rr = HUDR[k] || null;
+    }
+    if (!rr) { b.classList.add('hidden'); continue; }
+    b.classList.remove('hidden');
+    b.style.transform = 'translate(' + Math.round(rr[0] - 3) + 'px,' + Math.round(rr[1] - 3) + 'px)';
+    b.style.width = Math.round(rr[2] + 6) + 'px';
+    b.style.height = Math.round(rr[3] + 6) + 'px';
+  }
+}
+function tutPrimary() {
+  const st = TUT.cur;
+  if (!st) return;
+  if (st.final) { tutFinish('ride'); return; }
+  if ((TUT.mode === 'card' && st.goal) || TUT.mode === 'paused') { tutPlay(); return; }
+  tutGo(TUT.i + 1);
+}
+function tutPlay() {
+  TUT.mode = 'play';
+  hide('tutCard'); hide('tutSpot'); hide('tutShade'); hide('tutList');
+  tutLayout();
+  $('tutHintText').textContent = TUT.cur.hint || 'Go!';
+  $('tutSkip').classList.toggle('glow', TUT.tries >= 2);
+  show('tutHint');
+  paused = false;
+  armBackGuard();
+  audioInit();
+}
+// "?" on the hint, the Back gesture, or leaving the app: freeze and show the card again
+function tutPause() {
+  if (!TUT.on || TUT.mode !== 'play') return;
+  TUT.mode = 'paused';
+  paused = true; drag = null;
+  tutCard();
+}
+function tutDone() {
+  TUT.mode = 'done';
+  paused = true; drag = null;
+  play('ui', 0.5, 1.4);
+  tutCard();
+}
+function tutRetry(msg) {
+  TUT.tries++;
+  tutClear();
+  TUT.noRail = false;
+  TUT.s = { ev0: Object.assign({}, TUT.ev), tries: TUT.tries };
+  if (TUT.cur.setup) TUT.cur.setup(TUT.s);
+  $('tutHintText').textContent = msg;
+  $('tutSkip').classList.toggle('glow', TUT.tries >= 2);
+  play('ui', 0.5, 0.8);
+}
+function tutFrame(dt) {
+  if (!TUT.on) return;
+  if (TUT.mode === 'play' && !paused) {
+    const r = TUT.cur.goal(TUT.s, dt);
+    if (r === true) tutDone();
+    else if (r && r.retry) tutRetry(r.retry);
+  }
+  tutLayout();
+}
+function tutFinish(how) {
+  const st = TUT.cur;
+  if (how === 'quit') track('tut/quit/' + (st ? (st.ch + 1) + '-' + st.id : 'start'), 'Flight School: left at ' + (st ? st.id : 'the start'));
+  else { storeSet('speeder.tutDone', '1'); track('tut/done', 'Flight School: finished'); }
+  TUT.on = false; TUT.cur = null; TUT.mode = 'card'; TUT.noRail = false;
+  hide('tut'); hide('tutList');
+  if (how === 'ride') { setMode('warp'); startGame(); }
+  else quitToTitle();
+}
+function tutShowList() {
+  const out = [];
+  let ch = -1;
+  TUT_STEPS.forEach((st, i) => {
+    if (st.ch !== ch) { ch = st.ch; out.push('<h4>' + (ch + 1) + '. ' + TUT_CH[ch][1] + '</h4>'); }
+    out.push('<button class="tut-li' + (i === TUT.i ? ' cur' : '') + '" data-i="' + i + '">' + st.title + (st.goal ? ' <small>try it</small>' : '') + '</button>');
+  });
+  $('tutListBody').innerHTML = out.join('');
+  show('tutList');
+  const cur = $('tutListBody').querySelector('.cur');
+  if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'center' });
+}
+function tutKey(e) {
+  if (!TUT.on) return false;
+  const cardOn = TUT.mode !== 'play';
+  if (e.key === 'Escape') { if (isShown('tutList')) hide('tutList'); else if (TUT.mode === 'play') tutPause(); else tutShowList(); return true; }
+  if (e.key === 'p') { tutPause(); return true; }
+  if (cardOn && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight')) { if (!e.repeat) tutPrimary(); e.preventDefault(); return true; }
+  if (cardOn && e.key === 'ArrowLeft') { if (!e.repeat && TUT.i > 0) tutGo(TUT.i - 1); return true; }
+  return false;
+}
+(function tutWire() {
+  for (const k of TUT_TOUR) {
+    const b = document.createElement('button');
+    b.className = 'tut-hot hidden';
+    b.dataset.k = k;
+    b.setAttribute('aria-label', TUT_STEPS[tutIndex(k)].title);
+    b.addEventListener('click', (e) => { e.stopPropagation(); tutGo(tutIndex(k)); });
+    $('tutHot').appendChild(b);
+  }
+  $('tutNext').addEventListener('click', tutPrimary);
+  $('tutBack').addEventListener('click', () => { if (TUT.i > 0) tutGo(TUT.i - 1); });
+  $('tutSkipCard').addEventListener('click', () => tutGo(TUT.i + 1));
+  $('tutAlt').addEventListener('click', () => tutFinish('title'));
+  $('tutClose').addEventListener('click', () => tutFinish('quit'));
+  $('tutMenu').addEventListener('click', tutShowList);
+  $('tutListClose').addEventListener('click', () => hide('tutList'));
+  $('tutListBody').addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (b) tutGo(+b.dataset.i); });
+  $('tutHelp').addEventListener('click', tutPause);
+  $('tutSkip').addEventListener('click', () => { track('tut/skip/' + TUT.cur.id, 'Flight School: skipped ' + TUT.cur.id); tutGo(TUT.i + 1); });
+  $('helpTutBtn').addEventListener('click', () => { audioInit(); tutStart('help'); });
+  $('tutOfferGo').addEventListener('click', () => { storeSet('speeder.tutOffer', '1'); audioInit(); tutStart('offer'); });
+  $('tutOfferSkip').addEventListener('click', () => { storeSet('speeder.tutOffer', '1'); hide('tutOffer'); track('tut/offer-skip', 'Flight School: skipped the first-time offer'); });
+})();
+// First open on a device: offer Flight School once (not on a Lab link, not to someone who has played)
+function tutMaybeOffer() {
+  if (storeGet('speeder.tutOffer') || storeGet('speeder.played') || storeGet('speeder.tutDone') || LAB_LINK) return;
+  if (G.state !== 'title' || ui) return;
+  show('tutOffer');
+  track('tut/offer', 'Flight School: offered to a first-time player');
 }
 
 // ---------- Screens ----------
@@ -10552,22 +11386,25 @@ let helpIconsDone = false;
 function fillHelpIcons() {
   if (helpIconsDone) return;
   helpIconsDone = true;
-  for (const el of document.querySelectorAll('canvas[data-power]')) {
-    const type = el.dataset.power, P = POWERS[type];
-    const dpr = Math.min(window.devicePixelRatio || 1, 3), size = 44;
-    el.width = size * dpr; el.height = size * dpr;
-    const c = el.getContext('2d');
-    c.setTransform(dpr, 0, 0, dpr, 0, 0);
-    c.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const t = Math.PI / 6 + i * Math.PI / 3;
-      c.lineTo(22 + Math.cos(t) * 19, 22 + Math.sin(t) * 19);
-    }
-    c.closePath();
-    c.fillStyle = '#0b0420'; c.fill();
-    c.strokeStyle = P.color; c.lineWidth = 2; c.stroke();
-    powerIcon(type, 22, 22, 11, P.color, 2.2, c);
+  for (const el of document.querySelectorAll('canvas[data-power]')) drawPowerHex(el, el.dataset.power, 44);
+}
+// A power-up's badge (hexagon and icon) drawn into a small canvas, size px across
+function drawPowerHex(el, type, size) {
+  const P = POWERS[type];
+  const dpr = Math.min(window.devicePixelRatio || 1, 3), k = size / 44;
+  el.width = size * dpr; el.height = size * dpr;
+  el.style.width = size + 'px'; el.style.height = size + 'px';
+  const c = el.getContext('2d');
+  c.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
+  c.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const t = Math.PI / 6 + i * Math.PI / 3;
+    c.lineTo(22 + Math.cos(t) * 19, 22 + Math.sin(t) * 19);
   }
+  c.closePath();
+  c.fillStyle = '#0b0420'; c.fill();
+  c.strokeStyle = P.color; c.lineWidth = 2; c.stroke();
+  powerIcon(type, 22, 22, 11, P.color, 2.2, c);
 }
 $('titleSettingsBtn').addEventListener('click', () => { audioInit(); openPanel('settings'); });
 $('menuBoardBtn').addEventListener('click', () => openPanel('board'));
@@ -10584,6 +11421,7 @@ $('quitBtn').addEventListener('click', () => {
 });
 $('pauseBtn').addEventListener('click', (e) => {
   e.stopPropagation();
+  if (TUT.on) { if (TUT.cur && TUT.cur.tour && TUT.mode !== 'play') tutGo(tutIndex('pause')); return; }
   openMenu();
 });
 
@@ -10601,6 +11439,7 @@ function steerSensitivity() {
 
 window.addEventListener('pointerdown', (e) => {
   if (e.target.closest && e.target.closest('.ui, .panel, button, input')) return;
+  if (TUT.on && paused) return;               // (Flight School: a card is up)
   audioInit();
   if (ui) return;
   if (G.state === 'title') startGame();
@@ -10639,6 +11478,7 @@ window.addEventListener('pointercancel', endDrag);
 
 window.addEventListener('keydown', (e) => {
   if (e.target && e.target.tagName === 'INPUT') return;
+  if (TUT.on && tutKey(e)) return;
   if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
   if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
   if (LANE_KEYS_UP.has(e.key)) keys.up = true;          // (only a Lab hyperlane steers up and down)
@@ -10673,7 +11513,8 @@ $('mute').addEventListener('click', (e) => {
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    if (G.state === 'play' && !ui) openMenu();
+    if (TUT.on) tutPause();
+    else if (G.state === 'play' && !ui) openMenu();
     if (AU.ctx) AU.ctx.suspend();
   } else if (AU.ctx) {
     AU.ctx.resume();
@@ -10805,6 +11646,7 @@ function frame(now) {
   if (!paused) update(dt);
   else audioEngine();
   render();
+  if (TUT.on) tutFrame(dt);
 }
 
 applySound();
@@ -10818,10 +11660,11 @@ setTimeout(() => {
   retryPending().then(() => fetchTop(TOP_AGE_START, boardFor(SET.mode))).then(() => { if (G.state === 'play') buildLadder(); }).catch(() => {});
 }, 1500);
 if (LAB_LINK) openLabLink();        // a link ending in ?lab opens straight into the Lab panel
+setTimeout(tutMaybeOffer, 700);     // first time on this device: offer Flight School
 requestAnimationFrame(frame);
 
 // handy for testing in the browser console
-window.SPEEDER = { step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, LAB, LAB_EXPERIMENTS, JUMP, SKY, LANE, startLane, exitLane, LANE_SECTIONS, keys, labOn, labSet, tryHop, hopCharge, spawnSkyRamp, skyFits, addObj, addPylon, addMine, addWallSpan, addLaserFence, openPanel, closePanel, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
+window.SPEEDER = { step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, LAB, LAB_EXPERIMENTS, JUMP, SKY, LANE, startLane, exitLane, LANE_SECTIONS, keys, labOn, labSet, tryHop, hopCharge, spawnSkyRamp, skyFits, addObj, addPylon, addMine, addWallSpan, addLaserFence, openPanel, closePanel, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, TUT, TUT_STEPS, HUDR, tutStart, tutGo, tutPrimary, tutFinish, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
 </script>
 </body>
 </html>

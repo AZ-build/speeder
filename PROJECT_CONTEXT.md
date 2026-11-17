@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.14.0 |
+| **Current Version** | v0.15.0 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-16 |
@@ -100,6 +100,25 @@ shot, or pick which gate to take), all with a single control.
 - **How to play page (v0.5.2):** from the title screen and pause menu; lists every power-up,
   obstacle and enemy with its limits. Update it whenever a power-up or hazard changes.
 - **Ladder (v0.5):** under the score during a run, the next leaderboard score to beat.
+
+### Flight School (v0.15), the tutorial
+
+- **What it is:** a guided Warp Run that teaches everything, hands on. 40 steps in 10 parts
+  (`TUT_CH`, `TUT_STEPS` in index.html): the screen tour, controls, power-ups, obstacles, enemies,
+  cells and close calls, the five worlds, the Warden and loops, then "Ride Warp Run".
+- **How it runs:** `TUT.on` makes the run gentle and scripted: a steady `TUT.v` speed (40, about
+  200 km/h), difficulty `TUT.lvl`, no automatic spawning (`runSpawner` returns), each world's own
+  gate and hazards removed (`tutStripSector`), and hits only flash (`tutHurt`). Each step: a card
+  with the game frozen (`paused`) and its subject lit up (`spot`: a HUD part from `HUDR`, `'ship'`,
+  `'pause'`, `'boss'`, or a function giving a screen rectangle); "Try it" runs it; `goal()` returns
+  true when done (frozen again, waits for Next) or `{ retry: 'message' }` to set it up again.
+- **HUDR:** `drawHUD()` records where each HUD part was drawn ([x, y, w, h]); the tour lights them
+  up and puts a tappable outline on each.
+- **Never saved:** no leaderboard, local scores, ladder, analytics for runs, or player counts.
+  Finishing stores `speeder.tutDone`; the first-time offer stores `speeder.tutOffer`.
+- **Adding a step:** add an object to `TUT_STEPS` (id, ch, title, body; for practice: hint,
+  setup(s), goal(s), done; optional spot, spotDone, sec = which world, keep). Update its text if
+  the thing it explains changes, like the How to play page. Then run `node tests/tutorial.mjs "$PWD"`.
 
 ### Warp Run (v0.8, reworked in v0.9), the second mode
 
@@ -228,7 +247,9 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 ### Testing hooks
 
-Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs). Run all four before publishing.
+Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School). Run all five before publishing.
+
+Flight School hooks: `SPEEDER.tutStart('help')`, `SPEEDER.tutGo(n)` (jump to step n), `SPEEDER.TUT` (`cur`, `mode`, `ev` counters), `SPEEDER.TUT_STEPS`, `SPEEDER.HUDR`.
 
 Lab hooks: `SPEEDER.setMode('lab'); SPEEDER.startGame()` (start a Lab run), `SPEEDER.LAB` (`on`, `cfg` = the saved switches, `run` = this run's experiments), `SPEEDER.labSet('jump', 'gesture', 'tap')` / `SPEEDER.labSet('jump', 'fuel', 'free')` / `SPEEDER.labSet('jump', 'on', false)`, `SPEEDER.tryHop('key')`, `SPEEDER.hopCharge(1)`, `SPEEDER.JUMP` (`n` charges, `hops`, `denied`, `by`), `SPEEDER.openPanel('lab')`, `SPEEDER.labSet('ramps', 'on', true)`, `SPEEDER.spawnSkyRamp(SPEEDER.G.d + 90)` (put a sky ramp just ahead), `SPEEDER.SKY` (`offered`, `flights`, `rings`, `perfect`), `SPEEDER.labSet('setup', 'loop', 3)` / `SPEEDER.labSet('setup', 'loaded', true)` (test setup for the next Lab run), `SPEEDER.labSet('lane', 'feel', 'bank')`, `SPEEDER.labSet('setup', 'lane', true)` (next Lab run starts in a hyperlane), `SPEEDER.startLane('resume')` (into a lane now), `SPEEDER.LANE` (`on`, `x`/`y` and `tx`/`ty` the speeder and its target, `roll`, `objs`, `runs`, `rings`, `hits`, `rolls`), `SPEEDER.LANE.exit.d = SPEEDER.LANE.d + 30` (to the exit). Lab storage keys: `speeder.lab.cfg` (switches), `speeder.lab.setup` (starting loop, fully loaded, start in a hyperlane), `speeder.lab.best`, `speeder.lab.votes`.
 
@@ -354,7 +375,14 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
-**Where things stand (after v0.14.0, 2026-11-16):**
+**Where things stand (after v0.15.0, 2026-11-16):**
+- **Flight School** added: a hands-on tutorial (screen tour + practice of every mechanic, all five
+  worlds, the Warden, loops). Opened from the top of How to play, and offered once to first-time
+  players. Built in one go at Adrian's request; tested by an autopilot, **not yet played by a human**.
+  Ask: is it too long (about 5-6 minutes)? Is 200 km/h too slow to feel like Speeder? Which steps
+  drag? Watch `tut/part/...` and `tut/quit/...` on the dashboard to see where people stop.
+
+**Earlier (after v0.14.0, 2026-11-16):**
 - Title screen tidied: slim mode switch, one row of icon buttons (Board, Settings, Help, Share,
   Lab), tips only until a device's first run. New **Share** button invites friends to the game.
 - Player counting on the analytics dashboard (https://speeder.goatcounter.com), each event once

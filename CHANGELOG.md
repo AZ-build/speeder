@@ -4,6 +4,42 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.15.0] — 2026-11-16
+
+### Session 15d — Flight School: a hands-on tutorial
+
+Adrian asked for a button on How to play that opens a real game screen and walks through what
+everything is, letting you tap any part to jump to it, never moving on until you press Next, and
+growing into a full intro: controls, mechanics, every obstacle, the loop idea. He picked: a screen
+tour plus hands-on practice, offered automatically to first-time players, all built at once.
+
+- **Flight School** (40 steps in 10 parts): Welcome · The screen (a frozen game screen; each part of
+  the HUD lights up in turn: score and multiplier, next score to beat, hull, shield, gun level,
+  cells, timers, speed, loop and worlds, gate preview, pause; tap any dotted part to jump to it) ·
+  Controls (steering, aiming by steering, edge bank, rail overload) · Power-ups (take a gate, all
+  six explained) · Obstacles (pylons, walls, mines, laser fences, ramps, moving things) · Enemies
+  (turrets, ram bikes; drones in Controls) · Cells & close calls (OVERDRIVE, close calls, how score
+  is built) · The five worlds (fly through each world gate: Neon City traffic and tunnels, Sky
+  Islands chasms and crosswind, Crystal Wastes crystals, Cosmic Highway meteors) · The Warden &
+  loops (beat a shorter Warden, pick a prototype, fly into loop 2) · Ready (the two modes, after a
+  run, then "Ride Warp Run").
+- **How it works:** a real Warp Run at a steady 200 km/h where nothing spawns by itself. Each card
+  freezes the game and lights up what it's about; "Try it" lets you play just that bit; when you've
+  done it the game freezes again until you press Next. Miss it and it sets up again (Skip is always
+  there). Hits only flash. Nothing is saved, uploaded or counted as a run.
+- **Getting around:** Back, Next, ☰ (every step, jump anywhere), ✕ (leave), ? during practice
+  (show the card again). Keyboard: Enter/→ next, ← back, Esc. The Back gesture or leaving the app
+  freezes it on the card.
+- **Ways in:** a big FLIGHT SCHOOL button at the top of How to play (hidden mid-run), and a one-time
+  "New here? Take Flight School" offer the first time someone opens the game (not on Lab links,
+  not for anyone who has already played).
+- **Analytics:** `tut/offer`, `tut/offer-skip`, `tut/start/offer|help`, `tut/part/<n>-<name>`
+  (how far people get), `tut/skip/<step>`, `tut/quit/<part>-<step>`, `tut/done`.
+- New test: `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School).
+- Classic and Warp Run play exactly as before (`tests/same-as-before.sh`).
+
+---
+
 ## [v0.14.0] — 2026-11-16
 
 ### Session 15c — Calmer title screen, Share the game, counting players
