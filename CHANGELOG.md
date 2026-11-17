@@ -4,6 +4,31 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.16.4] — 2026-11-16
+
+### Session 16b — Counting runs, and a steadier stats page
+
+Adrian asked whether runs can be counted. GoatCounter counts each event name once per visit,
+so "play/warp" said how many visits played Warp Run, not how many runs.
+
+- **Run counter:** each run started now also sends `runs/<mode>/<n>`, where n is the run's
+  number in this sitting (1, 2, 3...). The numbers only start over after the device has been
+  idle for 9 hours (`RUN_N_RESET`, longer than a GoatCounter visit), so no number repeats inside
+  a visit and adding them all up gives the exact number of runs. Capped at 400 per sitting
+  (`RUN_N_MAX`). Stored in `speeder.runN`. Flight School doesn't count.
+- **Stats page:** Modes section now opens with exact runs (total, per mode, runs per
+  player-day) and a runs-per-day chart by mode. The run counter is folded into one row per mode
+  in "Every event". Before v0.16.4 there is no run data, so older ranges fall back to visits.
+- **Stats page fixes after Adrian's first real try:** it got "404 for /stats/hits" and then "too
+  many requests". GoatCounter allows 4 requests a second and 500 an hour; the page fired several
+  at once. Requests now go one at a time 0.4 s apart, "too many requests" is retried after a
+  pause, results are reused for 5 minutes per range (Refresh fetches fresh), the unneeded
+  `group=day` setting is gone, and if a later page of events is refused the page keeps what it
+  has and says so. Errors now quote GoatCounter's own message. The 404's cause is not confirmed.
+- Note added: two identical phones on one Wi-Fi in the same few hours look like one visitor.
+
+---
+
 ## [v0.16.3] — 2026-11-16
 
 ### Session 16 — Sound off while it's reworked

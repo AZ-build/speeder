@@ -23,7 +23,10 @@
 
   GoatCounter counts VISITORS, not events: one per path per visit (a visit lasts up to 8 hours).
   So "run/1-2km = 3" means three visits had at least one run end there, not three runs.
-  The once-per-device events (player/first-run, player/named, player/day, lab votes) are exact.
+  The once-per-device events (player/first-run, player/named, player/day, lab votes) are
+  near-exact (two identical phones on one Wi-Fi can look like one visitor).
+  Runs ARE exact from v0.16.4: the game numbers each run in a sitting (runs/warp/1, /2, ...)
+  and D.runs(mode) adds them all up.
 
   To add a section: add a render function and call it from render(). Event names are listed
   in PROJECT_CONTEXT.md and LAB.md.
@@ -291,24 +294,43 @@ function rangeDates(r) {
 const iso = (d) => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
 
 // ---------- GoatCounter ----------
+// GoatCounter allows 4 requests a second and 500 an hour, so requests go one at a time,
+// a little apart, and a "too many requests" answer is retried after a pause.
+const GAP_MS = 400;
+let lastCall = 0;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function gc(path, params) {
   const key = store(KEY_STORE);
   const q = new URLSearchParams(params || {});
-  const res = await fetch(GC + path + '?' + q.toString(), {
-    headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
-  });
-  if (res.status === 401 || res.status === 403) { const e = new Error('key'); e.code = 'key'; throw e; }
-  if (res.status === 429) { const e = new Error('GoatCounter says too many requests. Wait a minute and refresh.'); e.code = 'rate'; throw e; }
-  if (!res.ok) throw new Error('GoatCounter answered ' + res.status + ' for ' + path);
-  return res.json();
+  for (let attempt = 0; ; attempt++) {
+    const wait = lastCall + GAP_MS - Date.now();
+    if (wait > 0) await sleep(wait);
+    lastCall = Date.now();
+    const res = await fetch(GC + path + '?' + q.toString(), {
+      headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+    });
+    if (res.ok) return res.json();
+    let detail = '';
+    try { const j = await res.json(); detail = j.error || (j.errors && JSON.stringify(j.errors)) || ''; } catch (e) { /* not JSON */ }
+    if (res.status === 429 && attempt < 3) { $('stamp').textContent = 'GoatCounter asked us to slow down…'; await sleep(3000 * (attempt + 1)); continue; }
+    if (res.status === 401 || res.status === 403) { const e = new Error(detail || 'key'); e.code = 'key'; throw e; }
+    const e = new Error(res.status === 429
+      ? 'GoatCounter says too many requests (it allows 500 an hour). Wait a few minutes and refresh.'
+      : 'GoatCounter answered ' + res.status + ' for ' + path + (detail ? ': “' + detail + '”' : '') + '. Send Claude this message.');
+    e.code = res.status === 429 ? 'rate' : 'http'; e.status = res.status; e.page = path;
+    throw e;
+  }
 }
 // every path (pageviews and events), with a count per day
+let PARTIAL = false;
 async function loadHits(start, end) {
   const out = []; const seen = new Set();
-  for (let page = 0; page < 6; page++) {
-    const p = { start: iso(start), end: iso(end), limit: 100, group: 'day' };
+  for (let page = 0; page < 30; page++) {
+    const p = { start: iso(start), end: iso(end), limit: 100 };
     if (seen.size) p.exclude_paths = [...seen].join(',');
-    const r = await gc('/stats/hits', p);
+    let r;
+    try { r = await gc('/stats/hits', p); }
+    catch (e) { if (page > 0 && e.code === 'http') { PARTIAL = true; break; } throw e; }   // keep what we have
     let fresh = 0;
     for (const x of r.hits || []) { if (seen.has(x.path_id)) continue; seen.add(x.path_id); out.push(x); fresh++; }
     if (!r.more || !fresh) break;
@@ -351,6 +373,8 @@ function index(hits) {
     count: (p) => (by.has(p) ? by.get(p).count : 0),
     daily: (p) => { const m = new Map(); const x = by.get(p); if (x) for (const s of x.stats || []) m.set(s.day, s.daily || 0); return m; },
     match: (prefix) => hits.filter((x) => x.path.startsWith(prefix)),
+    // exact runs: the game numbers each run in a sitting (runs/<mode>/<n>), so the sum is every run
+    runs: (mode) => { let t = 0; const per = new Map(); for (const x of hits) { if (!new RegExp('^runs/' + mode + '/\\d+$').test(x.path)) continue; t += x.count; for (const st of x.stats || []) per.set(st.day, (per.get(st.day) || 0) + (st.daily || 0)); } return { total: t, daily: per }; },
   };
 }
 function days(start, end) {
@@ -398,7 +422,7 @@ function note(text) { return h('p', 'note', text); }
 function sub(text) { return h('h3', null, text); }
 
 // stacked daily columns (new vs returning), with a tap/hover tooltip
-function dailyChart(dayList, series) {
+function dailyChart(dayList, series, label) {
   const box = h('div', 'chart');
   const leg = h('div', 'legend');
   for (const s of series) { const l = h('span'); const i = h('i'); i.style.background = s.color; l.append(i, document.createTextNode(s.name)); leg.append(l); }
@@ -411,7 +435,7 @@ function dailyChart(dayList, series) {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', 'Players per day');
+  svg.setAttribute('aria-label', label || 'Per day');
   const y = (v) => padT + (H - padT - padB) * (1 - v / top);
   const mk = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
   for (let v = 0; v <= top; v += step) {
@@ -485,14 +509,14 @@ function renderPlayers(D, dayList) {
     el.append(dailyChart(dayList, [
       { name: 'New', color: 'var(--series-1)', data: nd },
       { name: 'Returning', color: 'var(--series-3)', data: ret },
-    ]));
+    ], 'Players per day'));
   }
   const opened = D.match('open/').map((x) => ({ name: OPEN_NAMES[x.path.slice(5)] || x.path.slice(5), value: x.count })).sort((a, b) => b.value - a.value);
   if (opened.length) {
     el.append(sub('How they open the game (visits: ' + fmt(opens) + ')'));
     el.append(bars(opened, { total: opened.reduce((a, r) => a + r.value, 0) }));
   }
-  el.append(note('Each player event is sent once per device, so these are devices. Counting began fresh on speeder-game.com (Nov 16).'));
+  el.append(note('Each player event is sent once per device, so these are devices. One catch: two identical phones on the same Wi-Fi in the same few hours look like one visitor to GoatCounter and count once. Counting began fresh on speeder-game.com (Nov 16).'));
 }
 
 function renderWhere(locs, systems) {
@@ -516,11 +540,32 @@ function renderWhere(locs, systems) {
   el.append(note('Visits, from the network connection (GoatCounter never stores addresses).'));
 }
 
-function renderModes(D) {
+function renderModes(D, dayList) {
   const el = $('modesBody'); el.textContent = '';
-  const modes = ['warp', 'classic', 'lab'].map((m) => ({ name: MODE_NAMES[m], value: D.count('play/' + m) }));
-  el.append(sub('Started a run in…'));
-  el.append(bars(modes, { total: modes.reduce((a, r) => a + r.value, 0) }));
+  const R = { warp: D.runs('warp'), classic: D.runs('classic'), lab: D.runs('lab') };
+  const totalRuns = R.warp.total + R.classic.total + R.lab.total;
+  if (totalRuns) {
+    const pd = D.count('player/day');
+    el.append(tiles([
+      { id: 'tRuns', label: 'Runs', value: fmt(totalRuns), sub: pd ? (totalRuns / pd).toFixed(1) + ' per player-day' : 'every run started' },
+      { id: 'tWarp', label: 'Warp Run', value: fmt(R.warp.total), sub: pct(R.warp.total, totalRuns) + '% of runs' },
+      { id: 'tClassic', label: 'Classic', value: fmt(R.classic.total), sub: pct(R.classic.total, totalRuns) + '% of runs' },
+      { id: 'tLab', label: 'The Lab', value: fmt(R.lab.total), sub: pct(R.lab.total, totalRuns) + '% of runs' },
+    ]));
+    if (dayList.length > 1) {
+      el.append(sub('Runs per day'));
+      el.append(dailyChart(dayList, [
+        { name: 'Warp Run', color: 'var(--series-1)', data: R.warp.daily },
+        { name: 'Classic', color: 'var(--series-2)', data: R.classic.daily },
+        { name: 'The Lab', color: 'var(--series-3)', data: R.lab.daily },
+      ], 'Runs per day'));
+    }
+  } else {
+    const modes = ['warp', 'classic', 'lab'].map((m) => ({ name: MODE_NAMES[m], value: D.count('play/' + m) }));
+    el.append(sub('Visits that started a run in…'));
+    el.append(bars(modes, { total: modes.reduce((a, r) => a + r.value, 0) }));
+    el.append(note('Exact run counts start with v0.16.4 (Nov 16). Until then, these are visits.'));
+  }
 
   const box = h('div', 'cols2');
   const w = h('div'); w.append(sub('Warp Run: where runs end (km)'));
@@ -568,7 +613,7 @@ function renderModes(D) {
   }
   const top = D.count('board/top50');
   if (top) el.append(note('Runs that made a world top 50: ' + fmt(top) + '.'));
-  el.append(note('Visits, not runs: five runs ending at 1–3 km in one sitting count once.'));
+  el.append(note('Run totals are exact. The km buckets, the grid and milestones are visits: five runs ending at 1–3 km in one sitting count once there.'));
 }
 
 // "5-14-jumps" -> "5–14 jumps", "hits-0-per-lane" -> "0 hits per lane"
@@ -726,7 +771,15 @@ function renderOther(D) {
 function renderAll(D) {
   const el = $('allBody'); el.textContent = '';
   const f = ($('allFilter').value || '').trim().toLowerCase();
-  const rows = D.hits.filter((x) => !f || x.path.toLowerCase().includes(f) || (x.title || '').toLowerCase().includes(f)).sort((a, b) => b.count - a.count);
+  const folded = new Map(); const plain = [];
+  for (const x of D.hits) {
+    const m = /^runs\/([a-z]+)\/\d+$/.exec(x.path);
+    if (!m) { plain.push(x); continue; }
+    const k = 'runs/' + m[1] + '/…';
+    if (!folded.has(k)) folded.set(k, { path: k, title: 'Run counter, all numbers added up (= runs)', count: 0 });
+    folded.get(k).count += x.count;
+  }
+  const rows = plain.concat([...folded.values()]).filter((x) => !f || x.path.toLowerCase().includes(f) || (x.title || '').toLowerCase().includes(f)).sort((a, b) => b.count - a.count);
   if (!rows.length) { el.append(empty('Nothing matches')); return; }
   const t = h('table'); const head = h('tr'); head.append(h('th', null, 'Event'), h('th', 'n', 'Visits')); t.append(head);
   const shown = f || allOpen ? rows : rows.slice(0, 25);
@@ -757,13 +810,24 @@ async function render(forceBoards) {
   const { start, end } = rangeDates(RANGE);
   const boardsP = loadBoards(forceBoards).then((r) => ({ r }), (e) => ({ e: e.message || String(e) }));
   try {
-    const [hits, locs, systems] = await Promise.all([loadHits(start, end), loadList('locations', start, end), loadList('systems', start, end)]);
+    PARTIAL = false;
+    let cached = null;
+    try { cached = JSON.parse(store('speeder.stats.cache.' + RANGE) || 'null'); } catch (e) { cached = null; }
+    let hits, locs, systems;
+    if (!forceBoards && cached && Date.now() - cached.at < 5 * 60000) ({ hits, locs, systems } = cached);
+    else {
+      hits = await loadHits(start, end);
+      locs = await loadList('locations', start, end);
+      systems = await loadList('systems', start, end);
+      if (!PARTIAL) store('speeder.stats.cache.' + RANGE, JSON.stringify({ at: Date.now(), hits, locs, systems }));
+    }
     const D = index(hits); lastD = D;
     const dayList = days(start, end);
-    for (const [fn, args] of [[renderPlayers, [D, dayList]], [renderWhere, [locs, systems]], [renderModes, [D]], [renderLab, [D]], [renderSchool, [D]], [renderOther, [D]], [renderAll, [D]]]) {
+    for (const [fn, args] of [[renderPlayers, [D, dayList]], [renderWhere, [locs, systems]], [renderModes, [D, dayList]], [renderLab, [D]], [renderSchool, [D]], [renderOther, [D]], [renderAll, [D]]]) {
       try { fn(...args); } catch (e) { console.error(e); }
     }
-    $('stamp').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    $('stamp').textContent = 'Updated ' + new Date(cached && !forceBoards && Date.now() - cached.at < 5 * 60000 ? cached.at : Date.now()).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    if (PARTIAL) showErr('Only part of the event list loaded (GoatCounter refused the next page). Totals may be low.');
   } catch (e) {
     $('stamp').textContent = '';
     if (e.code === 'key') { showSetup('GoatCounter didn’t accept the key. Make a new one with “Read statistics” ticked and paste it again.'); }

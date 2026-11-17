@@ -959,7 +959,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.16.3';
+const VERSION = '0.16.4';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -1180,6 +1180,22 @@ function trackPlayerRun() {
     storeSet('speeder.playDay', day);
     track('player/day', 'Player: played today (one per device per day)');
   }
+}
+// Counting runs (v0.16.4). GoatCounter counts each event name once per visit, so a plain
+// "run started" event can't count runs. Instead each run in a sitting gets its own number:
+// runs/warp/1, runs/warp/2, ... The numbers keep climbing until the device has been idle for
+// RUN_N_RESET hours (longer than a GoatCounter visit lasts), so no number is ever repeated
+// inside one visit, and adding up every runs/<mode>/<n> gives the exact number of runs.
+// The stats page (stats/index.html) does that sum. Capped at RUN_N_MAX per sitting.
+const RUN_N_RESET = 9, RUN_N_MAX = 400;
+function trackRunNumber(mode) {
+  const now = Date.now();
+  let c = readJSON('speeder.runN', null);
+  if (!c || typeof c !== 'object' || !(now - (Number(c.at) || 0) < RUN_N_RESET * 3600e3)) c = {};
+  const n = Math.min(RUN_N_MAX, (Number(c[mode]) || 0) + 1);
+  c[mode] = n; c.at = now;
+  storeSet('speeder.runN', JSON.stringify(c));
+  track('runs/' + mode + '/' + n, 'Run counter: ' + MODES[mode] + ' run #' + n + ' in a sitting');
 }
 function trackNamed() {
   if (!trackOnce('speeder.namedT', 'player/named', 'Player: added a leaderboard name')) track('player/renamed', 'Player: changed their name');
@@ -10940,6 +10956,7 @@ function startGame() {
   if (G.mode === 'lab') startLabRun();        // (Warp Run's rules, plus whatever is switched on in the Lab)
   else if (G.mode === 'warp') startWarpRun();
   track('play/' + G.mode, 'Run started: ' + MODES[G.mode]);
+  trackRunNumber(G.mode);
   trackPlayerRun();
   buildLadder();
   paused = false;
