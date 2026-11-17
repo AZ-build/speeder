@@ -4,6 +4,19 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [v0.16.3] — 2026-11-16
+
+### Session 16 — Sound off while it's reworked
+
+Adrian finds the sound jarring and wants it off while we pick new sounds one at a time.
+
+- **Sound starts off.** New players start with sound off, and every device that had it on is
+  switched off once (`SOUND_RESET`, stored as `speeder.soundReset`). Anyone can turn it back on
+  in Settings. Raise `SOUND_RESET` when the new sounds ship to switch everyone back on.
+- Classic and Warp Run play exactly as before (`tests/same-as-before.sh`).
+
+---
+
 ## [v0.16.2] — 2026-11-16
 
 ### Session 15g — A private stats page

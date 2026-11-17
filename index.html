@@ -959,7 +959,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.16.2';
+const VERSION = '0.16.3';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -1212,7 +1212,7 @@ function vibrate(p) {
 }
 
 // ---------- Settings (saved on this device) ----------
-const SETTINGS_DEFAULT = { sound: true, volume: 70, music: true, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true, cam: 'normal', mode: 'warp' };
+const SETTINGS_DEFAULT = { sound: false, volume: 70, music: true, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true, cam: 'normal', mode: 'warp' };
 function loadSettings() {
   let saved = {};
   try { saved = JSON.parse(storeGet('speeder.settings') || '{}') || {}; } catch (e) { saved = {}; }
@@ -1222,6 +1222,14 @@ function loadSettings() {
   return out;
 }
 const SET = loadSettings();
+// v0.16.2: sound is off while it is being reworked. Switch it off once on every device that
+// had it on; anyone can still turn it back on in Settings. Raise SOUND_RESET to do this again.
+const SOUND_RESET = '1';
+if (storeGet('speeder.soundReset') !== SOUND_RESET) {
+  SET.sound = false;
+  storeSet('speeder.soundReset', SOUND_RESET);
+  storeSet('speeder.settings', JSON.stringify(SET));
+}
 // The Lab is something you step into on purpose each time: it is never saved as your mode,
 // so the game always opens on the last real mode you played (homeMode).
 let homeMode = SET.mode;
