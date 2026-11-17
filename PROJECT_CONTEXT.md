@@ -382,6 +382,9 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 See `CHANGELOG.md` for a full session-by-session history.
 
 **Where things stand (after v0.16.4, 2026-11-16):**
+- Stats page now has trends over time in every section (lines, stacked and 100% columns; one
+  reusable `timeChart()` in `stats/index.html`). Adrian likes historical trends: new stats should
+  get an over-time view too.
 - Runs are now counted exactly: each run sends `runs/<mode>/<n>` (its number in the sitting;
   `trackRunNumber()`, `RUN_N_RESET`, `RUN_N_MAX`), and the stats page adds them up.
 - Adrian's first try of the stats page got "GoatCounter answered 404 for /stats/hits", then

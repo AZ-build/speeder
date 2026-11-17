@@ -4,6 +4,26 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## Stats page update — 2026-11-16 (no game change)
+
+### Session 16c — Trends over time
+
+Adrian likes historical trends and asked for charts over time, modes on the same chart.
+
+- New chart engine on the stats page: lines, stacked columns and 100% columns, sized to the
+  screen, with a crosshair and one tooltip listing every series (tap on a phone, hover on a
+  computer) and tap-to-hide legend items. Today is shown by the hour, ranges over ~2 months by
+  week, otherwise by day; the axis starts at the first day with data.
+- Players: switch between New vs returning (stacked), Running total, and Visits.
+- Modes: Warp Run, Classic and the Lab as lines on one chart, as exact Runs (from v0.16.4) or
+  Visits (all history). New "How far runs get, over time": 100% columns by distance (Warp Run or
+  Classic), brighter = farther.
+- Lines over time for Lab plays per experiment, Flight School (offered, started, finished), and
+  sharing and installs.
+- Game files untouched, so no version bump.
+
+---
+
 ## [v0.16.4] — 2026-11-16
 
 ### Session 16b — Counting runs, and a steadier stats page

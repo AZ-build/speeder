@@ -105,9 +105,22 @@
   .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
   .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); margin: 0 0 8px; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
-  .tip { position: absolute; pointer-events: none; background: #f0efec; color: #0b0b0b; font-size: 12px; line-height: 1.35;
-    padding: 6px 8px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, -100%); box-shadow: 0 4px 14px rgba(0,0,0,.4); z-index: 3; }
-  .tip b { font-weight: 650; }
+  .plot { position: relative; min-height: 60px; }
+  .plot svg { display: block; overflow: visible; }
+  .plot .ax { fill: var(--text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .legend .leg { appearance: none; background: none; border: 0; color: var(--text-secondary); font: inherit; font-size: 12px; padding: 4px 2px; cursor: pointer; }
+  .legend .leg[aria-pressed="false"] { color: var(--text-muted); text-decoration: line-through; }
+  .legend .leg[aria-pressed="false"] i { opacity: .25; }
+  .legend i.line { height: 3px; width: 14px; border-radius: 2px; vertical-align: 3px; }
+  .tip { position: absolute; pointer-events: none; background: #f0efec; color: #3a3a40; font-size: 12px; line-height: 1.4;
+    padding: 7px 9px; border-radius: 8px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.45); z-index: 3; }
+  .tip .tt { color: #0b0b0b; font-weight: 650; margin-bottom: 2px; }
+  .tip .tr i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; }
+  .tip .tr b { color: #0b0b0b; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .tip .tr.total { border-top: 1px solid #d8d6cf; margin-top: 3px; padding-top: 3px; padding-left: 16px; }
+  .toggle { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 3px; gap: 2px; margin: 0 0 10px; flex-wrap: wrap; }
+  .toggle button { appearance: none; border: 0; background: none; color: var(--text-secondary); font: inherit; font-size: 13px; padding: 6px 10px; border-radius: 8px; cursor: pointer; min-height: 32px; }
+  .toggle button[aria-pressed="true"] { background: var(--text-primary); color: var(--page); font-weight: 600; }
   /* heatmap */
   .heat { display: grid; gap: 2px; font-variant-numeric: tabular-nums; }
   .heat div { border-radius: 4px; text-align: center; font-size: 12px; padding: 7px 0; }
@@ -208,7 +221,7 @@
 
     <section class="card" id="lab">
       <h2>Lab verdicts</h2>
-      <p class="q">Thumbs up or down on each experiment, per version of it.</p>
+      <p class="q">How much each experiment gets played, and thumbs up or down per version of it.</p>
       <div id="labBody"><div class="skeleton">Loading…</div></div>
     </section>
 
@@ -365,16 +378,19 @@ async function loadBoards(force) {
 
 // ---------- reading the events ----------
 // D.count(path) = visitors for that exact path; D.match(prefix) = all paths under it
-function index(hits) {
+function index(hits, T) {
   const by = new Map();
   for (const x of hits) by.set(x.path, x);
   return {
-    hits,
+    hits, T,
+    // numbers over time (by hour / day / week, whatever the range uses)
+    ts: (...paths) => addMaps(paths.map((p) => series(by.get(p), T))),
+    tsMatch: (re) => addMaps(hits.filter((x) => re.test(x.path)).map((x) => series(x, T))),
     count: (p) => (by.has(p) ? by.get(p).count : 0),
     daily: (p) => { const m = new Map(); const x = by.get(p); if (x) for (const s of x.stats || []) m.set(s.day, s.daily || 0); return m; },
     match: (prefix) => hits.filter((x) => x.path.startsWith(prefix)),
     // exact runs: the game numbers each run in a sitting (runs/<mode>/<n>), so the sum is every run
-    runs: (mode) => { let t = 0; const per = new Map(); for (const x of hits) { if (!new RegExp('^runs/' + mode + '/\\d+$').test(x.path)) continue; t += x.count; for (const st of x.stats || []) per.set(st.day, (per.get(st.day) || 0) + (st.daily || 0)); } return { total: t, daily: per }; },
+    runs: (mode) => { const re = new RegExp('^runs/' + mode + '/\\d+$'); let t = 0; for (const x of hits) if (re.test(x.path)) t += x.count; return { total: t, ts: addMaps(hits.filter((x) => re.test(x.path)).map((x) => series(x, T))) }; },
   };
 }
 function days(start, end) {
@@ -421,70 +437,191 @@ function empty(text) { return h('div', 'skeleton', text); }
 function note(text) { return h('p', 'note', text); }
 function sub(text) { return h('h3', null, text); }
 
-// stacked daily columns (new vs returning), with a tap/hover tooltip
-function dailyChart(dayList, series, label) {
-  const box = h('div', 'chart');
-  const leg = h('div', 'legend');
-  for (const s of series) { const l = h('span'); const i = h('i'); i.style.background = s.color; l.append(i, document.createTextNode(s.name)); leg.append(l); }
-  box.append(leg);
-  const W = 640, H = 170, padL = 30, padB = 22, padT = 8;
-  const totals = dayList.map((d) => series.reduce((a, s) => a + (s.data.get(d) || 0), 0));
-  const maxV = Math.max(1, ...totals);
-  const step = maxV <= 5 ? 1 : maxV <= 10 ? 2 : maxV <= 25 ? 5 : maxV <= 50 ? 10 : Math.ceil(maxV / 50) * 10;
-  const top = Math.ceil(maxV / step) * step;
-  const NS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', label || 'Per day');
-  const y = (v) => padT + (H - padT - padB) * (1 - v / top);
-  const mk = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
-  for (let v = 0; v <= top; v += step) {
-    svg.append(mk('line', { x1: padL, x2: W, y1: y(v), y2: y(v), stroke: 'var(--grid)', 'stroke-width': 1 }));
-    const t = mk('text', { x: padL - 6, y: y(v) + 4, 'text-anchor': 'end', fill: 'var(--text-muted)', 'font-size': 11 }); t.textContent = v; svg.append(t);
+// ---------- time axis ----------
+// Today is shown by hour, up to ~2 months by day, anything longer by week (weeks start Monday).
+const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+function weekOf(day) { const d = new Date(day + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return ymd(d); }
+function timeAxis(start, end, range) {
+  const dl = days(start, end);
+  const unit = range === 'today' ? 'hour' : dl.length > 62 ? 'week' : 'day';
+  let keys;
+  if (unit === 'hour') { keys = []; const last = dl[dl.length - 1]; for (let hh = 0; hh <= new Date().getHours(); hh++) keys.push(last + ' ' + String(hh).padStart(2, '0')); }
+  else if (unit === 'day') keys = dl;
+  else keys = [...new Set(dl.map(weekOf))];
+  const tdate = (k) => new Date(k.slice(0, 10) + 'T' + (unit === 'hour' ? k.slice(11) + ':00' : '12:00') + ':00');
+  return {
+    unit, keys,
+    // short label under the axis
+    tick: (k) => { const d = tdate(k); if (unit === 'hour') { const hr = d.getHours(); return (hr % 12 || 12) + (hr < 12 ? 'a' : 'p'); } return keys.length <= 8 && unit === 'day' ? d.toLocaleDateString('en-US', { weekday: 'short' }) : (d.getMonth() + 1) + '/' + d.getDate(); },
+    // full label in the tooltip
+    title: (k) => { const d = tdate(k); if (unit === 'hour') return d.toLocaleTimeString('en-US', { hour: 'numeric' }) + ' today'; if (unit === 'week') return 'Week of ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); },
+    per: unit === 'hour' ? 'hour' : unit,
+  };
+}
+// a path's numbers on the time axis
+function series(x, T) {
+  const m = new Map();
+  if (!x) return m;
+  for (const s of x.stats || []) {
+    if (T.unit === 'hour') (s.hourly || []).forEach((v, hh) => { if (v) { const k = s.day + ' ' + String(hh).padStart(2, '0'); m.set(k, (m.get(k) || 0) + v); } });
+    else { const k = T.unit === 'week' ? weekOf(s.day) : s.day; m.set(k, (m.get(k) || 0) + (s.daily || 0)); }
   }
-  const n = dayList.length; const band = (W - padL) / n; const bw = Math.min(24, band * 0.7);
-  const tip = h('div', 'tip hidden');
-  const labelEvery = Math.ceil(n / 8);
-  dayList.forEach((d, i) => {
-    const cx = padL + band * i + band / 2;
-    let acc = 0;
-    const parts = series.map((s) => s.data.get(d) || 0);
-    const lastNonZero = parts.reduce((li, v, k) => (v ? k : li), -1);
-    parts.forEach((v, k) => {
-      if (!v) return;
-      const y0 = y(acc), y1 = y(acc + v);
-      const gap = acc ? 2 : 0;   // 2px surface gap between stacked segments
-      const hgt = Math.max(1, y0 - y1 - gap);
-      if (k === lastNonZero) {
-        const r = Math.min(4, hgt, bw / 2);
-        const x0 = cx - bw / 2, x1 = cx + bw / 2, yb = y1 + hgt, yt = y1;
-        svg.append(mk('path', { d: `M${x0},${yb}V${yt + r}Q${x0},${yt} ${x0 + r},${yt}H${x1 - r}Q${x1},${yt} ${x1},${yt + r}V${yb}Z`, fill: series[k].color }));
-      } else svg.append(mk('rect', { x: cx - bw / 2, y: y1, width: bw, height: hgt, fill: series[k].color }));
-      acc += v;
+  return m;
+}
+function addMaps(maps) { const m = new Map(); for (const a of maps) for (const [k, v] of a) m.set(k, (m.get(k) || 0) + v); return m; }
+function runningTotal(T, m) { let t = 0; return new Map(T.keys.map((k) => [k, (t += m.get(k) || 0)])); }
+const RAMP7 = ['#184f95', '#256abf', '#3987e5', '#6da7ec', '#9ec5f4', '#cde2fb', '#f2f7fe'];   // short runs dark, long runs bright (validated, ordinal, on --surface-1)
+const RAMP6 = RAMP7.slice(1);
+
+// a small switch above a chart: options = { id: 'Label' }
+function toggle(options, current, onChange) {
+  const g = h('div', 'toggle'); g.setAttribute('role', 'group');
+  for (const [id, label] of Object.entries(options)) {
+    const b = h('button', null, label); b.type = 'button'; b.setAttribute('aria-pressed', String(id === current));
+    b.addEventListener('click', () => { for (const o of g.children) o.setAttribute('aria-pressed', String(o === b)); onChange(id); });
+    g.append(b);
+  }
+  return g;
+}
+// switch + chart that redraws when the switch changes
+function switchable(options, first, make) {
+  const wrap = h('div'); const slot = h('div');
+  const show = (id) => { slot.textContent = ''; slot.append(make(id)); };
+  wrap.append(toggle(options, first, show), slot); show(first);
+  return wrap;
+}
+
+// One chart over time.
+//   kind 'line'  : a line per series (compare modes)
+//   kind 'stack' : stacked columns (parts of a total)
+//   kind 'share' : 100% columns (how a total splits, e.g. run lengths)
+// Tap or hover anywhere for every series at that point; tap a legend item to hide it.
+let openTip = null;
+document.addEventListener('pointerdown', (e) => { if (openTip && !openTip.box.contains(e.target)) { openTip.hide(); openTip = null; } });
+function timeChart(T, list, opts) {
+  opts = opts || {};
+  const kind = opts.kind || 'line';
+  const box = h('div', 'chart');
+  const hidden = new Set();
+  if (list.length > 1) {
+    const leg = h('div', 'legend');
+    list.forEach((s, i) => {
+      const b = h('button', 'leg'); b.type = 'button'; b.setAttribute('aria-pressed', 'true');
+      const sw = h('i', kind === 'line' ? 'line' : null); sw.style.background = s.color;
+      b.append(sw, document.createTextNode(s.name));
+      b.title = 'Show or hide ' + s.name;
+      b.addEventListener('click', () => {
+        if (hidden.has(i)) hidden.delete(i); else if (hidden.size < list.length - 1) hidden.add(i); else return;
+        b.setAttribute('aria-pressed', String(!hidden.has(i))); draw();
+      });
+      leg.append(b);
     });
-    if (i % labelEvery === 0 || n <= 8) {
-      const t = mk('text', { x: cx, y: H - 6, 'text-anchor': 'middle', fill: 'var(--text-muted)', 'font-size': 11 });
-      const dt = new Date(d + 'T12:00:00');
-      t.textContent = n <= 8 ? dt.toLocaleDateString('en-US', { weekday: 'short' }) : (dt.getMonth() + 1) + '/' + dt.getDate();
-      svg.append(t);
+    box.append(leg);
+  }
+  const host = h('div', 'plot'); box.append(host);
+  const tip = h('div', 'tip hidden'); box.append(tip);
+  const NS = 'http://www.w3.org/2000/svg';
+  const mk = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const allZero = list.every((s) => T.keys.every((k) => !(s.data.get(k) || 0)));
+  if (allZero) { host.append(empty(opts.emptyText || 'Nothing yet in this range')); return box; }
+  let lastW = 0, hoverI = -1, layer = null;
+
+  function draw() {
+    const W = host.clientWidth; if (!W) return; lastW = W;
+    host.textContent = '';
+    const H = opts.height || 190, padL = 34, padR = kind === 'line' ? 12 : 6, padT = 10, padB = 24;
+    const vis = list.map((s, i) => i).filter((i) => !hidden.has(i));
+    const n = T.keys.length;
+    const raw = T.keys.map((k) => list.map((s) => s.data.get(k) || 0));
+    const totals = raw.map((r) => vis.reduce((a, i) => a + r[i], 0));
+    let top;
+    if (kind === 'share') top = 100;
+    else {
+      const maxV = Math.max(1, ...(kind === 'stack' ? totals : raw.flatMap((r) => vis.map((i) => r[i]))));
+      const mag = Math.pow(10, Math.floor(Math.log10(maxV)));
+      const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => maxV / s <= 4) || mag * 10;
+      top = Math.max(1, Math.ceil(maxV / step) * step);
+      if (top < 4) top = 4;
     }
-    // a hit target the full height of the band, bigger than the column
-    const hit = mk('rect', { x: padL + band * i, y: 0, width: band, height: H - padB, fill: 'transparent' });
-    const show = () => {
+    const ticks = kind === 'share' ? [0, 50, 100] : [0, top / 2, top].map((v) => Math.round(v * 10) / 10);
+    const y = (v) => padT + (H - padT - padB) * (1 - v / top);
+    const band = (W - padL - padR) / n;
+    const cx = (i) => padL + band * (i + 0.5);
+    const svg = mk('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': opts.label || 'Chart over time' });
+    for (const v of ticks) {
+      svg.append(mk('line', { x1: padL, x2: W - padR, y1: y(v), y2: y(v), stroke: 'var(--grid)', 'stroke-width': 1 }));
+      const t = mk('text', { x: padL - 6, y: y(v) + 4, 'text-anchor': 'end', class: 'ax' }); t.textContent = kind === 'share' ? v + '%' : fmt(v); svg.append(t);
+    }
+    const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor((W - padL) / 46))));
+    T.keys.forEach((k, i) => {
+      if (i % every && i !== n - 1) return;
+      if (i === n - 1 && i % every && (n - 1) % every < every * 0.6) return;   // (don't crowd the last label)
+      const t = mk('text', { x: cx(i), y: H - 7, 'text-anchor': 'middle', class: 'ax' }); t.textContent = T.tick(k); svg.append(t);
+    });
+    const marks = mk('g', {}); svg.append(marks);
+    if (kind === 'line') {
+      for (const i of vis) {
+        const pts = T.keys.map((k, j) => [cx(j), y(raw[j][i])]);
+        if (opts.area && vis.length === 1) marks.append(mk('path', { d: 'M' + pts.map((p) => p.join(',')).join('L') + `L${pts[pts.length - 1][0]},${y(0)}L${pts[0][0]},${y(0)}Z`, fill: list[i].color, 'fill-opacity': 0.1 }));
+        if (n > 1) marks.append(mk('path', { d: 'M' + pts.map((p) => p.join(',')).join('L'), fill: 'none', stroke: list[i].color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+        const [ex, ey] = pts[pts.length - 1];
+        marks.append(mk('circle', { cx: ex, cy: ey, r: 4, fill: list[i].color, stroke: 'var(--surface-1)', 'stroke-width': 2 }));
+      }
+    } else {
+      const bw = Math.max(2, Math.min(24, band * 0.72));
+      T.keys.forEach((k, j) => {
+        const tot = totals[j]; if (!tot) return;
+        let acc = 0;
+        const parts = vis.map((i) => [i, kind === 'share' ? (raw[j][i] / tot) * 100 : raw[j][i]]).filter((p) => p[1] > 0);
+        parts.forEach(([i, v], p) => {
+          const y0 = y(acc), y1 = y(acc + v); acc += v;
+          const gap = p ? 2 : 0;
+          const hgt = Math.max(1, y0 - y1 - gap);
+          const x0 = cx(j) - bw / 2, x1 = cx(j) + bw / 2, yt = y1, yb = y1 + hgt;
+          if (p === parts.length - 1) {
+            const r = Math.min(4, hgt, bw / 2);
+            marks.append(mk('path', { d: `M${x0},${yb}V${yt + r}Q${x0},${yt} ${x0 + r},${yt}H${x1 - r}Q${x1},${yt} ${x1},${yt + r}V${yb}Z`, fill: list[i].color }));
+          } else marks.append(mk('rect', { x: x0, y: yt, width: bw, height: hgt, fill: list[i].color }));
+        });
+      });
+    }
+    // hover layer: crosshair + one tooltip with every series
+    const cross = mk('line', { y1: padT, y2: H - padB, stroke: 'var(--text-muted)', 'stroke-width': 1, opacity: 0 }); svg.append(cross);
+    const dots = mk('g', {}); svg.append(dots);
+    const hit = mk('rect', { x: padL, y: 0, width: W - padL - padR, height: H - padB + 4, fill: 'transparent', style: 'touch-action: pan-y' }); svg.append(hit);
+    const showAt = (j) => {
+      hoverI = j;
+      cross.setAttribute('x1', cx(j)); cross.setAttribute('x2', cx(j)); cross.setAttribute('opacity', 1);
+      dots.textContent = '';
+      if (kind === 'line') for (const i of vis) dots.append(mk('circle', { cx: cx(j), cy: y(raw[j][i]), r: 4, fill: list[i].color, stroke: 'var(--surface-1)', 'stroke-width': 2 }));
       tip.textContent = '';
-      const dt = new Date(d + 'T12:00:00');
-      tip.append(Object.assign(h('b'), { textContent: dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) }));
-      series.forEach((s, k) => { tip.append(h('br'), document.createTextNode(s.name + ': ' + fmt(parts[k]))); });
-      const bb = svg.getBoundingClientRect();
-      const px = (cx / W) * bb.width, py = (y(Math.max(acc, 0)) / H) * bb.height;
-      tip.style.left = Math.min(Math.max(px, 60), bb.width - 60) + 'px'; tip.style.top = (svg.offsetTop + py - 6) + 'px';
+      tip.append(h('div', 'tt', T.title(T.keys[j])));
+      const rows = vis.slice().reverse();   // top of the stack first
+      for (const i of (kind === 'line' ? vis.slice().sort((a, b) => raw[j][b] - raw[j][a]) : rows)) {
+        const r = h('div', 'tr'); const key = h('i'); key.style.background = list[i].color;
+        const v = raw[j][i];
+        if (kind !== 'line' && !v) continue;   // (columns: only the parts that are there)
+        r.append(key, h('b', null, kind === 'share' ? (totals[j] ? pct(v, totals[j]) + '%' : '–') : fmt(v)), document.createTextNode(' ' + list[i].name + (kind === 'share' && v ? ' (' + fmt(v) + ')' : '')));
+        tip.append(r);
+      }
+      if (kind !== 'line' && vis.length > 1) { const r = h('div', 'tr total'); r.append(h('b', null, fmt(totals[j])), document.createTextNode(' ' + (opts.totalName || 'total'))); tip.append(r); }
       tip.classList.remove('hidden');
+      const tw = tip.offsetWidth;
+      // beside the crosshair, inside the chart: to its right, or its left near the right edge
+      tip.style.left = Math.max(0, cx(j) + 10 + tw <= W ? cx(j) + 10 : cx(j) - 10 - tw) + 'px';
+      tip.style.top = (host.offsetTop + 2) + 'px';
+      openTip = layer;
     };
-    hit.addEventListener('pointerenter', show); hit.addEventListener('pointerdown', show);
-    hit.addEventListener('pointerleave', () => tip.classList.add('hidden'));
-    svg.append(hit);
-  });
-  box.append(svg, tip);
+    const hide = () => { hoverI = -1; cross.setAttribute('opacity', 0); dots.textContent = ''; tip.classList.add('hidden'); };
+    layer = { box, hide };
+    const pick = (e) => { const r = svg.getBoundingClientRect(); return Math.max(0, Math.min(n - 1, Math.floor((e.clientX - r.left - padL) / band))); };
+    hit.addEventListener('pointermove', (e) => showAt(pick(e)));
+    hit.addEventListener('pointerdown', (e) => showAt(pick(e)));
+    hit.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') hide(); });
+    host.append(svg);
+    if (hoverI >= 0 && hoverI < n) showAt(hoverI);
+  }
+  new ResizeObserver(() => { if (Math.abs(host.clientWidth - lastW) > 2) draw(); }).observe(host);
   return box;
 }
 
@@ -502,21 +639,26 @@ function renderPlayers(D, dayList) {
     { id: 'tDays', label: 'Player-days', value: fmt(daysPlayed), sub: newP ? (daysPlayed / Math.max(1, newP)).toFixed(1) + ' per new player' : 'devices × days played' },
     { id: 'tNamed', label: 'Names saved', value: fmt(named), sub: D.count('player/renamed') ? fmt(D.count('player/renamed')) + ' renamed' : 'for the leaderboard' },
   ]));
-  if (dayList.length > 1) {
-    el.append(sub('Players per day'));
-    const nd = D.daily('player/first-run'), pd = D.daily('player/day');
-    const ret = new Map(dayList.map((d) => [d, Math.max(0, (pd.get(d) || 0) - (nd.get(d) || 0))]));
-    el.append(dailyChart(dayList, [
-      { name: 'New', color: 'var(--series-1)', data: nd },
-      { name: 'Returning', color: 'var(--series-3)', data: ret },
-    ], 'Players per day'));
+  {
+    const T = D.T;
+    const nd = D.ts('player/first-run'), pd = D.ts('player/day');
+    const ret = new Map(T.keys.map((k) => [k, Math.max(0, (pd.get(k) || 0) - (nd.get(k) || 0))]));
+    el.append(sub('Players over time'));
+    el.append(switchable({ split: 'New vs returning', total: 'Running total', visits: 'Visits' }, 'split', (v) =>
+      v === 'split' ? timeChart(T, [
+        { name: 'New', color: 'var(--series-1)', data: nd },
+        { name: 'Returning', color: 'var(--series-3)', data: ret },
+      ], { kind: 'stack', label: 'Players per ' + T.per, totalName: 'players' })
+      : v === 'total' ? timeChart(T, [{ name: 'Players so far', color: 'var(--series-1)', data: runningTotal(T, nd) }], { kind: 'line', area: true, label: 'New players, running total' })
+      : timeChart(T, [{ name: 'Visits', color: 'var(--series-1)', data: D.ts('/', '/index.html') }], { kind: 'line', area: true, label: 'Visits per ' + T.per })));
+    if (T.unit === 'hour') el.append(note('Today is shown by the hour.'));
   }
   const opened = D.match('open/').map((x) => ({ name: OPEN_NAMES[x.path.slice(5)] || x.path.slice(5), value: x.count })).sort((a, b) => b.value - a.value);
   if (opened.length) {
     el.append(sub('How they open the game (visits: ' + fmt(opens) + ')'));
     el.append(bars(opened, { total: opened.reduce((a, r) => a + r.value, 0) }));
   }
-  el.append(note('Each player event is sent once per device, so these are devices. One catch: two identical phones on the same Wi-Fi in the same few hours look like one visitor to GoatCounter and count once. Counting began fresh on speeder-game.com (Nov 16).'));
+  el.append(note('Each player event is sent once per device, so these are devices. One catch: two identical phones on the same Wi-Fi in the same few hours look like one visitor to GoatCounter and count once. Counting began fresh on speeder-game.com (Nov 16). Running total counts from the start of the range.'));
 }
 
 function renderWhere(locs, systems) {
@@ -552,19 +694,27 @@ function renderModes(D, dayList) {
       { id: 'tClassic', label: 'Classic', value: fmt(R.classic.total), sub: pct(R.classic.total, totalRuns) + '% of runs' },
       { id: 'tLab', label: 'The Lab', value: fmt(R.lab.total), sub: pct(R.lab.total, totalRuns) + '% of runs' },
     ]));
-    if (dayList.length > 1) {
-      el.append(sub('Runs per day'));
-      el.append(dailyChart(dayList, [
-        { name: 'Warp Run', color: 'var(--series-1)', data: R.warp.daily },
-        { name: 'Classic', color: 'var(--series-2)', data: R.classic.daily },
-        { name: 'The Lab', color: 'var(--series-3)', data: R.lab.daily },
-      ], 'Runs per day'));
-    }
   } else {
     const modes = ['warp', 'classic', 'lab'].map((m) => ({ name: MODE_NAMES[m], value: D.count('play/' + m) }));
     el.append(sub('Visits that started a run in…'));
     el.append(bars(modes, { total: modes.reduce((a, r) => a + r.value, 0) }));
-    el.append(note('Exact run counts start with v0.16.4 (Nov 16). Until then, these are visits.'));
+  }
+  {
+    // modes side by side over time: exact runs (from v0.16.4) or visits (all history)
+    const T = D.T;
+    const MODE_COLORS = { warp: 'var(--series-1)', classic: 'var(--series-2)', lab: 'var(--series-3)' };
+    const firstRunKey = T.keys.find((k) => ['warp', 'classic', 'lab'].some((m) => R[m].ts.get(k)));
+    const firstPlayKey = T.keys.find((k) => ['warp', 'classic', 'lab'].some((m) => D.ts('play/' + m).get(k)));
+    const runsCover = totalRuns && firstRunKey && (!firstPlayKey || firstRunKey <= firstPlayKey);
+    el.append(sub('Plays by mode over time'));
+    el.append(switchable({ runs: 'Runs', visits: 'Visits' }, runsCover ? 'runs' : 'visits', (v) => {
+      const w = h('div');
+      w.append(timeChart(T, ['warp', 'classic', 'lab'].map((m) => ({
+        name: MODE_NAMES[m], color: MODE_COLORS[m], data: v === 'runs' ? R[m].ts : D.ts('play/' + m),
+      })), { kind: 'line', label: (v === 'runs' ? 'Runs' : 'Visits') + ' per ' + T.per + ' by mode', emptyText: v === 'runs' ? 'No run counts in this range yet (they start with v0.16.4, Nov 16)' : undefined }));
+      w.append(note(v === 'runs' ? 'Every run. Counted from v0.16.4 (Nov 16); switch to Visits for earlier days.' : 'Visits that played each mode: one visit with five runs counts once. Goes back to the start.'));
+      return w;
+    }));
   }
 
   const box = h('div', 'cols2');
@@ -573,6 +723,17 @@ function renderModes(D, dayList) {
   const c = h('div'); c.append(sub('Classic: where runs end (km)'));
   c.append(bars(CLASSIC_BUCKETS.map((b) => ({ name: b + ' km', value: D.count('run/' + b + 'km') }))));
   box.append(w, c); el.append(box);
+  if (D.T.keys.length > 1) {
+    el.append(sub('How far runs get, over time'));
+    el.append(switchable({ warp: 'Warp Run', classic: 'Classic' }, 'warp', (v) => {
+      const B = v === 'warp' ? WARP_BUCKETS : CLASSIC_BUCKETS, ramp = v === 'warp' ? RAMP6 : RAMP7;
+      const w = h('div');
+      w.append(timeChart(D.T, B.map((b, i) => ({ name: b + ' km', color: ramp[i], data: D.ts((v === 'warp' ? 'warp/run/' : 'run/') + b + 'km') })),
+        { kind: 'share', label: 'Share of runs by distance, per ' + D.T.per, totalName: 'visits' }));
+      w.append(note('Brighter = farther. If the bright part grows, people are getting further (or the game got easier).'));
+      return w;
+    }));
+  }
 
   // Warp Run: the loop and world each run ended in, as a grid
   const reached = D.match('warp/reached/');
@@ -639,7 +800,13 @@ function renderLab(D) {
   addChip('Chose the Lab', D.count('mode/lab')); addChip('Started a Lab run', D.count('play/lab')); addChip('Opened a ?lab link', D.count('lab/link'));
   el.append(lead);
   if (!labHits.length) { el.append(empty('No Lab activity in this range')); return; }
-  const leg = h('div', 'legend'); leg.style.marginTop = '12px';
+  if (D.T.keys.length > 1) {
+    el.append(sub('Lab plays over time'));
+    const cols = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)'];
+    el.append(timeChart(D.T, Object.keys(LAB_EXP).map((id, i) => ({ name: LAB_EXP[id].name, color: cols[i], data: D.tsMatch(new RegExp('^lab/play/' + id + '(\\.|$)')) })), { kind: 'line', label: 'Visits that played each Lab experiment' }));
+  }
+  el.append(sub('Votes by version'));
+  const leg = h('div', 'legend');
   for (const [n, c] of [['Thumbs up', 'var(--series-1)'], ['Thumbs down', 'var(--series-2)']]) { const s = h('span'); const i = h('i'); i.style.background = c; s.append(i, document.createTextNode(n)); leg.append(s); }
   el.append(leg);
 
@@ -697,6 +864,14 @@ function renderSchool(D) {
     { label: 'Left early', value: fmt(D.match('tut/quit/').reduce((a, x) => a + x.count, 0)), sub: 'closed it partway' },
   ]));
   if (!started && !D.match('tut/part/').length) { el.append(empty('Nobody opened Flight School in this range')); return; }
+  if (D.T.keys.length > 1) {
+    el.append(sub('Over time'));
+    el.append(timeChart(D.T, [
+      { name: 'Offered', color: 'var(--series-1)', data: D.ts('tut/offer') },
+      { name: 'Started', color: 'var(--series-2)', data: D.tsMatch(/^tut\/start\//) },
+      { name: 'Finished', color: 'var(--series-3)', data: D.ts('tut/done') },
+    ], { kind: 'line', label: 'Flight School per ' + D.T.per }));
+  }
   const parts = TUT_PARTS.map((name, i) => {
     const x = D.match('tut/part/' + (i + 1) + '-')[0];
     return { name: (i + 1) + '. ' + name, value: x ? x.count : 0 };
@@ -764,6 +939,14 @@ function renderOther(D) {
     { name: 'Copied link (in-app browser)', value: D.count('install/copy-link') },
   ]));
   box.append(a, b); el.append(box);
+  if (D.T.keys.length > 1) {
+    el.append(sub('Over time'));
+    el.append(timeChart(D.T, [
+      { name: 'Shares', color: 'var(--series-1)', data: D.ts('share/game/sent', 'share') },
+      { name: 'Challenge links opened', color: 'var(--series-2)', data: D.ts('challenge-link') },
+      { name: 'Installs', color: 'var(--series-3)', data: D.ts('install/done') },
+    ], { kind: 'line', label: 'Sharing and installs' }));
+  }
   const back = D.count('back/paused');
   el.append(note('Android Back gesture paused a run: ' + fmt(back) + (back ? ' visit' + (back === 1 ? '' : 's') + '. If this keeps climbing, steering may need less thumb travel.' : '.')));
 }
@@ -821,8 +1004,15 @@ async function render(forceBoards) {
       systems = await loadList('systems', start, end);
       if (!PARTIAL) store('speeder.stats.cache.' + RANGE, JSON.stringify({ at: Date.now(), hits, locs, systems }));
     }
-    const D = index(hits); lastD = D;
-    const dayList = days(start, end);
+    const T = timeAxis(start, end, RANGE);
+    // start the time axis at the first day with any data (analytics only began in November)
+    if (T.unit !== 'hour') {
+      let first = null;
+      for (const x of hits) for (const st of x.stats || []) if (st.daily && (!first || st.day < first)) first = st.day;
+      if (first) { const fk = T.unit === 'week' ? weekOf(first) : first; const kept = T.keys.filter((k) => k >= fk); if (kept.length) T.keys = kept; }
+    }
+    const D = index(hits, T); lastD = D;
+    const dayList = T.keys;
     for (const [fn, args] of [[renderPlayers, [D, dayList]], [renderWhere, [locs, systems]], [renderModes, [D, dayList]], [renderLab, [D]], [renderSchool, [D]], [renderOther, [D]], [renderAll, [D]]]) {
       try { fn(...args); } catch (e) { console.error(e); }
     }
