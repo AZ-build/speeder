@@ -277,9 +277,13 @@ const BOARD_LIMIT = 300;                    // entries read per board
 
 const MODE_NAMES = { warp: 'Warp Run', classic: 'Classic', lab: 'The Lab' };
 const OPEN_NAMES = { app: 'Installed app', browser: 'Browser', tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', snapchat: 'Snapchat', x: 'X', linkedin: 'LinkedIn', discord: 'Discord', pinterest: 'Pinterest', line: 'Line', reddit: 'Reddit' };
-const WARP_BUCKETS = ['0-1', '1-3', '3-7', '7-17', '17-34', '34+'];
-const CLASSIC_BUCKETS = ['0-0.5', '0.5-1', '1-2', '2-4', '4-7', '7-12', '12+'];
-const LAB_BUCKETS = ['0-1', '1-3', '3-7', '7-17', '17+'];
+// Where runs end, in km. Must match WARP_KM / CLASSIC_KM / LAB_KM in the game (index.html).
+// v0.16.7 split the old top bucket (34+, 12+, 17+) because the best runs go 200+ km; runs from
+// older versions still sit in that old bucket, shown separately as OLD_TOP while it has any.
+const WARP_BUCKETS = ['0-1', '1-3', '3-7', '7-17', '17-34', '34-70', '70-140', '140-200', '200-300', '300+'];
+const CLASSIC_BUCKETS = ['0-0.5', '0.5-1', '1-2', '2-4', '4-7', '7-12', '12-25', '25-50', '50-100', '100-200', '200+'];
+const LAB_BUCKETS = ['0-1', '1-3', '3-7', '7-17', '17-34', '34-70', '70+'];
+const OLD_TOP = { warp: '34+', classic: '12+', lab: '17+' };
 const TUT_PARTS = ['Welcome', 'The screen', 'Controls', 'Power-ups', 'Obstacles', 'Enemies', 'Cells & close calls', 'The five worlds', 'The Warden & loops', 'Ready to ride'];
 const LAB_EXP = {
   jump: { name: 'JUMP', opts: [{ flick: 'Flick up', tap: '2nd finger' }, { charges: 'Earned charges', free: 'Unlimited' }] },
@@ -356,8 +360,10 @@ async function loadHits(start, end) {
   }
   return out;
 }
-async function loadList(page, start, end) {
-  try { const r = await gc('/stats/' + page, { start: iso(start), end: iso(end), limit: 100 }); return r.stats || []; }
+async function loadList(page, start, end, paths) {
+  const p = { start: iso(start), end: iso(end), limit: 100 };
+  if (paths) { if (!paths.length) return []; p.include_paths = paths.join(','); }   // only visits that sent one of these path IDs
+  try { const r = await gc('/stats/' + page, p); return r.stats || []; }
   catch (e) { if (e.code === 'key' || e.code === 'rate') throw e; return null; }
 }
 
@@ -477,7 +483,22 @@ function series(x, T) {
 function addMaps(maps) { const m = new Map(); for (const a of maps) for (const [k, v] of a) m.set(k, (m.get(k) || 0) + v); return m; }
 function runningTotal(T, m) { let t = 0; return new Map(T.keys.map((k) => [k, (t += m.get(k) || 0)])); }
 const RAMP7 = ['#184f95', '#256abf', '#3987e5', '#6da7ec', '#9ec5f4', '#cde2fb', '#f2f7fe'];   // short runs dark, long runs bright (validated, ordinal, on --surface-1)
-const RAMP6 = RAMP7.slice(1);
+// n shades along RAMP7, dark to bright (for bucket lists longer than 7)
+function ramp(n) {
+  const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+  const A = RAMP7.slice(n > 6 ? 0 : 1).map(hex);
+  return Array.from({ length: n }, (_, i) => {
+    const t = n > 1 ? (i / (n - 1)) * (A.length - 1) : 0, j = Math.min(A.length - 2, Math.floor(t)), f = t - j;
+    return '#' + A[j].map((v, k) => Math.round(v + (A[j + 1][k] - v) * f).toString(16).padStart(2, '0')).join('');
+  });
+}
+// one run-distance bucket list as bar rows, plus the old top bucket if any runs are still in it
+function kmRows(D, prefix, B, oldTop) {
+  const rows = B.map((b) => ({ name: b + ' km', value: D.count(prefix + b + 'km') }));
+  const old = D.count(prefix + oldTop + 'km');
+  if (old) rows.push({ name: oldTop + ' km (old)', value: old, color: 'var(--text-muted)' });
+  return rows;
+}
 
 // a small switch above a chart: options = { id: 'Label' }
 function toggle(options, current, onChange) {
@@ -667,17 +688,44 @@ function renderPlayers(D, dayList) {
   el.append(note('Each player event is sent once per device, so these are devices. One catch: two identical phones on the same Wi-Fi in the same few hours look like one visitor to GoatCounter and count once. Counting began fresh on speeder-game.com (Nov 16). Running total counts from the start of the range.'));
 }
 
-function renderWhere(locs, systems) {
+function renderWhere(locs, systems, playLocs) {
   const el = $('whereBody'); el.textContent = '';
   const box = h('div', 'cols2');
   const a = h('div'); a.append(sub('Countries'));
+  const label = (x) => (flag(x.id) ? flag(x.id) + ' ' : '') + (x.name || x.id || 'Unknown');
+  const countryBars = (list) => {
+    const total = list.reduce((s, x) => s + x.count, 0);
+    const rows = list.slice(0, 10).map((x) => ({ name: label(x), value: x.count }));
+    const rest = list.slice(10).reduce((s, x) => s + x.count, 0);
+    if (rest) rows.push({ name: 'Other (' + (list.length - 10) + ')', value: rest });
+    return bars(rows, { total });
+  };
   if (locs && locs.length) {
-    const total = locs.reduce((s, x) => s + x.count, 0);
-    const top = locs.slice(0, 10);
-    const rest = locs.slice(10).reduce((s, x) => s + x.count, 0);
-    const rows = top.map((x) => ({ name: (flag(x.id) ? flag(x.id) + ' ' : '') + (x.name || x.id || 'Unknown'), value: x.count }));
-    if (rest) rows.push({ name: 'Other (' + (locs.length - 10) + ')', value: rest });
-    a.append(bars(rows, { total }));
+    if (playLocs) {
+      a.append(switchable({ played: 'Played a run', all: 'All visits' }, 'played', (v) => {
+        const w = h('div');
+        const list = v === 'played' ? playLocs : locs;
+        w.append(list.length ? countryBars(list) : empty('Nobody started a run in this range'));
+        w.append(note(v === 'played'
+          ? 'Visits that started at least one run. Starting a run takes a touch, so bots and link previews can’t get in here: these are real players.'
+          : 'Every visit, including people (or bots) who opened the page and never played.'));
+        return w;
+      }));
+      // countries that opened the game but never started a run
+      const played = new Map(playLocs.map((x) => [x.id, x.count]));
+      const only = locs.filter((x) => !played.get(x.id)).sort((p, q) => q.count - p.count);
+      if (only.length) {
+        a.append(sub('Opened it, never played'));
+        const ch = h('div', 'chips');
+        for (const x of only.slice(0, 20)) { const sp = h('span'); sp.append(label(x) + ': ', Object.assign(h('b'), { textContent: fmt(x.count) })); ch.append(sp); }
+        if (only.length > 20) ch.append(h('span', null, '+' + (only.length - 20) + ' more'));
+        a.append(ch);
+        a.append(note('Countries where nobody started a run. Most likely crawlers (search engines, link checkers, security scanners run from data centres) or someone who opened a shared link and left. If a country appears here once and never in “Played a run”, it’s almost certainly a bot.'));
+      }
+    } else {
+      a.append(countryBars(locs));
+      a.append(note('Couldn’t load the players-only view, so this is every visit (bots included).'));
+    }
   } else a.append(empty(locs ? 'No visits in this range' : 'Countries unavailable'));
   const b = h('div'); b.append(sub('Phones & computers'));
   if (systems && systems.length) {
@@ -685,7 +733,7 @@ function renderWhere(locs, systems) {
     b.append(bars(systems.slice(0, 6).map((x) => ({ name: x.name || 'Unknown', value: x.count })), { total }));
   } else b.append(empty(systems ? 'No visits in this range' : 'Systems unavailable'));
   box.append(a, b); el.append(box);
-  el.append(note('Visits, from the network connection (GoatCounter never stores addresses).'));
+  el.append(note('Visits, from the network connection (GoatCounter never stores addresses). GoatCounter already drops visitors that say they’re bots; the ones above got past that by looking like a normal browser.'));
 }
 
 function renderModes(D, dayList) {
@@ -725,16 +773,18 @@ function renderModes(D, dayList) {
 
   const box = h('div', 'cols2');
   const w = h('div'); w.append(sub('Warp Run: where runs end (km)'));
-  w.append(bars(WARP_BUCKETS.map((b) => ({ name: b + ' km', value: D.count('warp/run/' + b + 'km') }))));
+  w.append(bars(kmRows(D, 'warp/run/', WARP_BUCKETS, OLD_TOP.warp)));
   const c = h('div'); c.append(sub('Classic: where runs end (km)'));
-  c.append(bars(CLASSIC_BUCKETS.map((b) => ({ name: b + ' km', value: D.count('run/' + b + 'km') }))));
+  c.append(bars(kmRows(D, 'run/', CLASSIC_BUCKETS, OLD_TOP.classic)));
   box.append(w, c); el.append(box);
   if (D.T.keys.length > 1) {
     el.append(sub('How far runs get, over time'));
     el.append(switchable({ warp: 'Warp Run', classic: 'Classic' }, 'warp', (v) => {
-      const B = v === 'warp' ? WARP_BUCKETS : CLASSIC_BUCKETS, ramp = v === 'warp' ? RAMP6 : RAMP7;
+      const B = v === 'warp' ? WARP_BUCKETS : CLASSIC_BUCKETS, colors = ramp(B.length), pre = v === 'warp' ? 'warp/run/' : 'run/';
+      const series = B.map((b, i) => ({ name: b + ' km', color: colors[i], data: D.ts(pre + b + 'km') }));
+      if (D.count(pre + OLD_TOP[v] + 'km')) series.push({ name: OLD_TOP[v] + ' km (older)', color: '#6b6f8a', data: D.ts(pre + OLD_TOP[v] + 'km') });
       const w = h('div');
-      w.append(timeChart(D.T, B.map((b, i) => ({ name: b + ' km', color: ramp[i], data: D.ts((v === 'warp' ? 'warp/run/' : 'run/') + b + 'km') })),
+      w.append(timeChart(D.T, series,
         { kind: 'share', label: 'Share of runs by distance, per ' + D.T.per, totalName: 'visits' }));
       w.append(note('Brighter = farther. If the bright part grows, people are getting further (or the game got easier).'));
       return w;
@@ -847,7 +897,7 @@ function renderLab(D) {
     el.append(sec);
   }
   el.append(sub('Lab runs: where they end (km)'));
-  el.append(bars(LAB_BUCKETS.map((b) => ({ name: b + ' km', value: D.count('lab/run/' + b + 'km') }))));
+  el.append(bars(kmRows(D, 'lab/run/', LAB_BUCKETS, OLD_TOP.lab)));
   const setups = D.match('lab/setup/');
   if (setups.length) {
     const ch = h('div', 'chips');
@@ -1039,13 +1089,16 @@ async function render(forceBoards) {
     PARTIAL = false;
     let cached = null;
     try { cached = JSON.parse(store('speeder.stats.cache.' + RANGE) || 'null'); } catch (e) { cached = null; }
-    let hits, locs, systems;
-    if (!forceBoards && cached && Date.now() - cached.at < 5 * 60000) ({ hits, locs, systems } = cached);
+    let hits, locs, systems, playLocs;
+    if (!forceBoards && cached && Date.now() - cached.at < 5 * 60000) ({ hits, locs, systems, playLocs } = cached);
     else {
       hits = await loadHits(start, end);
       locs = await loadList('locations', start, end);
       systems = await loadList('systems', start, end);
-      if (!PARTIAL) store('speeder.stats.cache.' + RANGE, JSON.stringify({ at: Date.now(), hits, locs, systems }));
+      // v0.16.7: countries of visits that started a run (play/warp, play/classic, play/lab). A run needs
+      // a touch, so crawlers never get here; comparing with all visits shows which countries are bots.
+      playLocs = await loadList('locations', start, end, hits.filter((x) => /^play\/(warp|classic|lab)$/.test(x.path)).map((x) => x.path_id));
+      if (!PARTIAL) store('speeder.stats.cache.' + RANGE, JSON.stringify({ at: Date.now(), hits, locs, systems, playLocs }));
     }
     const T = timeAxis(start, end, RANGE);
     // start the time axis at the first day with any data (analytics only began in November)
@@ -1056,7 +1109,7 @@ async function render(forceBoards) {
     }
     const D = index(hits, T); lastD = D;
     const dayList = T.keys;
-    for (const [fn, args] of [[renderPlayers, [D, dayList]], [renderWhere, [locs, systems]], [renderModes, [D, dayList]], [renderLab, [D]], [renderSound, [D]], [renderSchool, [D]], [renderOther, [D]], [renderAll, [D]]]) {
+    for (const [fn, args] of [[renderPlayers, [D, dayList]], [renderWhere, [locs, systems, playLocs]], [renderModes, [D, dayList]], [renderLab, [D]], [renderSound, [D]], [renderSchool, [D]], [renderOther, [D]], [renderAll, [D]]]) {
       try { fn(...args); } catch (e) { console.error(e); }
     }
     $('stamp').textContent = 'Updated ' + new Date(cached && !forceBoards && Date.now() - cached.at < 5 * 60000 ? cached.at : Date.now()).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });

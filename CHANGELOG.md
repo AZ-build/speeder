@@ -4,6 +4,28 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.16.7] — 2026-11-17
+
+### Stats: run distances past 34 km, and telling real players from bots
+
+Adrian: the "how far runs get" buckets top out far too low (the best runs go 200+ km), and
+countries he doesn't recognise are showing up. Are they real?
+
+- **Longer distance buckets.** Warp Run used to stop at "34+ km", Classic at "12+", the Lab at
+  "17+". Now Warp Run goes 34-70, 70-140, 140-200, 200-300, 300+; Classic 12-25, 25-50, 50-100,
+  100-200, 200+; the Lab 17-34, 34-70, 70+. The short buckets are unchanged, so trends carry on.
+  Runs counted before this version stay in the old top bucket, shown as "34+ km (old)" (grey)
+  until it ages out of the range. One function (`kmBucket()` with `WARP_KM` / `CLASSIC_KM` /
+  `LAB_KM`) replaces the three hand-written chains; the stats page lists must match.
+- **Loops up to 20.** "Reached loop", "beat the boss" and "ended in loop X, world Y" were capped
+  at loop 8 (about 270 km); now `LOOP_CAP = 20`.
+- **Countries: "Played a run" vs "All visits".** The stats page asks GoatCounter for the
+  countries of visits that started a run (`play/warp`, `play/classic`, `play/lab`). Starting a run
+  takes a touch, so crawlers can't get in. Below it, "Opened it, never played" lists countries
+  that only ever opened the page: almost always bots (search engines, link checkers, scanners in
+  data centres) or someone who left straight away. One extra GoatCounter request per refresh.
+- Nothing in gameplay changed (`tests/same-as-before.sh`: identical).
+
 ## [0.16.6] — 2026-11-17
 
 ### Steering: a second touch no longer kills the steering thumb
