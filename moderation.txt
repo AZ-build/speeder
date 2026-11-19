@@ -1,0 +1,14 @@
+# SPEEDER HIDE LIST
+# Hides entries from the world leaderboards for every player, within about 10 minutes.
+# Nothing is deleted from the database: hidden entries just never show, and don't count
+# toward anyone's rank. Remove a line to bring an entry back.
+#
+# How to add a line (on GitHub: open this file, click the pencil, add the line, "Commit changes"):
+#   - Hide one run: paste its ID on its own line. The stats page (speeder-game.com/stats/)
+#     shows every entry's ID with a "Copy ID" button.
+#   - Hide every run from one phone or computer: write  player  and then the part of the ID
+#     before the "_", e.g.  player pabc123def456ghi789j
+#   - Block a word in names (shows as PILOT on the boards, and can't be typed as a name):
+#     write  word  and the word, e.g.  word BADWORD
+# Anything after a # is a note for you and is ignored. Example:
+#   pabc123def456ghi789j_mfz3k1a2b   # 99,999,999 in Classic, obviously cheated (Nov 2026)

@@ -4,6 +4,52 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.17.0] — 2026-11-18
+
+### Ready for strangers: anti-cheat, a name filter, a hide list, fewer database reads
+
+Before posting Speeder on Reddit (see the launch plan), three things could go wrong: anyone could
+cheat with one line in the browser console, anyone could put any name on the board, and a busy
+day could use up the free Firebase allowance Speeder shares with ORBit. Adrian couldn't do Firebase
+steps tonight, so everything that doesn't need Firebase is done, and the Firebase parts are
+prepared and switched off (`FIREBASE-SETUP.md`).
+
+- **The console cheat is gone.** The whole game script now runs inside one function, so names like
+  `G` and `SET` can't be reached from the browser console, and `window.SPEEDER` (the test
+  shortcuts) only exists with **`?dev`** on the address, or when the game is opened from a file or
+  a local test server. `?dev` stays on for that browser tab, shows "TEST TOOLS ON" next to the
+  version, switches analytics off, and keeps every run off the world boards ("Test tools are on,
+  so this run stays off the world leaderboard."). New `SPEEDER.inside(code)` runs a test's code
+  inside the game (tests/tutorial.mjs uses it; test tools only).
+- **Fair-play check before upload** (`fairCheck()`, `FAIR`): the game keeps its own count of real
+  playing time and refuses runs whose run timer went faster than real time ('clock'), that went
+  farther than top speed allows ('distance'), whose score is bigger than distance and kills allow
+  ('score', the same sum as the database rules), or that kept invincibility far too long
+  ('invuln'). Those runs stay on the device and are counted as `fair/flag/<reason>`.
+  Every run now records `t`, seconds played.
+- **Name filter** (`nameBlocked()`, `showName()`): slurs and rude words are refused when typed (game
+  over and Settings), and a bad name already on a board shows as PILOT. Catches F4CK, F.U.C.K,
+  FUUUCK. Short words (ASS, RAPE...) only count as a whole word, so CLASSIC and GRAPE are fine. A
+  device whose saved name fails the filter no longer uploads.
+- **Hide list: `moderation.txt`.** One line per run ID to hide, `player <device id>` to hide all of
+  a device's runs, `word <WORD>` to block a name word. Edit it on GitHub; every player picks it up
+  within 10 minutes. Hidden entries don't show or count toward anyone's rank.
+- **Stats page: "Check the boards".** Each board's top 50 as players see it, flagged (rude name,
+  far ahead of everyone, faster than the game allows), each with a **Copy ID** button for
+  moderation.txt. The stats page now reads the boards through the Firebase library (so it keeps
+  working once App Check is on).
+- **Fewer reads:** Warp Run's board asks for 50 + 15 entries, not 100. The cached board is reused
+  for 10 minutes on opening the game (was 3) and 3 minutes on the leaderboard screen (was 1). If
+  Firebase says the daily allowance ran out, the game stops asking for an hour (`dbCall()`,
+  `speeder.dbRest`, analytics `db/quota`) and shows the saved boards.
+- **Prepared, switched off:** `SPEEDER_FIREBASE` (Speeder's own Firebase project; uploads then also
+  send `t`) and `APP_CHECK_KEY` (App Check with reCAPTCHA v3; Settings then shows the reCAPTCHA
+  notice). New rules for the new project: `firestore-rules-own-project.txt` (checks entry IDs,
+  names and distance against time). Steps for Adrian: `FIREBASE-SETUP.md`.
+- Tests: new `tests/fairplay.mjs` (the live site has no console shortcuts, ?dev runs never upload,
+  PILOT, the hide list, a real run uploads, rude names refused, the stats check table). All tests
+  pass; Classic and Warp Run play exactly as before (`tests/same-as-before.sh`).
+
 ## [0.16.7] — 2026-11-17
 
 ### Stats: run distances past 34 km, and telling real players from bots

@@ -1,0 +1,66 @@
+rules_version = '2';
+
+// Speeder's own Firebase project (prepared in v0.17.0, not live yet). This is the WHOLE rules page:
+// in the new project, delete everything on the Rules tab and paste all of this. ORBit isn't in
+// this project, so there's nothing else to keep.
+//
+// Stricter than the old blocks (firestore-rules-speeder.txt / -warp.txt):
+//   - entry IDs must look like the game's own (a device ID, then the run)
+//   - names: only the letters the game allows, and the worst words are refused here too
+//   - every run says how long it took (t, in seconds), and the distance has to fit in that time
+//     (200 m a second is faster than the game's top speed)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function goodId(id) {
+      return id.matches('^p[a-z0-9]{19}(_[a-z0-9]+)?$');
+    }
+    function goodName(n) {
+      return n is string && n.size() >= 1 && n.size() <= 12
+        && n.matches('^[A-Z0-9 _.-]+$')
+        && !n.lower().matches('.*(fuck|shit|cunt|nigg|faggot|retard|whore|bitch|rapist|hitler|nazi|pussy|penis).*');
+    }
+    function goodRun(d) {
+      return d.score is int && d.score >= 0
+        && d.dist is int && d.dist >= 0
+        && d.kills is int && d.kills >= 0
+        && d.t is int && d.t >= 1 && d.t <= 86400
+        && d.dist <= d.t * 200 + 2000
+        && d.v is string && d.v.size() <= 12
+        && d.ts == request.time;
+    }
+
+    // ---- Classic leaderboard ----
+    match /speeder_scores/{entryId} {
+      allow read: if true;
+      allow create: if goodId(entryId) && validClassic();
+      allow update: if goodId(entryId) && validClassic() && request.resource.data.score >= resource.data.score;
+      allow delete: if false;
+
+      function validClassic() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['name', 'score', 'dist', 'kills', 't', 'v', 'ts'])
+          && goodName(d.name) && goodRun(d)
+          && d.score < 100000000
+          && d.score <= d.dist * 8 + d.kills * 3000 + 100000;
+      }
+    }
+
+    // ---- Warp Run leaderboard ----
+    match /speeder_warp_scores/{entryId} {
+      allow read: if true;
+      allow create: if goodId(entryId) && validWarp();
+      allow update: if goodId(entryId) && validWarp() && request.resource.data.score >= resource.data.score;
+      allow delete: if false;
+
+      function validWarp() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['name', 'score', 'dist', 'kills', 'loop', 't', 'v', 'ts'])
+          && goodName(d.name) && goodRun(d)
+          && d.loop is int && d.loop >= 1 && d.loop <= 99
+          && d.score < 1000000000
+          && d.score <= (d.dist * 8 + d.kills * 3000 + 100000) * d.loop;
+      }
+    }
+  }
+}

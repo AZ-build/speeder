@@ -5,18 +5,20 @@ import { open } from './lib.mjs';
 
 const dir = process.argv[2] || process.cwd();
 const { browser, page, errors } = await open(dir);
+// v0.17.0: the game's names are no longer global, so run test code inside the game (test tools only)
+const inGame = (fn) => page.evaluate((src) => window.SPEEDER.inside(src), fn.toString());
 let fails = 0;
 const check = (ok, name, info) => { console.log((ok ? 'PASS ' : 'FAIL ') + name + (info !== undefined ? '  ' + JSON.stringify(info) : '')); if (!ok) fails++; };
 
 await page.evaluate(() => new Promise((r) => setTimeout(r, 900)));
 check(await page.evaluate(() => !document.getElementById('tutOffer').classList.contains('hidden')), 'first-time offer shows on a new device');
 await page.evaluate(() => document.getElementById('tutOfferGo').click());
-check(await page.evaluate(() => TUT.on && TUT.cur.id === 'welcome' && paused), 'Start Flight School opens the first card, game frozen');
+check(await inGame(() => TUT.on && TUT.cur.id === 'welcome' && paused), 'Start Flight School opens the first card, game frozen');
 
-const n = await page.evaluate(() => TUT_STEPS.length);
+const n = await inGame(() => TUT_STEPS.length);
 const noSpot = new Set(['welcome', 'powers', 'modes', 'extras', 'ready']);
 for (let i = 0; i < n; i++) {
-  const r = await page.evaluate(() => {
+  const r = await inGame(() => {
     render(); tutLayout();
     const st = TUT.cur, out = { id: st.id, spot: !document.getElementById('tutSpot').classList.contains('hidden') };
     if (!st.goal) return out;
@@ -55,11 +57,11 @@ for (let i = 0; i < n; i++) {
   });
   if (r.done !== undefined) check(r.done && r.secs < 40, 'practice "' + r.id + '" can be finished', r);
   if (!noSpot.has(r.id)) check(r.spot, 'card "' + r.id + '" lights up what it explains');
-  if (i < n - 1) await page.evaluate(() => tutPrimary());
+  if (i < n - 1) await inGame(() => tutPrimary());
 }
-check(await page.evaluate(() => WP.loop === 2), 'the tutorial ends in loop 2');
-await page.evaluate(() => tutPrimary());   // "Ride Warp Run"
-const after = await page.evaluate(() => ({ tut: TUT.on, state: G.state, mode: G.mode, saved: localStorage.getItem('speeder.tutDone') }));
+check(await inGame(() => WP.loop === 2), 'the tutorial ends in loop 2');
+await inGame(() => tutPrimary());   // "Ride Warp Run"
+const after = await inGame(() => ({ tut: TUT.on, state: G.state, mode: G.mode, saved: localStorage.getItem('speeder.tutDone') }));
 check(!after.tut && after.state === 'play' && after.mode === 'warp' && after.saved === '1', 'finishing starts a real Warp Run and remembers it', after);
 check(errors.length === 0, 'no page errors', errors);
 await browser.close();

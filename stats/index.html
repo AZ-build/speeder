@@ -270,9 +270,22 @@ const GC = 'https://speeder.goatcounter.com/api/v0';
 const KEY_STORE = 'speeder.stats.key';
 const RANGE_STORE = 'speeder.stats.range';
 const ALL_START = '2026-11-01';             // analytics began in early November 2026
-const FS = { project: 'orbit-23921', key: 'AIzaSyCqMxJV7_hh8AHaSuYUi7QR16apt0QhPiE' };   // same public key the game uses
+// The leaderboard database. KEEP THESE THREE IN STEP WITH index.html (FIREBASE_CONFIG, SPEEDER_FIREBASE,
+// APP_CHECK_KEY): v0.17.0 reads the boards through the same Firebase library as the game, so this page
+// keeps working once App Check is switched on (App Check turns away plain web requests).
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyCqMxJV7_hh8AHaSuYUi7QR16apt0QhPiE',
+  authDomain: 'orbit-23921.firebaseapp.com',
+  projectId: 'orbit-23921',
+  storageBucket: 'orbit-23921.firebasestorage.app',
+  messagingSenderId: '680718517274',
+  appId: '1:680718517274:web:103918e8727a348c837da3',
+};
+const SPEEDER_FIREBASE = null;
+const APP_CHECK_KEY = '';
+const FIREBASE_SDK = 'https://www.gstatic.com/firebasejs/10.12.0/';
 const BOARDS = [['warp', 'speeder_warp_scores', 'Warp Run'], ['classic', 'speeder_scores', 'Classic']];
-const BOARD_CACHE_MIN = 10;                 // reuse the leaderboard download for 10 minutes (Firebase's free reads are shared with ORBit)
+const BOARD_CACHE_MIN = 10;                 // reuse the leaderboard download for 10 minutes (each load reads up to 600 entries)
 const BOARD_LIMIT = 300;                    // entries read per board
 
 const MODE_NAMES = { warp: 'Warp Run', classic: 'Classic', lab: 'The Lab' };
@@ -368,25 +381,85 @@ async function loadList(page, start, end, paths) {
 }
 
 // ---------- leaderboards (Firestore, public) ----------
+let FB = null;
+async function firebase() {
+  if (!FB) FB = (async () => {
+    const appMod = await import(FIREBASE_SDK + 'firebase-app.js');
+    const fs = await import(FIREBASE_SDK + 'firebase-firestore-lite.js');
+    const app = appMod.initializeApp(SPEEDER_FIREBASE || FIREBASE_CONFIG, 'speeder-stats');
+    if (APP_CHECK_KEY) {
+      const ac = await import(FIREBASE_SDK + 'firebase-app-check.js');
+      ac.initializeAppCheck(app, { provider: new ac.ReCaptchaV3Provider(APP_CHECK_KEY), isTokenAutoRefreshEnabled: true });
+    }
+    return { db: fs.getFirestore(app), fs };
+  })();
+  FB.catch(() => { FB = null; });
+  return FB;
+}
 async function loadBoards(force) {
   const cached = (() => { try { return JSON.parse(store('speeder.stats.boards') || 'null'); } catch (e) { return null; } })();
-  if (!force && cached && Date.now() - cached.at < BOARD_CACHE_MIN * 60000) return cached.rows;
+  if (!force && cached && Date.now() - cached.at < BOARD_CACHE_MIN * 60000 && cached.rows.every((r) => r.id)) return cached.rows;
+  const { db, fs } = await firebase();
   const rows = [];
   for (const [mode, col] of BOARDS) {
-    const url = 'https://firestore.googleapis.com/v1/projects/' + FS.project + '/databases/(default)/documents:runQuery?key=' + FS.key;
-    const body = { structuredQuery: { from: [{ collectionId: col }], orderBy: [{ field: { fieldPath: 'score' }, direction: 'DESCENDING' }], limit: BOARD_LIMIT } };
-    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (!res.ok) throw new Error('Leaderboard answered ' + res.status);
-    const js = await res.json();
-    for (const it of js) {
-      const f = it.document && it.document.fields; if (!f) continue;
-      const val = (k) => { const v = f[k]; if (!v) return null; return v.integerValue != null ? Number(v.integerValue) : v.doubleValue != null ? Number(v.doubleValue) : v.stringValue != null ? v.stringValue : v.timestampValue || null; };
-      rows.push({ mode, name: String(val('name') || '?').trim(), score: val('score') || 0, dist: val('dist') || 0, loop: val('loop') || 1, ts: val('ts'), v: val('v') });
+    const snap = await fs.getDocs(fs.query(fs.collection(db, col), fs.orderBy('score', 'desc'), fs.limit(BOARD_LIMIT)));
+    for (const d of snap.docs) {
+      const f = d.data();
+      const ts = f.ts && typeof f.ts.toDate === 'function' ? f.ts.toDate().toISOString() : null;
+      rows.push({ mode, id: d.id, name: String(f.name || '?').trim(), score: Number(f.score) || 0, dist: Number(f.dist) || 0, kills: Number(f.kills) || 0, loop: Number(f.loop) || 1, t: Number(f.t) || 0, ts, v: f.v || null });
     }
   }
   store('speeder.stats.boards', JSON.stringify({ at: Date.now(), rows }));
   return rows;
 }
+
+// ---------- the hide list (moderation.txt) and name filter, as the game reads them ----------
+const NAME_SWAP = { '0': 'O', '1': 'I', '3': 'E', '4': 'A', '5': 'S', '7': 'T', '8': 'B', '9': 'G' };
+const BAD_ANYWHERE = ['FUCK', 'FUK', 'FCK', 'FACK', 'SHIT', 'CUNT', 'NIGA', 'NIGGER', 'FAGOT', 'RETARD', 'WHORE', 'SLUT', 'BITCH',
+  'PENIS', 'VAGINA', 'PUSY', 'TWAT', 'WANK', 'RAPIST', 'NAZI', 'HITLER', 'PORN', 'ASHOLE', 'BASTARD', 'JIZ', 'DILDO',
+  'CHINK', 'TRANY', 'MOLEST', 'PEDO', 'HEIL', 'COCKS', 'CUMSHOT', 'BLOWJOB', 'HANDJOB', 'NUDES', 'BONER', 'SPERM'];
+const BAD_WORD = ['ASS', 'ARSE', 'FAG', 'FAGS', 'KIKE', 'SPIC', 'RAPE', 'DICK', 'COCK', 'CUM', 'TIT', 'TITS', 'SEX', 'ANAL',
+  'KKK', 'KYS', 'GAY', 'HOMO', 'COON', 'GOOK', 'WETBACK', 'DYKE', 'POOP', 'PISS', 'CRAP', 'BUTT', 'NUDE', 'HOE', 'HOES'];
+const NAME_EXTRA = [];   // extra words from moderation.txt (matched anywhere)
+function nameKey(raw) { return String(raw || '').toUpperCase().replace(/[0-9]/g, (c) => NAME_SWAP[c] || c); }
+function squash(t) { return t.replace(/[^A-Z]/g, '').replace(/(.)\1+/g, '$1'); }
+function nameBlocked(raw) {
+  const k = nameKey(raw);
+  if (!k.trim()) return false;
+  if (/1488|KKK/.test(String(raw).toUpperCase().replace(/[^A-Z0-9]/g, ''))) return true;
+  const flat = k.replace(/[^A-Z]/g, ''), sq = squash(k);
+  const anywhere = BAD_ANYWHERE.concat(NAME_EXTRA);
+  // (a word with a double letter, like NIGGER, is only matched as spelled: squashed, it would hit NIGERIA)
+  for (const w of anywhere) if (flat.indexOf(w) >= 0 || (squash(w) === w && sq.indexOf(w) >= 0)) return true;
+  const words = k.split(/[^A-Z]+/).filter(Boolean).concat([flat]);
+  for (const w of words) if (BAD_WORD.indexOf(w) >= 0 || BAD_WORD.indexOf(squash(w)) >= 0) return true;
+  return false;
+}
+function cleanName(raw) {
+  return String(raw || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9 _.\-]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 12);
+}
+const MOD = { runs: new Set(), players: [] };
+async function loadModeration() {
+  try {
+    const res = await fetch('../moderation.txt?v=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    MOD.runs = new Set(); MOD.players = []; NAME_EXTRA.length = 0;
+    for (let line of (await res.text()).split('\n')) {
+      line = line.replace(/#.*/, '').trim();
+      if (!line) continue;
+      const m = /^(player|word)\s+(\S+)/i.exec(line);
+      if (m && m[1].toLowerCase() === 'player') MOD.players.push(m[2]);
+      else if (m) { const w = m[2].toUpperCase().replace(/[^A-Z]/g, ''); if (w.length >= 3) NAME_EXTRA.push(w); }
+      else MOD.runs.add(line.split(/\s+/)[0]);
+    }
+  } catch (e) { /* no list: nothing hidden */ }
+}
+function modHidden(r) { return MOD.runs.has(r.id) || MOD.players.some((p) => r.id === p || r.id.indexOf(p + '_') === 0); }
 
 // ---------- reading the events ----------
 // D.count(path) = visitors for that exact path; D.match(prefix) = all paths under it
@@ -1011,6 +1084,51 @@ function renderBoards(rows, err) {
   }
   wrap.append(t); el.append(wrap);
   el.append(note('Only runs that made a top 50 or were someone’s best are saved, and names aren’t unique, so this undercounts quiet players. Not affected by the date range.'));
+  renderCheck(el, rows);
+}
+
+// v0.17.0: the top 50 of each board as players see it, with anything worth a look flagged.
+// "Copy ID" copies the entry's ID; add it as a line in moderation.txt (on GitHub) to hide that run.
+function renderCheck(el, rows) {
+  el.append(sub('Check the boards'));
+  el.append(note('Each board’s top 50 as players see it. Flags: a rude name (shown to players as PILOT), a score far ahead of everyone (worth a look), or a run faster than the game allows. To hide a run, tap Copy ID and add the ID as a new line in moderation.txt on GitHub. Its first lines explain how.'));
+  for (const [mode, , label] of BOARDS) {
+    const all = rows.filter((r) => r.mode === mode && r.id).sort((a, b) => b.score - a.score);
+    if (!all.length) continue;
+    const shown = all.filter((r) => !modHidden(r) && (mode !== 'warp' || verAtLeast(r.v, '0.9.0'))).slice(0, 50);
+    const fifth = shown[4] ? shown[4].score : 0;
+    const wrap = h('div', 'scroll'); wrap.style.marginTop = '8px';
+    const t = h('table'); const head = h('tr');
+    for (const [txt, n] of [['#', 1], [label], ['Score', 1], ['km', 1], ['Time', 1], ['Flag'], ['']]) head.append(h('th', n ? 'n' : null, txt));
+    t.append(head);
+    shown.forEach((r, i) => {
+      const flags = [];
+      if (nameBlocked(r.name)) flags.push('rude name');
+      if (fifth > 0 && i < 4 && r.score > fifth * 3) flags.push('far ahead');
+      if (r.t && r.dist / 1.4 > (r.t + 6) * 136) flags.push('too fast');
+      const tr = h('tr');
+      tr.append(h('td', 'n', String(i + 1)));
+      tr.append(h('td', null, r.name));
+      tr.append(h('td', 'n', fmt(r.score)));
+      tr.append(h('td', 'n', (r.dist / 1000).toFixed(1)));
+      tr.append(h('td', 'n', r.t ? Math.floor(r.t / 60) + ':' + String(r.t % 60).padStart(2, '0') : '–'));
+      const ft = h('td', null, flags.join(', ')); if (flags.length) ft.style.color = 'var(--brand-pink, #ff5fa2)'; tr.append(ft);
+      const td = h('td'); const b = h('button', 'chip', 'Copy ID'); b.type = 'button';
+      b.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(r.id + '   # ' + r.name + ', ' + fmt(r.score) + ' in ' + label); b.textContent = 'Copied'; }
+        catch (e) { window.prompt('Copy this line:', r.id); }
+      });
+      td.append(b); tr.append(td); t.append(tr);
+    });
+    wrap.append(t); el.append(wrap);
+    const hid = all.filter(modHidden).length;
+    if (hid) el.append(note(hid + ' ' + label + ' entr' + (hid === 1 ? 'y is' : 'ies are') + ' hidden by moderation.txt.'));
+  }
+}
+function verAtLeast(v, min) {
+  const a = String(v || '0').split('.').map(Number), b = min.split('.').map(Number);
+  for (let i = 0; i < 3; i++) { if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0); }
+  return true;
 }
 
 function renderOther(D) {
@@ -1084,7 +1202,7 @@ async function render(forceBoards) {
   if (busy) return; busy = true;
   $('refresh').disabled = true; $('stamp').textContent = 'Loading…'; showErr('');
   const { start, end } = rangeDates(RANGE);
-  const boardsP = loadBoards(forceBoards).then((r) => ({ r }), (e) => ({ e: e.message || String(e) }));
+  const boardsP = Promise.all([loadBoards(forceBoards), loadModeration()]).then(([r]) => ({ r }), (e) => ({ e: e.message || String(e) }));
   try {
     PARTIAL = false;
     let cached = null;

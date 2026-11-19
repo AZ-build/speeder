@@ -26,10 +26,10 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.16.7 |
+| **Current Version** | v0.17.0 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-17 |
+| **Last Updated** | 2026-11-18 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://speeder-game.com/ (custom domain since v0.12.9; the old https://az-build.github.io/speeder/ address redirects there) |
 
 ---
@@ -203,7 +203,7 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
 | 3D look | Homemade perspective math ("pseudo-3D") | Out Run-style. Everything is projected from world x/y/distance onto the screen. |
 | Sound | Web Audio playing CC0 audio files in `audio/` | Effects from Kenney's free packs, music "Synthwave House Loop" by Fupi. Credits in `audio/CREDITS.md`. Music tempo and brightness follow the run. |
 | Offline / install | `manifest.webmanifest` + `sw.js` (service worker) | Bump `CACHE` in sw.js after each change so phones get updates. |
-| Backend / DB | Firebase Firestore, **ORBit's project `orbit-23921`**, lists `speeder_scores` (Classic) and `speeder_warp_scores` (Warp Run) | Loaded only when needed (Firestore "lite" library). Settings and local scores live in the browser's localStorage. Rules: `firestore-rules-speeder.txt` (Classic) and `firestore-rules-warp.txt` (Warp Run). |
+| Backend / DB | Firebase Firestore, **ORBit's project `orbit-23921`**, lists `speeder_scores` (Classic) and `speeder_warp_scores` (Warp Run) | Loaded only when needed (Firestore "lite" library). Settings and local scores live in the browser's localStorage. Rules: `firestore-rules-speeder.txt` (Classic) and `firestore-rules-warp.txt` (Warp Run). v0.17.0 prepared a move to Speeder's own project plus App Check (`SPEEDER_FIREBASE`, `APP_CHECK_KEY`, `firestore-rules-own-project.txt`, `FIREBASE-SETUP.md`): not done yet, waiting on Adrian. |
 | Hosting | GitHub Pages, custom domain `speeder-game.com` | A PWA needs https to install; GitHub Pages provides it for free. Domain bought by Adrian through Squarespace (2026-11-16); its DNS records point at GitHub Pages. The `CNAME` file in the repo holds the domain: never delete it. |
 
 ### Files
@@ -220,6 +220,9 @@ Speeder/
 ├── audio/                 ← sound effects, engine loop, music + CREDITS.md (all CC0)
 ├── sound-picker/          ← page for auditioning new sounds (speeder-game.com/sound-picker/), its files and tools; see its README.md
 ├── README.md              ← how to play it locally and publish it
+├── moderation.txt         ← the hide list: board entries, devices and name words to hide (v0.17.0); the game reads it every 10 minutes
+├── FIREBASE-SETUP.md      ← Adrian's steps for Speeder's own Firebase project and App Check (prepared in v0.17.0)
+├── firestore-rules-own-project.txt ← the whole rules page for that new project
 ├── firestore-rules-speeder.txt ← the database rules block for the Classic leaderboard
 ├── firestore-rules-warp.txt ← the database rules block for the Warp Run leaderboard
 ├── firestore-rules-FULL.txt ← the whole Firebase rules page as published (ORBit + Classic + Warp Run); keep it in step whenever a block changes
@@ -251,17 +254,19 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 ### Testing hooks
 
-Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School). Run all five before publishing.
+Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase). Run all six before publishing.
+
+**Since v0.17.0 the hooks below only exist with test tools on:** add `?dev` to the address on the live site (e.g. https://speeder-game.com/?dev; it stays on for that tab and shows "TEST TOOLS ON"), or open the game from a file / localhost (the tests do). Runs with test tools on never reach a world board, and analytics is off. The game's own names (`G`, `SET`, `TUT`...) are no longer global: use `SPEEDER.inside(() => G.d)` to run code inside the game.
 
 Flight School hooks: `SPEEDER.tutStart('help')`, `SPEEDER.tutGo(n)` (jump to step n), `SPEEDER.TUT` (`cur`, `mode`, `ev` counters), `SPEEDER.TUT_STEPS`, `SPEEDER.HUDR`.
 
 Lab hooks: `SPEEDER.setMode('lab'); SPEEDER.startGame()` (start a Lab run), `SPEEDER.LAB` (`on`, `cfg` = the saved switches, `run` = this run's experiments), `SPEEDER.labSet('jump', 'gesture', 'tap')` / `SPEEDER.labSet('jump', 'fuel', 'free')` / `SPEEDER.labSet('jump', 'on', false)`, `SPEEDER.tryHop('key')`, `SPEEDER.hopCharge(1)`, `SPEEDER.JUMP` (`n` charges, `hops`, `denied`, `by`), `SPEEDER.openPanel('lab')`, `SPEEDER.labSet('ramps', 'on', true)`, `SPEEDER.spawnSkyRamp(SPEEDER.G.d + 90)` (put a sky ramp just ahead), `SPEEDER.SKY` (`offered`, `flights`, `rings`, `perfect`), `SPEEDER.labSet('setup', 'loop', 3)` / `SPEEDER.labSet('setup', 'loaded', true)` (test setup for the next Lab run), `SPEEDER.labSet('lane', 'feel', 'bank')`, `SPEEDER.labSet('setup', 'lane', true)` (next Lab run starts in a hyperlane), `SPEEDER.startLane('resume')` (into a lane now), `SPEEDER.LANE` (`on`, `x`/`y` and `tx`/`ty` the speeder and its target, `roll`, `objs`, `runs`, `rings`, `hits`, `rolls`), `SPEEDER.LANE.exit.d = SPEEDER.LANE.d + 30` (to the exit). Lab storage keys: `speeder.lab.cfg` (switches), `speeder.lab.setup` (starting loop, fully loaded, start in a hyperlane), `speeder.lab.best`, `speeder.lab.votes`.
 
-Warp Run keeps the same per-mode keys under `speeder.w.` (`speeder.w.best`, `speeder.w.local`, `speeder.w.worldTop`, ...), plus `speeder.w.live` (set once its world board has loaded), `speeder.w.boardV` (the board reset this device has applied) and `speeder.w.hidden` (scores of older-version entries, left out of your rank). `speeder.pendingRuns` is shared; each run carries its mode.
+Warp Run keeps the same per-mode keys under `speeder.w.` (`speeder.w.best`, `speeder.w.local`, `speeder.w.worldTop`, ...), plus `speeder.w.live` (set once its world board has loaded) and `speeder.w.boardV` (the board reset this device has applied). `speeder.hidden.<mode>` (v0.17.0, replaced `speeder.w.hidden`): scores of entries left off a board (hidden by moderation.txt, or older than the Warp board reset), left out of your rank. `speeder.mod` the last moderation.txt, `speeder.dbRest` when to try Firebase again after the daily allowance ran out. `speeder.pendingRuns` is shared; each run carries its mode.
 
 Local storage keys: `speeder.settings`, `speeder.best`, `speeder.local`, `speeder.pid` (player ID), `speeder.onlineBest`, `speeder.myRuns` (your board entries), `speeder.pendingRuns` (waiting to upload), `speeder.worldTop` (cached top 50 for the ladder), `speeder.worldTopAt` (when it was downloaded), `speeder.challenge`, `speeder.seen` (analytics: not a new player).
 
-`window.SPEEDER` in the browser console exposes game state (e.g. `SPEEDER.G.d = 3000`
+`window.SPEEDER` (test tools only, see above) exposes game state (e.g. `SPEEDER.G.d = 3000`
 jumps ahead in difficulty and zone, `SPEEDER.setQuality(0)` forces Low graphics, `SPEEDER.G.invuln = 999` makes you invincible,
 `SPEEDER.applyPower('missile')` gives a power-up, `SPEEDER.die()` ends the run, `SPEEDER.explode(x, y, d, color, big)` sets off a blast,
 `SPEEDER.hurt()` takes a hit, `SPEEDER.addEnemy('turret', {...})` places an enemy).
@@ -383,6 +388,24 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**Launch prep (v0.17.0, 2026-11-18):**
+- From the marketing plan (2026-11-16, "Speeder Launch & Monetization Plan" doc): hold off on
+  Reddit until cheating, rude names and the shared Firebase allowance are handled. v0.17.0 did
+  everything that needs no Firebase (see CHANGELOG). **Still to do, by Adrian:** `FIREBASE-SETUP.md`
+  Part 1 (Speeder's own project; he sends the config) and Part 2 (App Check; he sends the reCAPTCHA
+  v3 site key, then enforces after a test run). **Ask first:** fresh boards ("Season 1") or carry the
+  current scores over? Carrying over needs a one-off copy (not built: the new rules require `t` and a
+  proper entry ID, so it would need a temporary rule or a copy page).
+- When he sends the config: set `SPEEDER_FIREBASE` in index.html **and** stats/index.html, publish,
+  check a real upload. When he sends the site key: set `APP_CHECK_KEY` in both files.
+- `firestore-rules-own-project.txt` was checked by hand only (the Firebase emulator download is
+  blocked from Claude's workspace). Firebase checks syntax when he clicks Publish.
+- Moderation: stats page → "Check the boards" → Copy ID → a new line in `moderation.txt`. Watch
+  `fair/flag/...` on the dashboard: if real players get flagged, a check is too strict.
+- Not covered (needs a paid plan or a server): a truly cheat-proof board. Someone determined can
+  still pause the game in the browser's debugger. The aim is: casual cheating doesn't work, and
+  anything that slips through is quick to hide.
 
 **Stats fixes (v0.16.7, 2026-11-17):**
 - Distance buckets now reach 300+ km (Warp) and 200+ km (Classic); older runs sit in a grey

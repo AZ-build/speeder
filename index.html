@@ -393,6 +393,11 @@
     user-select: text;
   }
   .name-input::placeholder { color: rgba(255, 255, 255, 0.35); }
+  .name-note { display: block; min-height: 0; margin-top: 6px; color: #ff9db8; font-size: 12px; }
+  .name-note:empty { display: none; }
+  .captcha-note { display: block; margin-top: 8px; font-size: 11px; opacity: 0.6; }
+  .captcha-note a { color: inherit; }
+  .grecaptcha-badge { visibility: hidden; }   /* (allowed because Settings shows the notice above) */
   .tabs { display: flex; gap: 8px; width: min(340px, 100%); }
   .tabs .btn { flex: 1; min-height: 40px; font-size: 11px; }
   .tabs .btn[aria-selected="true"] { color: var(--cyan); border-color: var(--cyan); background: rgba(41, 243, 255, 0.08); }
@@ -803,7 +808,7 @@
     <div class="setting"><label for="setCam">Camera <small>how far back</small></label><button class="btn chip" id="setCam" type="button">Normal</button></div>
     <div class="setting"><label for="setGfx">Graphics <small id="gfxNote"></small></label><button class="btn chip" id="setGfx" type="button">Auto</button></div>
     <div class="setting"><label for="setShake">Screen shake</label><input type="checkbox" id="setShake" class="switch"></div>
-    <div class="setting col"><label for="setName">Leaderboard name</label><input id="setName" class="name-input" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="YOUR NAME" enterkeyhint="done"></div>
+    <div class="setting col"><label for="setName">Leaderboard name</label><input id="setName" class="name-input" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="YOUR NAME" enterkeyhint="done"><small id="nameNote" class="name-note"></small><small id="captchaNote" class="captcha-note hidden">The leaderboard is protected by reCAPTCHA. Google’s <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener">Terms</a> apply.</small></div>
     <button class="btn primary" id="settingsDone">Done</button>
   </div>
 </div>
@@ -907,6 +912,9 @@
 <canvas id="confetti" class="hidden" aria-hidden="true"></canvas>
 
 <script>
+// v0.17.0: the whole game sits inside this function, so nothing in it (the score, the hull,
+// invincibility...) can be reached by typing into the browser's console. (Anti-cheat.)
+(function () {
 'use strict';
 
 /* =========================================================
@@ -918,6 +926,19 @@
 const cvs = document.getElementById('game');
 const ctx = cvs.getContext('2d');
 const $ = (id) => document.getElementById(id);
+
+// ---------- Test tools (v0.17.0) ----------
+// window.SPEEDER, the console shortcuts used for testing (see PROJECT_CONTEXT), only exists when
+// the address has ?dev on it, or the game is opened from a file or a local test server. Runs played
+// with test tools on never reach a world leaderboard, so knowing about ?dev doesn't help anyone cheat.
+// ?dev also stays on for the rest of that browser tab, and switches analytics off for it.
+const DEV = (() => {
+  try {
+    if (location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return true;
+    if (/[?&]dev(=|&|$)/.test(location.search)) { sessionStorage.setItem('speeder.dev', '1'); return true; }
+    return sessionStorage.getItem('speeder.dev') === '1';
+  } catch (e) { return false; }
+})();
 
 // ---------- Tuning ----------
 // Camera (v0.7.3): close chase camera, pulled back a little from v0.7.1. Its height and
@@ -964,7 +985,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.16.7';
+const VERSION = '0.17.0';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -1008,6 +1029,43 @@ const SCORES_WARP = 'speeder_warp_scores';   // Warp Run has its own world leade
 // clears each device's own Warp Run records the next time it opens the game.
 const W_BOARD_MIN_V = '0.9.0';
 const FIREBASE_SDK = 'https://www.gstatic.com/firebasejs/10.12.0/';
+// v0.17.0, PREPARED BUT NOT SWITCHED ON. Two Firebase jobs only Adrian can do (FIREBASE-SETUP.md):
+// 1. Speeder's own Firebase project, so a busy day can't use up ORBit's free daily allowance.
+//    Paste the new project's config here (same shape as FIREBASE_CONFIG above). While it's null,
+//    the game keeps using ORBit's project exactly as before. With it set, uploads also send `t`
+//    (seconds played), which the new project's rules check against distance.
+// 2. App Check: the reCAPTCHA v3 site key. With it set, every leaderboard request carries proof that
+//    it came from the real game on speeder-game.com, so a script can't post a made-up score directly.
+const SPEEDER_FIREBASE = null;
+const APP_CHECK_KEY = '';
+const OWN_DB = !!SPEEDER_FIREBASE;
+
+// ---------- Fair play (v0.17.0) ----------
+// Before a run can go to a world leaderboard, it has to add up. The game keeps its own clock
+// of real time spent playing (FAIR.wall), separate from the game's run timer, and checks:
+//   test tools on (?dev)                      -> 'dev'      (never ranked, by design)
+//   the run timer ran faster than real time    -> 'clock'    (the game was sped up)
+//   farther than top speed allows in that time -> 'distance'
+//   a bigger score than its distance and kills allow (the same sum the database rules use) -> 'score'
+//   invincibility left on far longer than any power-up gives -> 'invuln'
+// A run that fails stays on the device (your own records) but is never uploaded. Each failure is
+// counted in analytics as fair/flag/<reason>, so false alarms would show up on the stats page.
+const FAIR = { wall: 0, flags: [] };
+const FAIR_SPEED = W_SPEED_MAX + 6;   // world units a second: faster than the game can ever go
+function fairReset() { FAIR.wall = 0; FAIR.flags = []; }
+function fairFlag(why) { if (FAIR.flags.indexOf(why) < 0) FAIR.flags.push(why); }
+function fairWatch(raw) {
+  if (G.state !== 'play' || paused) return;
+  FAIR.wall += Math.min(Math.max(raw, 0), 1);
+  if (G.invuln > 5) fairFlag('invuln');
+}
+function fairCheck(run) {
+  if (DEV) return 'dev';
+  if (G.runT > FAIR.wall * 1.05 + 2) return 'clock';
+  if (run.dist / UNIT_M > (G.runT + 6) * FAIR_SPEED) return 'distance';
+  if (run.score > (run.dist * 8 + run.kills * 3000 + 100000) * (run.loop || 1)) return 'score';
+  return FAIR.flags[0] || '';
+}
 
 const COLORS = {
   cyan: '#29f3ff',
@@ -1219,7 +1277,7 @@ function trackNamed() {
   if (!trackOnce('speeder.namedT', 'player/named', 'Player: added a leaderboard name')) track('player/renamed', 'Player: changed their name');
 }
 (function startAnalytics() {
-  if (!GC_CODE || !location.protocol.startsWith('http')) return;
+  if (!GC_CODE || !location.protocol.startsWith('http') || DEV) return;   // (no analytics with test tools on)
   window.goatcounter = { no_onload: true };
   const s = document.createElement('script');
   s.async = true;
@@ -3222,6 +3280,7 @@ function resetTrail() {
 }
 
 function resetRun() {
+  fairReset();
   Object.assign(G, {
     t: 0, speed: 32, d: 0, score: 0, kills: 0,
     hull: MAX_HULL, shield: 0, weapon: 1, rapid: 0, mult: 0, mx: 1, wingT: 1,
@@ -9843,6 +9902,39 @@ function fillSettings() {
   $('setName').value = SET.name;
 }
 
+// ---------- Name filter (v0.17.0) ----------
+// Names on the world boards are checked against a list of slurs and rude words, both when you
+// type one (it's refused) and when a board is shown (a bad name already in the database shows as
+// PILOT). Spellings like F4CK, F.U.C.K or FUUUCK are caught too. Short words that hide inside
+// ordinary names (ASS in CLASSIC, RAPE in GRAPE) only count when they're the whole name or a whole
+// word in it. More words can be added without a game update: see moderation.txt ("word ...").
+const NAME_SWAP = { '0': 'O', '1': 'I', '3': 'E', '4': 'A', '5': 'S', '7': 'T', '8': 'B', '9': 'G' };
+const BAD_ANYWHERE = ['FUCK', 'FUK', 'FCK', 'FACK', 'SHIT', 'CUNT', 'NIGA', 'NIGGER', 'FAGOT', 'RETARD', 'WHORE', 'SLUT', 'BITCH',
+  'PENIS', 'VAGINA', 'PUSY', 'TWAT', 'WANK', 'RAPIST', 'NAZI', 'HITLER', 'PORN', 'ASHOLE', 'BASTARD', 'JIZ', 'DILDO',
+  'CHINK', 'TRANY', 'MOLEST', 'PEDO', 'HEIL', 'COCKS', 'CUMSHOT', 'BLOWJOB', 'HANDJOB', 'NUDES', 'BONER', 'SPERM'];
+const BAD_WORD = ['ASS', 'ARSE', 'FAG', 'FAGS', 'KIKE', 'SPIC', 'RAPE', 'DICK', 'COCK', 'CUM', 'TIT', 'TITS', 'SEX', 'ANAL',
+  'KKK', 'KYS', 'GAY', 'HOMO', 'COON', 'GOOK', 'WETBACK', 'DYKE', 'POOP', 'PISS', 'CRAP', 'BUTT', 'NUDE', 'HOE', 'HOES'];
+const NAME_EXTRA = [];   // extra words from moderation.txt (matched anywhere)
+function nameKey(raw) { return String(raw || '').toUpperCase().replace(/[0-9]/g, (c) => NAME_SWAP[c] || c); }
+function squash(t) { return t.replace(/[^A-Z]/g, '').replace(/(.)\1+/g, '$1'); }
+function nameBlocked(raw) {
+  const k = nameKey(raw);
+  if (!k.trim()) return false;
+  if (/1488|KKK/.test(String(raw).toUpperCase().replace(/[^A-Z0-9]/g, ''))) return true;
+  const flat = k.replace(/[^A-Z]/g, ''), sq = squash(k);
+  const anywhere = BAD_ANYWHERE.concat(NAME_EXTRA);
+  // (a word with a double letter, like NIGGER, is only matched as spelled: squashed, it would hit NIGERIA)
+  for (const w of anywhere) if (flat.indexOf(w) >= 0 || (squash(w) === w && sq.indexOf(w) >= 0)) return true;
+  const words = k.split(/[^A-Z]+/).filter(Boolean).concat([flat]);
+  for (const w of words) if (BAD_WORD.indexOf(w) >= 0 || BAD_WORD.indexOf(squash(w)) >= 0) return true;
+  return false;
+}
+// How a name from the board is shown: cleaned up, and PILOT if it's on the list.
+function showName(raw) {
+  const n = cleanName(raw);
+  return n && nameBlocked(n) ? 'PILOT' : n;
+}
+
 function cleanName(raw) {
   return String(raw || '')
     .toUpperCase()
@@ -9903,6 +9995,12 @@ $('setSens').addEventListener('input', (e) => {
 });
 function commitSettingsName() {
   const name = cleanName($('setName').value);
+  if (name && nameBlocked(name)) {
+    $('setName').value = SET.name;
+    $('nameNote').textContent = 'That name isn’t allowed on the leaderboard. Try another.';
+    return false;
+  }
+  $('nameNote').textContent = '';
   $('setName').value = name;
   if (name && name !== SET.name) {
     SET.name = name;
@@ -9913,7 +10011,7 @@ function commitSettingsName() {
 }
 $('setName').addEventListener('change', commitSettingsName);
 $('settingsDone').addEventListener('click', () => {
-  commitSettingsName();
+  if (commitSettingsName() === false) { $('setName').focus(); return; }
   closePanel();
 });
 
@@ -9943,12 +10041,29 @@ function withTimeout(promise, ms) {
   ]);
 }
 
+// v0.17.0: if the free daily allowance runs out, Firebase answers "resource-exhausted". Then the game
+// stops asking for an hour: boards show the copy saved on the device, and new scores wait to upload.
+function dbResting() { return Date.now() < (parseInt(storeGet('speeder.dbRest') || '0', 10) || 0); }
+function dbCall(promise) {
+  return withTimeout(promise, 9000).catch((e) => {
+    if (e && e.code === 'resource-exhausted') {
+      storeSet('speeder.dbRest', String(Date.now() + 60 * 60 * 1000));
+      track('db/quota', 'Leaderboard: Firebase daily allowance ran out');
+    }
+    throw e;
+  });
+}
 function firebase() {
+  if (dbResting()) return Promise.reject(Object.assign(new Error('resting'), { code: 'unavailable' }));
   if (!FB.ready) {
     FB.ready = (async () => {
       const appMod = await import(FIREBASE_SDK + 'firebase-app.js');
       const fs = await import(FIREBASE_SDK + 'firebase-firestore-lite.js');
-      const app = appMod.initializeApp(FIREBASE_CONFIG, 'speeder');
+      const app = appMod.initializeApp(SPEEDER_FIREBASE || FIREBASE_CONFIG, 'speeder');
+      if (APP_CHECK_KEY) {   // (v0.17.0: off until Adrian sets it up)
+        const ac = await import(FIREBASE_SDK + 'firebase-app-check.js');
+        ac.initializeAppCheck(app, { provider: new ac.ReCaptchaV3Provider(APP_CHECK_KEY), isTokenAutoRefreshEnabled: true });
+      }
       FB.db = fs.getFirestore(app);
       FB.fs = fs;
       return FB;
@@ -9973,6 +10088,42 @@ function readJSON(key, fallback) {
   try { const v = JSON.parse(storeGet(key) || 'null'); return v == null ? fallback : v; } catch (e) { return fallback; }
 }
 
+// ---------- Hide list (v0.17.0) ----------
+// moderation.txt sits next to the game on the website. It lists board entries to hide, devices
+// whose entries should all be hidden, and extra name words to block. Editing it on GitHub takes
+// effect for every player within about 10 minutes, with no Firebase step. The file explains how.
+// (Hidden entries stay in the database; they just never show, and don't count toward anyone's rank.)
+const MOD = { runs: new Set(), players: [], at: 0 };
+const MOD_AGE = 10 * 60 * 1000;
+function modParse(text) {
+  MOD.runs = new Set(); MOD.players = []; NAME_EXTRA.length = 0;
+  for (let line of String(text || '').split('\n')) {
+    line = line.replace(/#.*/, '').trim();
+    if (!line) continue;
+    const m = /^(player|word)\s+(\S+)/i.exec(line);
+    if (m && m[1].toLowerCase() === 'player') MOD.players.push(m[2]);
+    else if (m) { const w = m[2].toUpperCase().replace(/[^A-Z]/g, ''); if (w.length >= 3) NAME_EXTRA.push(w); }
+    else MOD.runs.add(line.split(/\s+/)[0]);
+  }
+}
+modParse(storeGet('speeder.mod') || '');
+async function loadModeration() {
+  if (Date.now() - MOD.at < MOD_AGE) return;
+  MOD.at = Date.now();
+  try {
+    const res = await withTimeout(fetch('moderation.txt?v=' + Math.floor(Date.now() / MOD_AGE), { cache: 'no-store' }), 5000);
+    if (!res.ok) return;
+    const text = await res.text();
+    storeSet('speeder.mod', text);
+    modParse(text);
+  } catch (e) { /* offline: keep the last copy */ }
+}
+function modHidden(r) {
+  if (!r || !r.id) return false;
+  if (MOD.runs.has(r.id)) return true;
+  return MOD.players.some((p) => r.id === p || r.id.indexOf(p + '_') === 0);
+}
+
 // Every run is its own leaderboard entry (one player can hold several spots).
 // Entry IDs start with the player's ID, so we can tell which ones are yours.
 // (Before v0.5 there was one entry per player, stored under the bare player ID.)
@@ -9987,7 +10138,7 @@ function newRunId() {
 function myRuns(mode) { return readJSON(modeKey('myRuns', mode), []); }
 function rememberRun(run) {
   const list = myRuns(run.mode).filter((r) => r.id !== run.id);
-  list.push({ id: run.id, score: run.score, dist: run.dist, kills: run.kills, loop: run.loop });
+  list.push({ id: run.id, score: run.score, dist: run.dist, kills: run.kills, loop: run.loop, t: run.t });
   list.sort((x, y) => y.score - x.score);
   storeSet(modeKey('myRuns', run.mode), JSON.stringify(list.slice(0, 40)));
 }
@@ -10011,6 +10162,7 @@ function setPending(list) {
 }
 
 async function writeRun(run) {
+  if (nameBlocked(SET.name)) { const e = new Error('name'); e.code = 'permission-denied'; throw e; }   // (a name saved before v0.17's filter)
   const F = await firebase();
   const { doc, setDoc, serverTimestamp } = F.fs;
   const warp = run.mode === 'warp';
@@ -10023,7 +10175,8 @@ async function writeRun(run) {
     ts: serverTimestamp(),
   };
   if (warp) data.loop = run.loop || 1;   // Warp Run entries also say which loop you reached
-  await withTimeout(setDoc(doc(F.db, warp ? SCORES_WARP : SCORES, run.id), data), 9000);
+  if (OWN_DB) data.t = run.t || Math.max(1, Math.ceil(run.dist / 180));   // seconds played (older runs: the least time that distance could take)
+  await dbCall(setDoc(doc(F.db, warp ? SCORES_WARP : SCORES, run.id), data));
   rememberRun(run);
   if (run.score > onlineBest(run.mode)) storeSet(modeKey('onlineBest', run.mode), String(run.score));
   // keep the remembered top list in step, so the next run's ladder is right
@@ -10039,8 +10192,9 @@ async function writeRun(run) {
 // v0.6.3: every download costs BOARD_N database reads, and the free Firebase plan
 // allows about 50,000 a day (shared with ORBit). So a recent copy is reused when it
 // is younger than maxAge (in ms). See the TOP_AGE_* knobs.
-const TOP_AGE_START = 3 * 60 * 1000;    // opening the game
-const TOP_AGE_BOARD = 60 * 1000;        // opening the leaderboard screen
+// v0.17.0: longer, to save reads before Speeder is shared widely (were 3 minutes and 1 minute).
+const TOP_AGE_START = 10 * 60 * 1000;   // opening the game
+const TOP_AGE_BOARD = 3 * 60 * 1000;    // opening the leaderboard screen
 const TOP_AGE_RUN = 10 * 60 * 1000;     // after a run that clearly can't make the board
 function topAge(mode) { return Date.now() - (parseInt(storeGet(modeKey('worldTopAt', mode)) || '0', 10) || 0); }
 async function fetchTop(maxAge, mode) {
@@ -10049,16 +10203,17 @@ async function fetchTop(maxAge, mode) {
     if (c.length) return c;
   }
   const F = await firebase();
+  await loadModeration();
   const { collection, query, orderBy, limit, getDocs } = F.fs;
   const warp = mode === 'warp';
-  // Warp Run: ask for some extra entries, because ones from before the last board reset are dropped here
-  const snap = await withTimeout(getDocs(query(collection(F.db, warp ? SCORES_WARP : SCORES), orderBy('score', 'desc'), limit(warp ? BOARD_N * 2 : BOARD_N))), 9000);
+  // Ask for a few extra entries, because some are dropped here: hidden ones (moderation.txt), and in
+  // Warp Run ones from before the last board reset. (v0.17.0: Warp asked for twice the board before.)
+  const extra = Math.min(30, (warp ? 15 : 0) + MOD.runs.size + 3 * MOD.players.length);
+  const snap = await dbCall(getDocs(query(collection(F.db, warp ? SCORES_WARP : SCORES), orderBy('score', 'desc'), limit(BOARD_N + extra))));
   let rows = snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
-  if (warp) {
-    const old = rows.filter((r) => !versionAtLeast(r.v, W_BOARD_MIN_V));
-    storeSet('speeder.w.hidden', JSON.stringify(old.map((r) => Number(r.score) || 0)));   // (so "#N in the world" can leave them out too)
-    rows = rows.filter((r) => versionAtLeast(r.v, W_BOARD_MIN_V)).slice(0, BOARD_N);
-  }
+  const keep = (r) => !modHidden(r) && (!warp || versionAtLeast(r.v, W_BOARD_MIN_V));
+  storeSet('speeder.hidden.' + mode, JSON.stringify(rows.filter((r) => !keep(r)).map((r) => Number(r.score) || 0)));   // (so "#N in the world" can leave them out too)
+  rows = rows.filter(keep).slice(0, BOARD_N);
   storeSet(modeKey('worldTop', mode), JSON.stringify(rows.map((r) => ({ id: r.id, name: cleanName(r.name), score: Number(r.score) || 0, dist: Number(r.dist) || 0, loop: Number(r.loop) || 0 }))));
   storeSet(modeKey('worldTopAt', mode), String(Date.now()));
   if (mode === 'warp' && !boardLive('warp')) {
@@ -10084,10 +10239,10 @@ async function worldRank(score, mode) {
     const F = await firebase();
     const { collection, query, where, getCount } = F.fs;
     if (!getCount) return 0;
-    const snap = await withTimeout(getCount(query(collection(F.db, mode === 'warp' ? SCORES_WARP : SCORES), where('score', '>', score))), 9000);
+    const snap = await dbCall(getCount(query(collection(F.db, mode === 'warp' ? SCORES_WARP : SCORES), where('score', '>', score))));
     let above = snap.data().count;
-    // Warp Run: entries from before the last board reset don't count toward your rank
-    if (mode === 'warp') above -= readJSON('speeder.w.hidden', []).filter((x) => x > score).length;
+    // hidden entries (and, in Warp Run, ones from before the last board reset) don't count toward your rank
+    above -= readJSON('speeder.hidden.' + mode, []).filter((x) => x > score).length;
     return Math.max(0, above) + 1;
   } catch (e) {
     return 0;
@@ -10142,7 +10297,7 @@ function renderRows(rows, mine, highlightId) {
     rank.textContent = String(i + 1);
     const nm = document.createElement('span');
     nm.className = 'nm';
-    nm.textContent = cleanName(r.name) || '???';
+    nm.textContent = showName(r.name) || '???';
     const sc = document.createElement('span');
     sc.className = 'sc';
     sc.textContent = (Number(r.score) || 0).toLocaleString();
@@ -10209,7 +10364,7 @@ let CHALLENGE = readJSON('speeder.challenge', null);
     const c = parseInt(q.get('c') || '', 10);
     if (c > 0 && c < 100000000) {
       track('challenge-link', 'Opened a challenge link');
-      const n = cleanName(q.get('n')) || 'A FRIEND';
+      const n = showName(q.get('n')) || 'A FRIEND';
       const m = q.get('m') === 'w' ? 'warp' : 'classic';   // which mode the score was set in
       if (!(SET.name && n === SET.name)) {
         CHALLENGE = { score: c, name: n, mode: m };
@@ -11025,6 +11180,11 @@ function showOver() {
   const warp = G.mode !== 'classic';   // (a Lab run plays by Warp Run's rules)
   const run = { id: newRunId(), mode: G.mode, score, dist: Math.round((G.d - LAB.d0) * UNIT_M), kills: G.kills, rank: 0, isBest: score > prevBest && score > 0 };
   if (warp) { run.loop = WP.loop; run.world = WP.theme + 1; run.bosses = WP.bossKills; }
+  run.t = Math.max(1, Math.round(G.runT));   // seconds played (v0.17.0; checked by the leaderboard)
+  if (!lab) {
+    run.unranked = fairCheck(run);
+    if (run.unranked && run.unranked !== 'dev') track('fair/flag/' + run.unranked, 'Fair play: run kept off the board (' + run.unranked + ')');
+  }
   {
     // analytics: one event per run, grouped by how far it got
     const km = run.dist / 1000;
@@ -11095,6 +11255,10 @@ function showOver() {
 async function checkRun(run, statusEl) {
   const say = (t) => { if (statusEl && lastRun === run) statusEl.textContent = t; };
   if (run.score <= 0) return;
+  if (run.unranked) {
+    say(run.unranked === 'dev' ? 'Test tools are on, so this run stays off the world leaderboard.' : 'This run didn’t pass the fair-play check, so it stays off the world leaderboard.');
+    return;
+  }
   say('Checking the world leaderboard…');
   let rows = null;
   let off = false;   // true when Warp Run's world board hasn't been switched on yet
@@ -11133,7 +11297,7 @@ async function checkRun(run, statusEl) {
     }
   } catch (e) {
     if (e && e.code === 'permission-denied') {
-      say('The world leaderboard didn’t accept this score. It’s saved on this device.');
+      say(nameBlocked(SET.name) ? 'Your name isn’t allowed on the leaderboard. Change it in Settings to save scores.' : 'The world leaderboard didn’t accept this score. It’s saved on this device.');
       return;
     }
     setPending(pendingRuns().concat([run]));
@@ -11145,6 +11309,12 @@ function saveNameAndScore() {
   const name = cleanName($('nameInput').value);
   if (!name) {
     $('saveStatus').textContent = 'Type a name first (letters and numbers, up to 12).';
+    $('nameInput').focus();
+    return;
+  }
+  if (nameBlocked(name)) {
+    $('saveStatus').textContent = 'That name isn’t allowed on the leaderboard. Try another.';
+    $('nameInput').value = '';
     $('nameInput').focus();
     return;
   }
@@ -11743,6 +11913,7 @@ function frame(now) {
   last = now;
   checkSize(dt);
   watchPerf(dt);
+  fairWatch(dt);
   if (dt > 0.05) dt = 0.05;
   if (G.slowmo > 0) {
     // wreck slow motion: starts at a quarter speed and eases back to normal
@@ -11759,7 +11930,8 @@ function frame(now) {
 applySound();
 resize();
 updateTitleBest();
-$('versionTag').textContent = 'v' + VERSION;
+$('versionTag').textContent = 'v' + VERSION + (DEV ? ' · TEST TOOLS ON' : '');
+if (APP_CHECK_KEY) $('captchaNote').classList.remove('hidden');
 if (document.fonts && document.fonts.load) {
   document.fonts.load('800 20px Orbitron').catch(() => {});
 }
@@ -11771,7 +11943,9 @@ setTimeout(tutMaybeOffer, 700);     // first time on this device: offer Flight S
 requestAnimationFrame(frame);
 
 // handy for testing in the browser console
-window.SPEEDER = { step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, LAB, LAB_EXPERIMENTS, JUMP, SKY, LANE, startLane, exitLane, LANE_SECTIONS, keys, labOn, labSet, tryHop, hopCharge, spawnSkyRamp, skyFits, addObj, addPylon, addMine, addWallSpan, addLaserFence, openPanel, closePanel, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, TUT, TUT_STEPS, HUDR, tutStart, tutGo, tutPrimary, tutFinish, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
+// (inside: runs a test's code inside the game, where every name is reachable, e.g. tests/tutorial.mjs. Test tools only.)
+if (DEV) window.SPEEDER = { inside: (code) => eval('(' + code + ')()'), step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, LAB, LAB_EXPERIMENTS, JUMP, SKY, LANE, startLane, exitLane, LANE_SECTIONS, keys, labOn, labSet, tryHop, hopCharge, spawnSkyRamp, skyFits, addObj, addPylon, addMine, addWallSpan, addLaserFence, openPanel, closePanel, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, TUT, TUT_STEPS, HUDR, tutStart, tutGo, tutPrimary, tutFinish, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
+})();
 </script>
 </body>
 </html>
