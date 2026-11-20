@@ -808,6 +808,7 @@
     <div class="setting"><label for="setCam">Camera <small>how far back</small></label><button class="btn chip" id="setCam" type="button">Normal</button></div>
     <div class="setting"><label for="setGfx">Graphics <small id="gfxNote"></small></label><button class="btn chip" id="setGfx" type="button">Auto</button></div>
     <div class="setting"><label for="setShake">Screen shake</label><input type="checkbox" id="setShake" class="switch"></div>
+    <div class="setting"><label for="setFps">Show frame rate <small>for checking lag</small></label><input type="checkbox" id="setFps" class="switch"></div>
     <div class="setting col"><label for="setName">Leaderboard name</label><input id="setName" class="name-input" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="YOUR NAME" enterkeyhint="done"><small id="nameNote" class="name-note"></small><small id="captchaNote" class="captcha-note hidden">The leaderboard is protected by reCAPTCHA. Google’s <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener">Terms</a> apply.</small></div>
     <button class="btn primary" id="settingsDone">Done</button>
   </div>
@@ -972,6 +973,7 @@ const CAM_FOLLOW = 6;       // how quickly the camera eases after the speeder si
 const AIM_AHEAD = 31;       // the camera looks this far past the speeder into each turn (v0.7.1 feel)
 const STEER_MAX_W = 400;    // widest screen (points) that steering scales with; wider screens steer like a 400-point phone
 const TAKEOVER_PX = 12;     // how far a second finger must slide before it takes over the steering (a resting palm doesn't)
+const TAKEOVER_MS = 250;    // ...and within how long (v0.17.1): a palm creeping 12 points over a few seconds never takes over
 const STEER_EASE = 14;      // how quickly the speeder glides to where your thumb is (higher = snappier)
 const LEAN_MAX = 0.35;      // most the speeder leans while moving across the track (radians, about 20°)
 const LEAN_GAIN = 0.07;     // how quickly that lean builds with sideways speed
@@ -985,7 +987,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.17.0';
+const VERSION = '0.17.1';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -1304,7 +1306,7 @@ function vibrate(p) {
 }
 
 // ---------- Settings (saved on this device) ----------
-const SETTINGS_DEFAULT = { sound: false, volume: 70, music: true, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true, cam: 'normal', mode: 'warp' };
+const SETTINGS_DEFAULT = { sound: false, volume: 70, music: true, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true, cam: 'normal', mode: 'warp', fps: false };
 function loadSettings() {
   let saved = {};
   try { saved = JSON.parse(storeGet('speeder.settings') || '{}') || {}; } catch (e) { saved = {}; }
@@ -3916,12 +3918,21 @@ function applyPower(type) {
   vibrate(30);
 }
 
+// Bullets keep pace with the speeder (v0.17.1). They used to leave it at a fixed 110 a second,
+// which is plenty at 450 km/h but at 655 the road came at you faster than your bullets pulled
+// away: a friend said "the ship travels as fast as its weapons". Above SHOT_KEEP_V (450 km/h,
+// Classic's and loop 1's top speed) bullets now fly faster and farther in step with your speed,
+// so they look and reach the same as at 450. Classic and loop 1 never go faster, so they're unchanged.
+const SHOT_KEEP_V = 90, SHOT_RANGE = 170, SHOT_RANGE_MAX = FAR - 10;
+function shotPace(v) { return Math.max(1, v / SHOT_KEEP_V); }
 function fire() {
   const lv = G.weapon;
   const od = WP.on && WP.odT > 0;   // Warp Run: OVERDRIVE and the HEAVY CORE prototype add damage
-  const pierce = lv >= 5, dmg = (lv >= 7 ? 2 : 1) + (WP.on ? (WP.perks.core || 0) + (od ? 1 : 0) : 0), vd = G.speed + (lv >= 8 ? 150 : 110);
+  const k = shotPace(G.speed);
+  const pierce = lv >= 5, dmg = (lv >= 7 ? 2 : 1) + (WP.on ? (WP.perks.core || 0) + (od ? 1 : 0) : 0), vd = G.speed + (lv >= 8 ? 150 : 110) * k;
+  const range = Math.min(SHOT_RANGE_MAX, SHOT_RANGE * k);
   for (const [ox, vx] of GUNS[Math.min(4, lv)]) {
-    shots.push({ kind: 'shot', x: player.x + ox, d: G.d + 0.6, pd: G.d + 0.6, vx, vd, y: 0.5 + player.y * 0.8, turn: 0, dmg, pierce, hits: null });
+    shots.push({ kind: 'shot', x: player.x + ox, d: G.d + 0.6, pd: G.d + 0.6, vx, vd, y: 0.5 + player.y * 0.8, turn: 0, dmg, pierce, hits: null, range });
   }
   sfx.shoot();
 }
@@ -4102,7 +4113,7 @@ function update(dt) {
     // so in a bend they drift toward the outside and sail off over the rail.
     b.turn += curvAt(b.d) * step;
     b.x += b.vx * dt - b.turn * step;
-    if (b.d - G.d > 170 || Math.abs(b.x) > 40) b.dead = true;
+    if (b.d - G.d > (b.range || SHOT_RANGE) || Math.abs(b.x) > 40) b.dead = true;
   }
 
   // Obstacles
@@ -8269,7 +8280,7 @@ function laneAttitude(dt) {
 
 function laneFire() {
   const L = LANE, lv = G.weapon, od = WP.odT > 0;
-  const pierce = lv >= 5, dmg = (lv >= 7 ? 2 : 1) + (WP.perks.core || 0) + (od ? 1 : 0), vd = G.speed + (lv >= 8 ? 150 : 110);
+  const pierce = lv >= 5, dmg = (lv >= 7 ? 2 : 1) + (WP.perks.core || 0) + (od ? 1 : 0), vd = G.speed + (lv >= 8 ? 150 : 110) * shotPace(G.speed);
   const r = L.roll + L.spin, c = Math.cos(r), s = Math.sin(r);
   for (const [ox, vx] of GUNS[Math.min(4, lv)]) {
     L.shots.push({ kind: 'shot', x: L.x + ox * c, y: L.y + ox * s, d: L.d + 0.6, pd: L.d + 0.6, vx: vx * c, vy: vx * s, vd, turn: 0, dmg, pierce, hits: null, _z: 0 });
@@ -9896,6 +9907,7 @@ function fillSettings() {
   $('setHaptics').checked = SET.haptics;
   $('setSens').value = SET.sens;
   $('setShake').checked = SET.shake;
+  $('setFps').checked = SET.fps;
   fillGfx();
   fillCam();
   $('sensLabel').textContent = SET.sens + '%';
@@ -9988,6 +10000,7 @@ $('setGfx').addEventListener('click', () => {
   fillGfx();
 });
 $('setShake').addEventListener('change', (e) => { SET.shake = e.target.checked; saveSettings(); });
+$('setFps').addEventListener('change', (e) => { SET.fps = e.target.checked; saveSettings(); });
 $('setSens').addEventListener('input', (e) => {
   SET.sens = parseInt(e.target.value, 10) || 100;
   $('sensLabel').textContent = SET.sens + '%';
@@ -11706,18 +11719,25 @@ window.addEventListener('pointerdown', (e) => {
   // steals the steering from the thumb that's moving. It only takes over once it really moves
   // (TAKEOVER_PX), and when either one lifts, the finger still down carries on steering.
   if (e.isPrimary) fingers.clear();            // (the first finger down: nothing else is touching)
-  fingers.set(e.pointerId, { x0: e.clientX, x: e.clientX });
+  fingers.set(e.pointerId, { x0: e.clientX, x: e.clientX, t0: e.timeStamp });
   if (!drag || e.isPrimary) drag = { id: e.pointerId, x0: e.clientX, t0: player.tx };
 });
 
 window.addEventListener('pointermove', (e) => {
   if (LAB.on) labPointerMove(e);
   const f = fingers.get(e.pointerId);
+  const prevX = f ? f.x : e.clientX;
   if (f) f.x = e.clientX;
-  if (!drag || G.state !== 'play') return;
-  if (e.pointerId !== drag.id) {
-    // another finger: ignore it while it rests; once it really moves it takes over from where it is
-    if (!f || Math.abs(e.clientX - f.x0) < TAKEOVER_PX) return;
+  if (G.state !== 'play') return;
+  if (!drag || e.pointerId !== drag.id) {
+    // Another finger (or, after the steering thumb lifts, one still resting): ignore it while it
+    // rests or creeps; it takes over, from where it is, only with a quick slide of TAKEOVER_PX
+    // within TAKEOVER_MS. v0.16.6 counted any 12 points since it landed, however slowly, and
+    // handed the steering to a resting finger when the thumb lifted, so a palm drifting on the
+    // screen edge steered the speeder on its own (v0.17.1).
+    if (!f) return;
+    if (e.timeStamp - f.t0 > TAKEOVER_MS) { f.x0 = prevX; f.t0 = e.timeStamp; }
+    if (Math.abs(e.clientX - f.x0) < TAKEOVER_PX) return;
     drag = { id: e.pointerId, x0: e.clientX, t0: player.tx };
     return;
   }
@@ -11743,11 +11763,9 @@ function endDrag(e) {
   if (LAB.on) labPointerUp(e);
   fingers.delete(e.pointerId);
   if (drag && e.pointerId === drag.id) {
+    // a finger still down takes over (from where it is, no jump) once it slides on purpose
     drag = null;
-    // a finger still down carries on steering from where it is (no jump)
-    let next = null;
-    for (const [id, f] of fingers) next = { id, x0: f.x, t0: player.tx };
-    if (next && G.state === 'play') drag = next;
+    for (const f of fingers.values()) { f.x0 = f.x; f.t0 = e.timeStamp; }
   }
 }
 window.addEventListener('pointerup', endDrag);
@@ -11896,21 +11914,60 @@ function watchPerf(raw) {
 // a second looks no better here but costs twice the battery, so we cap the game at 60,
 // and draw less often on screens where little is moving (title, game over, paused).
 const FPS_PLAY = 60, FPS_IDLE = 30, FPS_PAUSED = 15;
-let last = performance.now(), lastTick = last, frameAcc = 0;
+// v0.17.1, even frame pacing: we now measure how often the screen refreshes (REFRESH.ms) and
+// draw on every Nth refresh, so the gap between frames is always the same. The old timer
+// drew a 90 Hz screen 11 and 22 ms apart by turns: a stutter you barely see at 200 km/h but
+// plainly at 600, where the road moves four times as far between frames. Now 60 and 90 Hz
+// screens draw every refresh, 120 and 144 Hz every other one (60 and 72 fps).
+const REFRESH = { ms: 1000 / 60, d: [], hz: 60 };
+function trackRefresh(gap) {
+  if (gap < 3 || gap > 50) return;               // (a hiccup or a pause, not the screen's rhythm)
+  const d = REFRESH.d;
+  d.push(gap); if (d.length > 31) d.shift();
+  if (d.length >= 9) {
+    const m = d.slice().sort((a, b) => a - b)[d.length >> 1];
+    REFRESH.ms = m; REFRESH.hz = Math.round(1000 / m);
+  }
+}
+// Settings → Show frame rate (v0.17.1): a small readout in the bottom-left corner, so a player
+// who says "it lags" can tell us what their phone is really doing. Shows frames drawn a second,
+// the screen's refresh rate, the slowest frame in the last second, and the graphics level.
+const FPSM = { n: 0, t: 0, worst: 0, fps: 0, worstMs: 0 };
+function fpsMeter(dt) {
+  if (!SET.fps) return;
+  FPSM.n++; FPSM.t += dt; FPSM.worst = Math.max(FPSM.worst, dt);
+  if (FPSM.t >= 1) {
+    FPSM.fps = Math.round(FPSM.n / FPSM.t); FPSM.worstMs = Math.round(FPSM.worst * 1000);
+    FPSM.n = 0; FPSM.t = 0; FPSM.worst = 0;
+  }
+}
+function drawFps() {
+  if (!SET.fps || !FPSM.fps) return;
+  const txt = FPSM.fps + ' fps · ' + REFRESH.hz + ' Hz · worst ' + FPSM.worstMs + ' ms · ' + QUAL.name;
+  ctx.font = '600 11px system-ui, sans-serif';
+  const w = ctx.measureText(txt).width + 12;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  ctx.fillRect(6, H - 26, w, 20);
+  ctx.fillStyle = FPSM.fps < 45 || FPSM.worstMs > 50 ? '#ff8a8a' : '#b8ffcf';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText(txt, 12, H - 16);
+}
+let last = performance.now(), lastTick = last;
 function frameGap() {
   if (paused && resumeT <= 0) return 1000 / FPS_PAUSED;
   if (G.state === 'title' || G.state === 'over') return 1000 / FPS_IDLE;
-  return 1000 / FPS_PLAY;
+  // play: every refresh up to ~75 Hz (and 90 Hz), every other one at 120-144 Hz, and so on
+  const every = Math.max(1, Math.floor(1000 / FPS_PLAY / REFRESH.ms + 0.4));
+  return every * REFRESH.ms;
 }
 function frame(now) {
   requestAnimationFrame(frame);
-  frameAcc += now - lastTick;
+  trackRefresh(now - lastTick);
   lastTick = now;
-  const gap = frameGap();
-  if (frameAcc < gap - 2.5) return;           // too soon: skip this screen refresh
-  frameAcc = Math.min(Math.max(0, frameAcc - gap), gap);
+  if (now - last < frameGap() - REFRESH.ms * 0.5) return;   // too soon: skip this screen refresh
   let dt = (now - last) / 1000;
   last = now;
+  fpsMeter(dt);
   checkSize(dt);
   watchPerf(dt);
   fairWatch(dt);
@@ -11924,6 +11981,7 @@ function frame(now) {
   if (!paused) update(dt);
   else audioEngine();
   render();
+  drawFps();
   if (TUT.on) tutFrame(dt);
 }
 

@@ -4,6 +4,43 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.17.1] — 2026-11-20
+
+### An Android friend's lag and "steers itself" reports
+
+He said: "The rate of fire slows as the ship speeds up, so the ship travels as fast as its
+weapons", plus lag at high speed in later loops, and that the speeder now steers itself.
+
+- **Bullets keep pace with the speeder.** They used to leave the speeder at a fixed 110 a second
+  (550 km/h faster than you) and vanish 170 ahead. Fine at 450 km/h, but at 655 the road came
+  at you faster than your bullets pulled away, and each target got about 2.4x fewer volleys than
+  at the start. Above 450 km/h (`SHOT_KEEP_V`) bullets now fly faster and farther in step with your
+  speed (`shotPace()`, range up to `SHOT_RANGE_MAX` = 230), so they look and reach the same as at
+  450. Fire rate is unchanged. Classic and Warp Run's loop 1 never go faster than 450, so they play
+  exactly as before; Warp Run differs from loop 2 on (`same-as-before.sh` shows the first difference
+  at about 4.5 minutes into its seeded run, when loop 2 begins). Hyperlane bullets get the same speed-up.
+  Board: no reset. Later loops get slightly easier to shoot through; Adrian to decide if that's worth a reset.
+- **Even frame pacing.** The frame timer now measures the screen's refresh rate (`REFRESH`,
+  `trackRefresh()`) and draws on every Nth refresh. Before, a 90 Hz screen got frames 11 and 22 ms
+  apart by turns, a judder you barely see at 200 km/h but plainly at 600, where the road moves four
+  times as far between frames. 60 and 90 Hz screens now draw every refresh (90 Hz phones draw 90 fps
+  in a run: smoother, a little more battery), 120 and 144 Hz every other one (60 and 72 fps, as before
+  for 120). Test runs are unaffected (they drive frames themselves).
+- **Settings → Show frame rate** (`SET.fps`, `drawFps()`): a small readout in the bottom-left corner
+  showing frames a second, the screen's refresh rate, the slowest frame in the last second and the
+  graphics level (red under 45 fps or over 50 ms). For players who report lag.
+- **A resting finger no longer steers.** v0.16.6 let a second finger take over once it had moved
+  12 points since it landed, however slowly, and handed the steering to any finger still down when the
+  steering thumb lifted. A palm or a finger resting on a fold's edge drifts, so the speeder moved on its
+  own (more so at a high Steering speed). Now a finger takes over only with a quick slide: 12 points
+  within 250 ms (`TAKEOVER_MS`). When the thumb lifts, a finger still down takes over the same way.
+  New test: `node tests/touch.mjs "$PWD"` (the old build fails it).
+- Profiling notes (headless Chrome, no GPU, so only a rough guide): a loop-6, fully-loaded frame cost
+  about 15% more to draw than a loop-1 frame, mostly spark particles and bullets. Not changed yet:
+  wait for the friend's frame-rate readout before cutting effects.
+
+---
+
 ## [0.17.0] — 2026-11-18
 
 ### Ready for strangers: anti-cheat, a name filter, a hide list, fewer database reads

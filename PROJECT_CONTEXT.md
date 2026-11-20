@@ -26,10 +26,10 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.17.0 |
+| **Current Version** | v0.17.1 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-18 |
+| **Last Updated** | 2026-11-20 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://speeder-game.com/ (custom domain since v0.12.9; the old https://az-build.github.io/speeder/ address redirects there) |
 
 ---
@@ -254,7 +254,7 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 ### Testing hooks
 
-Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase). Run all six before publishing.
+Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase), `node tests/touch.mjs "$PWD"` (a resting or creeping second finger never steers). Run all seven before publishing.
 
 **Since v0.17.0 the hooks below only exist with test tools on:** add `?dev` to the address on the live site (e.g. https://speeder-game.com/?dev; it stays on for that tab and shows "TEST TOOLS ON"), or open the game from a file / localhost (the tests do). Runs with test tools on never reach a world board, and analytics is off. The game's own names (`G`, `SET`, `TUT`...) are no longer global: use `SPEEDER.inside(() => G.d)` to run code inside the game.
 
@@ -319,6 +319,9 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Camera setting (v0.7.6) | Players pick Close / Normal / Far / Full track; Normal is the default | People disagree on close-and-thrilling vs seeing the whole track; a setting lets each player choose. |
 | Steering (v0.7.7) | Crossing the track takes a drag of nearly the full screen width on a phone; capped at 400 points (`STEER_MAX_W`) so foldables/tablets need the same thumb travel as an iPhone | Tried thumb-distance steering in v0.7.2 (~230 points to cross); Adrian found it too touchy. The old 520-point cap made unfolded folds need ~3.1 in of thumb travel. |
 | Extra touches (v0.16.6) | A second finger only takes over the steering once it slides 12 points (`TAKEOVER_PX`); when one lifts, the finger still down keeps steering. Steering speed slider now 50-250% | A resting palm or other thumb used to take over at once and leave the moving thumb dead until lifted: an Android friend had to lift his thumb almost every move. |
+| Bullet speed (v0.17.1) | Above 450 km/h bullets fly faster and farther in step with your speed (`SHOT_KEEP_V`, `shotPace()`); fire rate unchanged | A friend: "the ship travels as fast as its weapons". At 655 km/h the road came at you faster than bullets pulled away. Classic and loop 1 never pass 450, so they're unchanged. No board reset (Adrian's call). |
+| Frame pacing (v0.17.1) | Measure the screen's refresh rate and draw every Nth refresh: 60/90 Hz every refresh, 120/144 Hz every other | The old timer drew 90 Hz screens 11 and 22 ms apart by turns: judder that shows at high speed. Trade-off: 90 Hz phones draw 90 fps (a little more battery). |
+| Second finger (v0.17.1) | Takes over only with a quick slide (12 points within 250 ms, `TAKEOVER_MS`), also after the thumb lifts | v0.16.6's "12 points since it landed" let a creeping palm steer the speeder on its own. |
 | Frame rate (v0.7.1) | Capped at 60fps; 30 on title/game over, 15 when paused | 120Hz Android phones were drawing twice as often as iPhones and draining battery. |
 | Big screens (v0.7.1) | Pixel budget per graphics level; reflections only on phone-sized screens | An unfolded foldable drew ~3x the pixels of an iPhone. Normal phones are unaffected. |
 | Modes (v0.8) | Classic kept untouched; all new ideas live in a second mode, Warp Run, which is the default | Adrian's call: keep the existing experience as Classic. Separate best scores and leaderboards, so Classic's board never needs a reset. |
@@ -388,6 +391,16 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**Lag and self-steering (v0.17.1, 2026-11-20):**
+- The Android friend (fold): lag at high speed in later loops, "the ship travels as fast as its
+  weapons", and the speeder steering itself since v0.16.6. Fixed: bullets keep pace above 450 km/h,
+  even frame pacing, a resting/creeping finger no longer steers (see CHANGELOG). **Ask him** to turn on
+  Settings → Show frame rate and report the numbers late in a run (fps, Hz, worst ms, graphics level),
+  and whether the self-steering is gone. If he plays Classic, its bend push (`DRIFT`) also moves the
+  speeder in turns (by design, unchanged); Warp Run has none.
+- If frame rate is still low late in a run: spark particles and bullets are the cost that grows
+  (profiled in headless Chrome only). Cheaper bullets/sparks at high counts is the next step.
 
 **Launch prep (v0.17.0, 2026-11-18):**
 - From the marketing plan (2026-11-16, "Speeder Launch & Monetization Plan" doc): hold off on
