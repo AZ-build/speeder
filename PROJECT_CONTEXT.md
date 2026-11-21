@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.17.1 |
+| **Current Version** | v0.17.2 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-20 |
@@ -391,6 +391,17 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**Still reported after v0.17.1 (v0.17.2, 2026-11-20 evening):**
+- Friend: still lag, still "traveling faster than the bullets", steering "snapping my ship back to
+  center". v0.17.2 adds a run report on the game-over screen (with Show frame rate on). **Ask him for
+  a screenshot of it** after a run that felt bad. Read it: version (is he on 0.17.2?), fps vs Hz and
+  % slow frames (lag), graphics step-down, rail overloads (the likeliest "snap to center" in Warp Run:
+  thrown ~2 units in and kept off both edges for 5 s), winds, finger handoffs, touch cancels.
+- Bullets: v0.17.1 only speeds them up above 450 km/h, so at loop 2-3 (455-505 km/h) it barely
+  changes anything (x1.01-1.12). At high speed a target is only on screen ~1.8 s (FAR / speed), so
+  at a fixed fire rate fewer volleys can hit it. A real fix means scaling fire rate (and bullet speed)
+  with speed in Warp Run: more kills, so a board reset question for Adrian. Waiting on his call.
 
 **Lag and self-steering (v0.17.1, 2026-11-20):**
 - The Android friend (fold): lag at high speed in later loops, "the ship travels as fast as its

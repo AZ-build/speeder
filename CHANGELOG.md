@@ -4,6 +4,25 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.17.2] — 2026-11-20
+
+### A run report, to find the friend's lag and "snaps back to center"
+
+After v0.17.1 he still reports lag, flying faster than his bullets, and steering that "snaps my ship
+back to center". Rather than guess again, the game now says what happened in a run.
+
+- **Run report** on the game-over screen while Settings → Show frame rate is on (`RR`,
+  `runReport()`, `runReportLine()`): version, average fps and the screen's refresh rate, share of
+  slow frames (over 33 ms), worst frame, graphics level at the start and end (shows an automatic
+  step down), top speed, and the things that move the speeder without the thumb: **rail overloads**
+  (Warp Run throws you about 2 units toward the middle and keeps you off both edges for 5 s),
+  **crosswinds**, **finger handoffs** (another finger took over the steering) and **touch cancels**
+  (the browser took the touch away, e.g. for a system gesture).
+- The live frame-rate readout now only shows during play (it showed through behind the game-over buttons).
+- Gameplay unchanged: `same-as-before.sh` reports SAME.
+
+---
+
 ## [0.17.1] — 2026-11-20
 
 ### An Android friend's lag and "steers itself" reports
