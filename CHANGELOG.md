@@ -4,6 +4,22 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.17.3] — 2026-11-21
+
+### Typing your name on an iPhone
+
+- **You can see what you type.** Adrian: on iOS, typing your name in Settings you couldn't see it.
+  The panels fill the whole screen and the page never scrolls, so iOS couldn't lift the name box
+  above its keyboard (Settings' box is the last thing on the panel). Now, while a name box has
+  focus, its panel shrinks to the part of the screen above the keyboard (`visualViewport`) and the
+  box scrolls into view; it goes back to full height when typing ends (`keyboardFit()`). Covers
+  both name boxes: Settings and the game-over screen.
+- New test: `node tests/keyboard.mjs "$PWD"` (a pretend keyboard covers half the screen; the old
+  build fails it). Checked in Chrome only: real iOS keyboards still need a check on a phone.
+- Gameplay unchanged: `same-as-before.sh` reports SAME.
+
+---
+
 ## [0.17.2] — 2026-11-20
 
 ### A run report, to find the friend's lag and "snaps back to center"

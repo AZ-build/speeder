@@ -987,7 +987,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.17.2';
+const VERSION = '0.17.3';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -10025,6 +10025,38 @@ function commitSettingsName() {
   }
 }
 $('setName').addEventListener('change', commitSettingsName);
+
+// Typing a name with the iPhone keyboard up (v0.17.3). The panels fill the whole screen and the
+// page itself never scrolls, so iOS couldn't lift the name box above its keyboard: you typed
+// blind (Settings' box is at the very bottom). While a name box has focus, its panel is fitted to
+// the part of the screen the keyboard leaves visible (visualViewport) and the box is scrolled
+// into view; when typing ends the panel goes back to full height.
+const VV = window.visualViewport;
+function typingBox() {
+  const el = document.activeElement;
+  return el && el.classList && el.classList.contains('name-input') ? el : null;
+}
+function keyboardFit(reveal) {
+  const el = typingBox();
+  const box = el ? el.closest('.overlay') : null;
+  for (const o of document.querySelectorAll('.overlay.kb')) {
+    if (o !== box) { o.classList.remove('kb'); o.style.top = ''; o.style.height = ''; }
+  }
+  if (!box || !VV) return;
+  box.classList.add('kb');
+  box.style.top = Math.round(VV.offsetTop) + 'px';
+  box.style.height = Math.round(VV.height) + 'px';
+  if (reveal) el.scrollIntoView({ block: 'center' });
+}
+document.addEventListener('focusin', () => setTimeout(() => keyboardFit(true), 60));
+document.addEventListener('focusout', () => setTimeout(() => {
+  keyboardFit(false);
+  if (!typingBox()) window.scrollTo(0, 0);   // undo any scroll iOS did while the keyboard was up
+}, 60));
+if (VV) {
+  VV.addEventListener('resize', () => keyboardFit(true));   // the keyboard opening, closing or changing height
+  VV.addEventListener('scroll', () => keyboardFit(false));
+}
 $('settingsDone').addEventListener('click', () => {
   if (commitSettingsName() === false) { $('setName').focus(); return; }
   closePanel();

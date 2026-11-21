@@ -26,10 +26,10 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.17.2 |
+| **Current Version** | v0.17.3 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-20 |
+| **Last Updated** | 2026-11-21 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://speeder-game.com/ (custom domain since v0.12.9; the old https://az-build.github.io/speeder/ address redirects there) |
 
 ---
@@ -254,7 +254,7 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 ### Testing hooks
 
-Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase), `node tests/touch.mjs "$PWD"` (a resting or creeping second finger never steers). Run all seven before publishing.
+Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase), `node tests/touch.mjs "$PWD"` (a resting or creeping second finger never steers), `node tests/keyboard.mjs "$PWD"` (name boxes stay above a phone keyboard). Run all eight before publishing.
 
 **Since v0.17.0 the hooks below only exist with test tools on:** add `?dev` to the address on the live site (e.g. https://speeder-game.com/?dev; it stays on for that tab and shows "TEST TOOLS ON"), or open the game from a file / localhost (the tests do). Runs with test tools on never reach a world board, and analytics is off. The game's own names (`G`, `SET`, `TUT`...) are no longer global: use `SPEEDER.inside(() => G.d)` to run code inside the game.
 
@@ -391,6 +391,10 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**iPhone name typing (v0.17.3, 2026-11-21):** Adrian couldn't see his name while typing it in
+Settings on iOS (the keyboard covered the box). Fixed by fitting the panel above the keyboard
+(`keyboardFit()`). Tested with a pretend keyboard in Chrome only: **ask Adrian to confirm on his iPhone.**
 
 **Still reported after v0.17.1 (v0.17.2, 2026-11-20 evening):**
 - Friend: still lag, still "traveling faster than the bullets", steering "snapping my ship back to
