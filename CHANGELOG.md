@@ -4,6 +4,34 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.18.0] — 2026-11-26
+
+### New sound effects, and Sunset Drive in the Lab
+
+- **The Heavy sound effects are in the game** (Adrian: "heavy got the most votes"). Shots, bullet
+  hits, enemy pops, explosions, the crash, getting hurt, power-ups and shields now use the Heavy
+  set from the sound picker (made for Speeder, CC0), at the volumes it was balanced to there
+  (`sfx`). The other sounds (jump, land, zap, missiles, fanfare, menu tick) and the engine are
+  unchanged. `boom1`/`boom2` became one `boom`. Sound is still off by default (`SOUND_RESET` not
+  raised): turning it back on for everyone is Adrian's call.
+- **New Lab experiment: MUSIC** (on by default). Sunset Drive I-V, a soundtrack made for Speeder
+  from Adrian's picks: five songs, one per loop, each the same theme a step higher and a little
+  faster (96 to 112 BPM) with one new instrument; each song in five parts, one per world, that build
+  from chill (pads, bells) to everything for the Warden. Parts change on the next bar line, so the
+  music never jumps off the beat however fast or slow you go; after the Warden a two-bar handoff
+  lands on the next song's first beat. Part 1 in a hyperlane, muffled when you've been slowed down,
+  tape stop on a crash. The power-up and shield chords are retuned to each song's key. Details in
+  `LAB.md`. 30 files, 8 MB, loaded a song at a time.
+- Game-over stats in the Lab name the song a run reached; analytics `lab/music/song-<n>`.
+- New test: `node tests/music.mjs "$PWD"` plays a Lab run in real time with audio (served over
+  http) and checks the bar-line changes, the lane, the handoff, the retuning, the tape stop, and
+  that Warp Run and the Lab without MUSIC still play the old track. 22 checks.
+- `tests/lab.mjs` expects four vote rows now (MUSIC is on by default).
+- Gameplay unchanged: `same-as-before.sh` reports SAME (the explosion sound still makes the same
+  random pick, so every run plays out exactly as before).
+
+---
+
 ## [0.17.3] — 2026-11-21
 
 ### Typing your name on an iPhone

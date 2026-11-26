@@ -26,6 +26,9 @@ one round at a time. The service worker leaves it alone (v0.16.2), so it never a
   E = Heavy. C-E were made from scratch with `tools/synth.py` (CC0, ours).
 - Each option's `vol` table on the page uses the same numbers as the game's `sfx` table, so a
   winning option's volumes can be copied straight into `index.html`.
+- **Result (v0.18.0):** E Heavy got the most votes. Its files and volumes are now the game's
+  (`audio/`, `sfx` in index.html). Music went another way: Sunset Drive I-V, made with
+  `tools/music5/`, is in the Lab as the MUSIC experiment (see LAB.md).
 - The **RIDE** demo is a scripted 12-second run on the game's own mix chain (master 0.595,
   music 0.42, engine 0.13): normal fire, RAPID fire, hits, pops, a mine, a hit, a shield, a crash.
 

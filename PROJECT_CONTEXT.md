@@ -26,10 +26,10 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.17.3 |
+| **Current Version** | v0.18.0 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-21 |
+| **Last Updated** | 2026-11-26 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://speeder-game.com/ (custom domain since v0.12.9; the old https://az-build.github.io/speeder/ address redirects there) |
 
 ---
@@ -187,6 +187,9 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
   one power-up orb per lane. The road waits while you're in it. Compared: **flying style**,
   Barrel rolls (the speeder rolls its top toward where it's going, flips on dives, a fast swipe
   spins it round) vs Smooth banks (never upside down).
+- **Experiment 4, MUSIC (v0.18):** Sunset Drive I-V, a soundtrack made for Speeder: a song per
+  loop (five, then round again), five parts per song that build world by world, changes on the
+  next bar line, a two-bar handoff after the Warden. On by default. Details in `LAB.md`.
 - **Test setup (v0.11):** a card in the Lab panel, not an experiment: **Start on loop 1-6**
   (the run begins at that loop's speed, difficulty and score multiplier) and **Fully loaded**
   (guns at level 8 and 2 shields from the start). For testing at high speed. v0.12 adds
@@ -201,7 +204,7 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
 |-------|--------|-------|
 | Frontend | Plain HTML + JavaScript + Canvas 2D | One file: `index.html`. No libraries, nothing to install. |
 | 3D look | Homemade perspective math ("pseudo-3D") | Out Run-style. Everything is projected from world x/y/distance onto the screen. |
-| Sound | Web Audio playing CC0 audio files in `audio/` | Effects from Kenney's free packs, music "Synthwave House Loop" by Fupi. Credits in `audio/CREDITS.md`. Music tempo and brightness follow the run. |
+| Sound | Web Audio playing CC0 audio files in `audio/` | Effects: the Heavy set made for Speeder (v0.18.0) plus a few from Kenney's packs. Music "Synthwave House Loop" by Fupi (tempo and brightness follow the run); the Lab's MUSIC experiment plays Sunset Drive I-V (`audio/lab-music/`, made for Speeder). Credits in `audio/CREDITS.md`. |
 | Offline / install | `manifest.webmanifest` + `sw.js` (service worker) | Bump `CACHE` in sw.js after each change so phones get updates. |
 | Backend / DB | Firebase Firestore, **ORBit's project `orbit-23921`**, lists `speeder_scores` (Classic) and `speeder_warp_scores` (Warp Run) | Loaded only when needed (Firestore "lite" library). Settings and local scores live in the browser's localStorage. Rules: `firestore-rules-speeder.txt` (Classic) and `firestore-rules-warp.txt` (Warp Run). v0.17.0 prepared a move to Speeder's own project plus App Check (`SPEEDER_FIREBASE`, `APP_CHECK_KEY`, `firestore-rules-own-project.txt`, `FIREBASE-SETUP.md`): not done yet, waiting on Adrian. |
 | Hosting | GitHub Pages, custom domain `speeder-game.com` | A PWA needs https to install; GitHub Pages provides it for free. Domain bought by Adrian through Squarespace (2026-11-16); its DNS records point at GitHub Pages. The `CNAME` file in the repo holds the domain: never delete it. |
@@ -217,7 +220,7 @@ Speeder/
 ├── social/                ← card-bg.jpg (score card artwork, 1080x1350) and share-wide.jpg (link preview, 1200x630)
 ├── stats/index.html       ← private stats page (speeder-game.com/stats/): GoatCounter API + leaderboards; not part of the game
 ├── CNAME                  ← the custom domain (speeder-game.com) for GitHub Pages; never delete
-├── audio/                 ← sound effects, engine loop, music + CREDITS.md (all CC0)
+├── audio/                 ← sound effects, engine loop, music + CREDITS.md (all CC0); lab-music/ = Sunset Drive I-V for the Lab (v0.18.0)
 ├── sound-picker/          ← page for auditioning new sounds (speeder-game.com/sound-picker/), its files and tools; see its README.md
 ├── README.md              ← how to play it locally and publish it
 ├── moderation.txt         ← the hide list: board entries, devices and name words to hide (v0.17.0); the game reads it every 10 minutes
@@ -243,18 +246,18 @@ Speeder/
 from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))`) ·
 steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun levels ·
 `MULT_TIME` 2X duration · `EDGE_START` / `EDGE_BANK` / `EDGE_HALF_W` / `EDGE_YAW` the edge bank and how skinny it gets · `VIEW_TAN` / `CAM_VIEWS` (the Camera setting's levels) / `FIT_WIDE` / `VIEW_MAX_H` camera angle, how close it is, and big-screen fit (`fitView()`) · `CAM_TRACK` how much the camera follows your sideways move · `CAM_FOLLOW` how quickly it eases after you · `AIM_AHEAD` how far it looks into turns · `STEER_EASE` how quickly the speeder glides to your thumb · `LEAN_MAX` / `LEAN_GAIN` the small lean while moving · `SWARM_N` missiles per MISSILES pickup ·
-`MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch ·
+`MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch (the Heavy set's volumes from the sound picker since v0.18.0) ·
 `PART_MAX` particle cap · `QUALS[].fx` / `QUALS[].gloss` particle amount and glossy road per graphics level · `DRONE_MESH` / `RAM_MESH` / `TURRET_BASE` / `TURRET_HEAD` enemy models · `drawGloss()` road reflections · `drawShield()` shield bubble · `G.slowmo` wreck slow motion ·
 `kmBucket()` / `WARP_KM` / `CLASSIC_KM` / `LAB_KM` the distance buckets in analytics (match the stats page) · `LOOP_CAP` highest loop number in analytics · `trackRunNumber()` the exact run counter (`runs/<mode>/<n>`) · `GC_CODE` analytics on/off (GoatCounter site code, now `speeder`; dashboard https://speeder.goatcounter.com, and our own at https://speeder-game.com/stats/) · `trackOnce()` / `trackPlayerRun()` / `trackNamed()` the once-per-device player counts · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
 `choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
 
 **Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `BOSS_SNIPE` how often it fires single shots under its other attacks · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
 
-**Lab knobs:** `LAB_EXPERIMENTS` the list of experiments (the Lab panel, saved switches, votes and analytics build themselves from it) · JUMP: `HOP_H` / `HOP_T` how high and how long a jump is · `HOP_MAX` charges you can hold · `HOP_PER_CLOSE` charge earned per close call · `HOP_OVER` which obstacles a hop clears · `FLICK_PX` / `FLICK_MS` / `FLICK_RATIO` what counts as a flick up · `TAP_MS` / `TAP_PX` what counts as a one-finger tap · SKY RAMPS: `SKY_W` / `SKY_LEN` / `SKY_H` the ramp's size · `SKY_PEAK` / `SKY_T` how high and how long the flight is · `SKY_RINGS` / `RING_R` how many rings and how big · `RING_PTS` / `RING_PERFECT` points · `SKY_EVERY` seconds between sky ramps · HYPERLANE: `LANE_T` seconds in a lane · `LANE_R` / `LANE_LIM` tunnel size and how far you can go · `LANE_SPEEDUP` / `LANE_MIN_V` speed · `LANE_CAM_Z` / `LANE_ZOOM` / `LANE_FOLLOW` camera · `LANE_PANEL` / `LANE_LIT` / `LANE_PULSE` / `LT_PULSE` the walls' colours and light pulses · `LANE_WARP` / `LANE_STREAKS` light-speed ripple and streaks · `LANE_CAM_UP` / `LANE_FOLLOW_Y` keep the speeder below the far end · `LANE_BEND` how much it snakes · `LANE_GAP` space between sections · `ROLL_V` / `LANE_ROLL_RATE` / `LANE_BANK` how the speeder rolls · `SPIN_V` / `SPIN_T` barrel roll swipe and length · `LROCK_HP` / `LRING_PTS` / `LRING_PERFECT` / `LIRIS_HOLE` hazards and points · `LANE_SECTIONS` what's in a lane · test setup: `LAB_LOOPS` the highest starting loop offered.
+**Lab knobs:** `LAB_EXPERIMENTS` the list of experiments (the Lab panel, saved switches, votes and analytics build themselves from it) · JUMP: `HOP_H` / `HOP_T` how high and how long a jump is · `HOP_MAX` charges you can hold · `HOP_PER_CLOSE` charge earned per close call · `HOP_OVER` which obstacles a hop clears · `FLICK_PX` / `FLICK_MS` / `FLICK_RATIO` what counts as a flick up · `TAP_MS` / `TAP_PX` what counts as a one-finger tap · SKY RAMPS: `SKY_W` / `SKY_LEN` / `SKY_H` the ramp's size · `SKY_PEAK` / `SKY_T` how high and how long the flight is · `SKY_RINGS` / `RING_R` how many rings and how big · `RING_PTS` / `RING_PERFECT` points · `SKY_EVERY` seconds between sky ramps · HYPERLANE: `LANE_T` seconds in a lane · `LANE_R` / `LANE_LIM` tunnel size and how far you can go · `LANE_SPEEDUP` / `LANE_MIN_V` speed · `LANE_CAM_Z` / `LANE_ZOOM` / `LANE_FOLLOW` camera · `LANE_PANEL` / `LANE_LIT` / `LANE_PULSE` / `LT_PULSE` the walls' colours and light pulses · `LANE_WARP` / `LANE_STREAKS` light-speed ripple and streaks · `LANE_CAM_UP` / `LANE_FOLLOW_Y` keep the speeder below the far end · `LANE_BEND` how much it snakes · `LANE_GAP` space between sections · `ROLL_V` / `LANE_ROLL_RATE` / `LANE_BANK` how the speeder rolls · `SPIN_V` / `SPIN_T` barrel roll swipe and length · `LROCK_HP` / `LRING_PTS` / `LRING_PERFECT` / `LIRIS_HOLE` hazards and points · `LANE_SECTIONS` what's in a lane · MUSIC: `LM_SONGS` (tempo and key of each song) · `LM_BARS` loop length · `LM_VOL` level · `LM_FADE` crossfade · `LM_ROLL` run-in/out in each file · test setup: `LAB_LOOPS` the highest starting loop offered.
 
 ### Testing hooks
 
-Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase), `node tests/touch.mjs "$PWD"` (a resting or creeping second finger never steers), `node tests/keyboard.mjs "$PWD"` (name boxes stay above a phone keyboard). Run all eight before publishing.
+Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase), `node tests/touch.mjs "$PWD"` (a resting or creeping second finger never steers), `node tests/keyboard.mjs "$PWD"` (name boxes stay above a phone keyboard), `node tests/music.mjs "$PWD"` (the Lab's MUSIC, played in real time with audio over http). Run all nine before publishing.
 
 **Since v0.17.0 the hooks below only exist with test tools on:** add `?dev` to the address on the live site (e.g. https://speeder-game.com/?dev; it stays on for that tab and shows "TEST TOOLS ON"), or open the game from a file / localhost (the tests do). Runs with test tools on never reach a world board, and analytics is off. The game's own names (`G`, `SET`, `TUT`...) are no longer global: use `SPEEDER.inside(() => G.d)` to run code inside the game.
 
@@ -358,6 +361,9 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Speeder in the lane (v0.12) | Two styles compared: Barrel rolls (top toward the move, flips on dives, swipe to spin) vs Smooth banks | Adrian described the first; Claude's concern: flipping upside down may disorient, so the Lab compares it with a calmer one. Rolls are looks only, never change collisions. |
 | Hyperlane look (v0.12.1) | Lit blue-violet tunnel, dark hazards edged in neon, bright pickups; walls never take the next world's colour | Adrian: needs more contrast between walls and what's coming, maybe lighter walls, a bigger tunnel, zoomed in. Light-vs-dark plus cool-vs-warm keeps hazards readable at speed. |
 | Music speed-up | Play the loop faster (pitch rises too) as speed climbs, capped at +14% | Simple, no extra files, and the rising pitch adds urgency. Trade-off: a pitch-preserving version would need several pre-made copies of the track. |
+| Sound effects (v0.18.0) | The Heavy set from the sound picker, at its balanced volumes; sound still off by default | Adrian: "heavy got the most votes. Use that please." Turning sound back on for everyone (`SOUND_RESET`) is left for him to decide. |
+| New music (v0.18.0) | Sunset Drive I-V, made for Speeder, in the Lab first | Adrian found free packs off-target; he wants chill that builds (his Spotify "e-Jamz" is the reference) and loved the Sunset Drive sketch. Five variations, one per loop, so a 30-minute run doesn't repeat. |
+| Music sync (v0.18.0) | The music keeps its own beat; the game says which part it wants; changes wait for the next bar line; parts are layers of one 8-bar grid | Adrian asked what happens if he slows down or beats the Warden fast. Nothing can drift: a part just loops longer or the handoff comes sooner, and swaps always land on the beat. Trade-off: up to one bar's delay (2.1-2.5 s) before the music follows a new world. |
 
 ---
 
@@ -391,6 +397,23 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**Sound and music (v0.18.0, 2026-11-26):**
+- The Heavy effects are in the game. **Sound is still off by default**: ask Adrian whether to turn it
+  back on for everyone now (raise `SOUND_RESET` and set the default on), or after he's played a
+  few runs with it.
+- New Lab experiment **MUSIC** (Sunset Drive I-V). How we got there: free packs were off-target;
+  his Spotify "e-Jamz" playlist (melodic deep house, chillwave, Khruangbin) set the direction; of
+  three sketches (claude.ai artifact "Speeder music sketches") he loved Sunset Drive, found the
+  deep house one alright, disliked the synthwave one. He asked for 5 parts per song mapped to the
+  worlds, a slightly faster sister song after each Warden, five songs before repeating, and to
+  stay in sync. He also said "tie the beat to the Delores": unclear, probably "the lasers"
+  (laser fences pulsing on the beat). **Ask him.**
+- **Nobody has heard it in a run yet.** Ask: does each world's step up feel right, is World 1 too
+  sparse, is the handoff after the Warden exciting, are the five songs too alike, and the level
+  against the effects. The tools to change it are in `sound-picker/tools/music5/`.
+- Ideas not built: laser fences (or other hazards) pulsing on the beat; a part of its own for
+  hyperlanes; music in Warp Run and Classic once it graduates.
 
 **iPhone name typing (v0.17.3, 2026-11-21):** Adrian couldn't see his name while typing it in
 Settings on iOS (the keyboard covered the box). Fixed by fitting the panel above the keyboard

@@ -54,6 +54,7 @@ Analytics: the **Lab verdicts** section of https://speeder-game.com/stats/ (vote
 | `lab/lane/<variant>/0-barrel-rolls` / `1-4-` / `5+-` | Barrel rolls in a run (Barrel rolls style only): do people find them? |
 | `lab/lane/<variant>/died-in-lane`, `no-lanes` | The run ended inside a lane / before the first one |
 | `lab/setup/loop<N>`, `loop<N>-loaded`, `...-lane` | A run used the test setup (later loop, fully loaded, started in a hyperlane) |
+| `lab/music/song-<n>`, `song-6plus`, `none` | MUSIC: the furthest song a run reached (song n = loop n), or no music at all (sound off or still loading) |
 
 A **variant** is the experiment plus its options, for example `jump.flick.charges` or
 `jump.tap.free`. Votes are counted per variant, so two ways of doing the same idea can be
@@ -69,6 +70,7 @@ changes, so the counts are roughly people, not runs.
 | **JUMP** (`jump`) | v0.10.0, made bigger in v0.11.0 | In the Lab. Adrian's first note (2026-11-13): make it higher and longer. Done; needs another try. | A jump you can do anywhere. Options: gesture (flick up / second-finger tap) and fuel (2 earned charges / unlimited). |
 | **SKY RAMPS** (`ramps`) | v0.11.0 | In the Lab. No human has played it yet. | Big ramps that launch a long flight with five rings to steer through. No options yet. |
 | **HYPERLANE** (`lane`) | v0.12.0 | In the Lab. No human has played it yet. | A zero-gravity tunnel between every two worlds, steering up and down as well as sideways. Option: flying style (barrel rolls / smooth banks). |
+| **MUSIC** (`music`) | v0.18.0 | In the Lab. Adrian picked the style from sketches (2026-11-26); nobody has heard it in a run yet. | Sunset Drive I-V: a song per loop that builds world by world, changing on the beat. No options. |
 
 ### JUMP: how it works
 
@@ -212,6 +214,49 @@ power-ups, with the speeder rolling and flipping naturally as you move.
   lane? Is the barrel-roll swipe too easy or too hard to trigger? Does the lane break the flow
   between worlds that Adrian liked in v0.9, or is it a welcome change of pace?
 
+### MUSIC: how it works
+
+Adrian's brief (2026-11-25/26): more chill (his reference: his Spotify playlist "e-Jamz"), slowly
+getting more intense; a different song each loop so a 30-minute run doesn't repeat; five parts per
+song mapped to the five worlds; after the Warden, a new song that's "similar but different and a
+hair faster"; five songs before anything repeats; and it must stay in sync and change smoothly. Of
+three sketches he loved the chillwave one, Sunset Drive, so all five songs are variations of it.
+
+- **The songs** (`LM_SONGS`): Sunset Drive (D, 96 BPM), II (E, 100, adds marimba), III (F#, 104,
+  electric piano), IV (G, 108, strings), V (A, 112, all of them). Loop 6 starts again at song 1.
+  Each song ends on the chord the next one starts on, so the handoffs pivot smoothly.
+- **The parts:** World 1 pads, bells, a soft bass note, shaker · 2 swung hats, bassline, plucks and
+  the song's colour · 3 the lazy half-time beat · 4 the melody · 5 and the Warden: everything, the
+  beat doubled, the melody with a higher twin. Every part is a seamless 8-bar loop (`LM_BARS`) on the
+  same grid, so it can be swapped on any bar line.
+- **Staying in sync:** the music keeps its own clock (`LM.t0`, `LM.bar`); the game only says which
+  song and part it wants (`lmWant()`). A change waits for the next bar line (2.1-2.5 s at most) and
+  crossfades over `LM_FADE` (0.09 s) centred on it; the new part starts at the same place in the
+  8-bar loop, so chords and beat carry straight on. Slowing down just loops a part for longer.
+- **After the Warden** (`WP.phase === 'reward'`): at the next bar line the song's two-bar handoff
+  plays (drums out, riser, snare roll), and the next song starts on its first beat with a crash.
+- **Hyperlane:** part 1 (no drums) while you're in a lane, then the next world's part at its gate.
+- **Feel:** muffled while you're below 92% of the speed you should be doing (after a hit), the same
+  dip as the old music at a world gate and in tunnels, muffled and quieter while paused, and a tape
+  stop when you crash. The old track is silent during a Lab run with MUSIC on, and comes back on
+  the game-over screen.
+- **Pickups in key:** the Heavy set's power-up and shield sounds are chords in C, so while MUSIC
+  plays they're retuned to the song's key (`AU.key`).
+- **Files:** `audio/lab-music/<song>-w1..w5.mp3` and `<song>-gate.mp3` (8 MB in all), made with
+  `sound-picker/tools/music5/` (see its README). They load a song at a time: the current one when
+  the run starts, the next once you reach the third world of a loop. Each loop file has 0.25 s
+  (`LM_ROLL`) of its own end before the loop and its start after it, so it loops cleanly whether or
+  not a phone trims the MP3's built-in silence.
+- **Analytics:** `lab/music/song-<n>` (or `song-6plus`) = how far through the songs a run got;
+  `lab/music/none` = it never started (sound or music off, or still loading).
+- Knobs: `LM_SONGS`, `LM_BARS`, `LM_ROLL`, `LM_VOL` (music level, matched to the old `MUSIC_VOL`),
+  `LM_FADE`, `LM_AHEAD`. A new song or part means re-rendering with the tools and matching
+  `LM_SONGS` (tempo and key).
+- **Open questions for the playtest:** does each world's step up feel right (is World 1 too sparse
+  at 160 km/h)? Is the handoff after the Warden exciting? Are the songs different enough from each
+  other, or too different? Too quiet or loud against the Heavy effects? Should a lane have its own
+  part rather than part 1? If it graduates: Warp Run, and maybe Classic (one song, parts by distance).
+
 ## Test setup (not an experiment)
 
 A card at the bottom of the Lab panel, for testing at high speed without playing for 20
@@ -329,6 +374,7 @@ bash tests/same-as-before.sh     # Classic and Warp Run play exactly as in the l
 node tests/lab.mjs "$PWD"        # the Lab: screens, jump rules, gestures, no leaderboard writes
 node tests/lane.mjs "$PWD"       # HYPERLANE: steering, rolls, hits, pick-ups, in and out of a lane
 node tests/soak.mjs "$PWD"       # a bot plays three long Lab runs (lanes included); any script error fails
+node tests/music.mjs "$PWD"      # MUSIC, in real time with audio: parts on bar lines, the handoff, tape stop
 ```
 
 `same-as-before.sh` plays a fixed, seeded run of each main mode in the last committed

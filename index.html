@@ -884,6 +884,7 @@
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M6 36 H38" stroke="#b6ff2e" stroke-width="2"/><path d="M8 34 Q22 2 36 34" stroke="#b6ff2e" stroke-width="2" fill="none" stroke-dasharray="3 3"/><path d="M22 22 l-6 8 h12 z" fill="#b6ff2e"/></svg><div class="htxt"><div class="hname">Experiment: Jump</div><div>Jump without a ramp. Choose how in the Lab: <b>flick</b> your steering thumb up, or <b>tap with a second finger</b> (Space on a computer). It&rsquo;s a little bigger than a ramp jump and clears the same things: mines, walls, lasers, trucks, craters and ram bikes. Pylons and crystals are too tall. The lime arrows in the top bar are your jump charges.</div><div class="hlim">Hold 2 · every 2 close calls earn one back (or switch to unlimited) · AIR +150 per thing you fly over</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M4 38 L20 38 L20 28 Z" fill="#2c4a0c" stroke="#b6ff2e" stroke-width="2" stroke-linejoin="round"/><circle cx="30" cy="14" r="8" fill="none" stroke="#ffd23c" stroke-width="3"/><circle cx="30" cy="14" r="5.5" fill="none" stroke="#b6ff2e" stroke-width="1"/><path d="M18 26 Q24 18 27 16" stroke="#fff" stroke-width="1.5" fill="none" stroke-dasharray="2 3"/></svg><div class="htxt"><div class="hname">Experiment: Sky ramps</div><div>A big lime ramp throws you into a long, floaty flight with <b>five rings</b> in the sky. Steer through them: the brightest one is next. The road underneath is kept clear, so you can also stay down and skip it.</div><div class="hlim">Rings +200, +400, +600, +800, +1,000 · all five: +1,000, 2 power cells and a jump charge</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" fill="#04010c" stroke="#a64cff" stroke-width="1.5"/><circle cx="22" cy="22" r="12" fill="none" stroke="#29b4ff" stroke-width="1.5"/><circle cx="22" cy="22" r="5" fill="none" stroke="#a64cff" stroke-width="1"/><circle cx="22" cy="22" r="2" fill="#fff"/><path d="M22 3 V41 M3 22 H41 M8.6 8.6 L35.4 35.4 M35.4 8.6 L8.6 35.4" stroke="#a64cff" stroke-width="0.7" opacity="0.6"/><path d="M15 31 l7 -4 7 4 -7 -2 z" fill="#29f3ff"/></svg><div class="htxt"><div class="hname">Experiment: Hyperlane</div><div>Every world gate drops you into a <b>hyperspace tunnel</b> for about 11 seconds before the next world. No gravity: drag <b>up and down</b> as well as left and right (arrow keys or WASD on a computer). Shoot or dodge the <b>rocks</b>, slip past the red <b>lasers</b>, fly through the hole in each <b>wall</b>, thread the <b>rings</b>, and grab the green cells and the <b>power-up orb</b>. Two flying styles to try: <b>Barrel rolls</b> (it rolls to face where it&rsquo;s heading and a fast swipe spins it right round) or <b>Smooth banks</b> (always the right way up).</div><div class="hlim">Rocks +60 · rings +150, +300, ... · all six: +800 and 2 cells · the road waits for you while you&rsquo;re in the lane</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" fill="#04010c" stroke="#ff9d2e" stroke-width="1.5"/><path d="M17 30 V13 L31 10 V27" fill="none" stroke="#ffd23c" stroke-width="2.2" stroke-linejoin="round"/><circle cx="14" cy="30" r="3.5" fill="#ff9d2e"/><circle cx="28" cy="27" r="3.5" fill="#ff9d2e"/></svg><div class="htxt"><div class="hname">Experiment: Music</div><div><b>Sunset Drive</b>, a soundtrack made for Speeder. Each loop gets its own song (five of them, a little faster each time, then they come round again), and <b>every world adds a layer</b>: calm in the first world, the beat in the third, the melody in the fourth, everything for the Warden. It changes <b>on the beat</b> as you reach each world, and after the Warden it builds up and hands off to the next song. It goes muffled while you&rsquo;re slowed down after a hit.</div><div class="hlim">Needs sound and music on in Settings</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 30 a14 14 0 1 1 28 0" fill="none" stroke="#29f3ff" stroke-width="2.5"/><path d="M22 30 L32 16" stroke="#ffd23c" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="30" r="3" fill="#fff"/></svg><div class="htxt"><div class="hname">Test setup</div><div>For trying things at speed without playing for 20 minutes first. <b>Start on</b> a later loop (faster, tougher, score multiplied) and switch on <b>Fully loaded</b> to begin with guns at level 8 and 2 shields. With the hyperlane on, <b>Start in a hyperlane</b> drops you straight into one.</div></div></div>
     <h3>Score</h3>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 l5 11 12 1 -9 8 3 12 -11 -7 -11 7 3 -12 -9 -8 12 -1 z" fill="none" stroke="#ffd23c" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Points</div><div>You score for distance (faster = more), plus points for everything you destroy and AIR bonuses. Each mode has its own world leaderboard, which keeps the top 50 runs, and one player can hold several spots. Share a run to challenge a friend.</div></div></div>
@@ -987,7 +988,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.17.3';
+const VERSION = '0.18.0';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -7177,6 +7178,13 @@ const LAB_EXPERIMENTS = [
         { id: 'bank', name: 'Smooth banks', hint: 'It banks into turns and tips its nose up and down, but always stays the right way up.' },
       ] },
     ],
+  },  {
+    id: 'music',
+    name: 'MUSIC',
+    since: '0.18.0',
+    on: true,
+    blurb: 'Sunset Drive, a soundtrack made for Speeder. A different song each loop (five, then they come round again), and every world adds a layer, from chill to full. It changes on the beat when you reach a new world and hands off to the next song after the Warden. Needs sound and music on in Settings.',
+    opts: [],
   },
 ];
 // Test setup: not experiments (no vote), just ways to get to the interesting part of a run
@@ -7264,6 +7272,7 @@ function resetLab() {
   resetJump();
   resetSky();
   resetLane();
+  lmReset();
 }
 function startLabRun() {
   LAB.on = true;
@@ -7280,6 +7289,7 @@ function startLabRun() {
   if (S.loop > 1 || S.loaded || inLane) track('lab/setup/loop' + S.loop + (S.loaded ? '-loaded' : '') + (inLane ? '-lane' : ''), 'Lab run started on loop ' + S.loop + (S.loaded ? ', fully loaded' : '') + (inLane ? ', in a hyperlane' : ''));
   if (labOn('ramps')) startSky();
   if (inLane) startLane('resume');
+  if (labOn('music')) lmBegin();
 }
 // Start a run at the beginning of a later loop, already moving fast. The run is placed as far
 // along the track as a real run would be by then (worked out world by world), because speed
@@ -7366,6 +7376,7 @@ function drawLabHints() {
 function labRunEnded(km) {
   const b = kmBucket(km, LAB_KM);   // v0.16.7: past 17 km too (was "17+")
   track('lab/run/' + b + 'km', 'Lab run ended at ' + b + ' km');
+  if (labOn('music')) lmRunEnded();
   if (labOn('jump')) {
     const n = JUMP.hops, nb = n === 0 ? '0' : n < 5 ? '1-4' : n < 15 ? '5-14' : '15+';
     track('lab/jump/' + labVariant('jump') + '/' + nb + '-jumps', 'Lab: ' + nb + ' jumps in a run (' + labChoices('jump') + ')');
@@ -7398,6 +7409,7 @@ function labStatsLine() {
   if (labOn('jump')) t += '<br>Jumps <b>' + JUMP.hops + '</b>';
   if (labOn('ramps')) t += '<br>Rings <b>' + SKY.rings + '</b> in <b>' + SKY.flights + '</b> ' + (SKY.flights === 1 ? 'flight' : 'flights') + (SKY.perfect ? ' · Perfect <b>' + SKY.perfect + '</b>' : '');
   if (labOn('lane')) t += '<br>Hyperlanes <b>' + LANE.runs + '</b> · lane rings <b>' + LANE.rings + '</b> of ' + LANE.ringsSeen + ' · hits <b>' + LANE.hits + '</b>' + (labOpt('lane', 'feel') === 'roll' ? ' · barrel rolls <b>' + LANE.rolls + '</b>' : '');
+  if (labOn('music')) t += lmStatsLine();
   const inLane = LAB.setup.lane && labOn('lane');
   if (LAB.setup.loop > 1 || LAB.setup.loaded || inLane) t += '<br>Test setup <b>' + [LAB.setup.loop > 1 ? 'started on loop ' + LAB.setup.loop : '', LAB.setup.loaded ? 'fully loaded' : '', inLane ? 'started in a hyperlane' : ''].filter(Boolean).join(' · ') + '</b>';
   return t;
@@ -9177,6 +9189,186 @@ function drawWorld() {
   }
 }
 
+// ---- Experiment: MUSIC ----
+// Sunset Drive I-V (v0.18.0), a soundtrack made for Speeder. One song per loop: five songs, then
+// they come round again. Each song is the same theme a step higher and a little faster (96, 100,
+// 104, 108, 112 BPM) with one new colour (marimba, electric piano, strings, then all of them).
+// Every song has five PARTS, one per world, each a seamless 8-bar loop; each part adds a layer:
+//   World 1 pads, bells, soft bass · 2 hats, bassline, plucks · 3 the beat · 4 the melody · 5 + Warden everything.
+// Staying in sync (Adrian's question): the music keeps its own beat clock (LM.t0, LM.bar) and the
+// game only says which part it wants (lmWant()). A change waits for the next bar line (at most one
+// bar, 2.1-2.5 s), so slowing down just loops a part longer and a quick Warden just hands off
+// sooner. Every part of a song shares the same 8-bar grid, so a new part starts at the same place
+// in the bar the old one was: chords and beat never jump. After the Warden a two-bar handoff (drums
+// drop, riser, snare roll) lands on the next song's first beat. In a hyperlane it drops back to
+// part 1 (no drums) and comes back in at the next world. Slowed down (a hit) muffles it.
+// Files: audio/lab-music/<song>-w1..w5.mp3 and <song>-gate.mp3, made with tools/music5 (see LAB.md).
+// Each loop file carries LM_ROLL seconds of its own end before the loop and its start after it, so
+// it loops cleanly whether or not the phone trims the MP3's built-in silence.
+const LM_SONGS = [
+  { id: 'sunset1', name: 'Sunset Drive', bpm: 96, key: 2 },       // key: semitones from C, to retune the C-major pickups
+  { id: 'sunset2', name: 'Sunset Drive II', bpm: 100, key: 4 },
+  { id: 'sunset3', name: 'Sunset Drive III', bpm: 104, key: 6 },
+  { id: 'sunset4', name: 'Sunset Drive IV', bpm: 108, key: -5 },
+  { id: 'sunset5', name: 'Sunset Drive V', bpm: 112, key: -3 },
+];
+const LM_BARS = 8;          // every part loops every 8 bars
+const LM_ROLL = 0.25;       // seconds of run-in and run-out around each loop in its file
+const LM_VOL = 0.59;        // the music bus level: these tracks are mastered ~3 dB under the old one (MUSIC_VOL 0.42)
+const LM_FADE = 0.09;       // crossfade between two parts, centred on the bar line (seconds)
+const LM_AHEAD = 0.06;      // a change is never scheduled closer than this to now
+const LM = { on: false, bus: null, filter: null, song: -1, t0: 0, bar: 2.5, cur: null, gate: null, busy: 0, best: 0, dead: false, hand: 0 };
+
+function lmName(song, part) { return 'lm:' + LM_SONGS[song].id + '-' + (part === 'gate' ? 'gate' : 'w' + part); }
+function lmBuf(song, part) { return AU.buf[lmName(song, part)]; }
+function lmLoadSong(song) {
+  for (const p of [1, 2, 3, 4, 5, 'gate']) {
+    const n = lmName(song, p);
+    if (AU.buf[n] || LM['L' + n]) continue;
+    LM['L' + n] = 1;
+    loadSound(n, 'lab-music/' + n.slice(3) + '.mp3').then((b) => { if (!b) LM['L' + n] = 0; });   // a failed load can be retried
+  }
+}
+function lmGraph() {
+  const c = AU.ctx;
+  if (!c || LM.bus) return !!c;
+  LM.filter = c.createBiquadFilter();
+  LM.filter.type = 'lowpass';
+  LM.filter.frequency.value = 18000;
+  LM.filter.Q.value = 0.7;
+  LM.bus = c.createGain();
+  LM.bus.gain.value = 0;
+  LM.filter.connect(LM.bus);
+  LM.bus.connect(AU.master);
+  return true;
+}
+// which song and part the game wants right now
+function lmWant() {
+  const n = LM_SONGS.length;
+  if (WP.phase === 'reward') return { song: WP.loop % n, part: 1 };     // Warden down: on to the next loop's song
+  const song = (WP.loop - 1) % n;
+  if (LANE.on) return { song, part: 1 };                              // hyperlane: floaty, no drums
+  return { song, part: WP.phase === 'boss' ? 5 : Math.min(5, WP.theme + 1) };
+}
+function lmNextBar(t) { return LM.t0 + Math.ceil((t + LM_AHEAD - LM.t0) / LM.bar) * LM.bar; }
+function lmStopCur(at, fade) {
+  const x = LM.cur;
+  if (!x) return;
+  x.g.gain.setValueAtTime(x.g.gain.value, Math.max(AU.ctx.currentTime, at - fade));
+  x.g.gain.linearRampToValueAtTime(0, at + fade);
+  try { x.s.stop(at + fade + 0.05); } catch (e) { /* already stopped */ }
+  LM.cur = null;
+}
+// start `part` of the current song so its fade-in is centred on time `at`
+function lmPlay(part, at, fadeIn) {
+  const c = AU.ctx, b = lmBuf(LM.song, part);
+  if (!b) return false;
+  const cyc = LM_BARS * LM.bar, from = at - (fadeIn ? LM_FADE / 2 : 0);
+  const pos = (((from - LM.t0) % cyc) + cyc) % cyc;
+  const s = c.createBufferSource(), g = c.createGain();
+  s.buffer = b;
+  s.loop = true;
+  s.loopStart = LM_ROLL;
+  s.loopEnd = LM_ROLL + cyc;
+  g.gain.value = fadeIn ? 0 : 1;
+  if (fadeIn) { g.gain.setValueAtTime(0, from); g.gain.linearRampToValueAtTime(1, from + LM_FADE); }
+  s.connect(g);
+  g.connect(LM.filter);
+  s.start(Math.max(c.currentTime, from), LM_ROLL + pos);
+  if (LM.cur) lmStopCur(at, LM_FADE / 2);
+  LM.cur = { s, g, part };
+  return true;
+}
+function lmSetSong(song, t0) {
+  LM.song = song;
+  LM.t0 = t0;
+  LM.bar = 240 / LM_SONGS[song].bpm;
+  LM.best = Math.max(LM.best, WP.loop + (WP.phase === 'reward' ? 1 : 0));   // song number = the loop it plays in
+  AU.key = Math.pow(2, LM_SONGS[song].key / 12);
+}
+// after the Warden: the old song's two-bar handoff, then the next song from its first beat
+function lmHandoff(next, t) {
+  const g = lmBuf(LM.song, 'gate');
+  if (!g || !lmBuf(next, 1)) return false;
+  const T = lmNextBar(t), c = AU.ctx;
+  const s = c.createBufferSource();
+  s.buffer = g;
+  s.connect(LM.filter);
+  s.start(T);
+  LM.gate = s;
+  lmStopCur(T, 0.12);
+  const t0 = T + 2 * LM.bar;
+  lmSetSong(next, t0);
+  lmPlay(1, t0, false);
+  LM.busy = t0 + 0.2;
+  LM.hand = t0;
+  return true;
+}
+function lmBegin() {
+  LM.on = true;
+  LM.best = 0;
+  LM.dead = false;
+  LM.song = -1;
+  LM.cur = null;
+  lmLoadSong((WP.loop - 1) % LM_SONGS.length);
+}
+function lmReset() {
+  if (LM.cur && AU.ctx) lmStopCur(AU.ctx.currentTime, 0.05);
+  if (LM.gate) { try { LM.gate.stop(); } catch (e) { /* fine */ } LM.gate = null; }
+  LM.on = false;
+  LM.cur = null;
+  LM.song = -1;
+  AU.key = 1;
+  if (LM.bus) LM.bus.gain.value = 0;
+}
+// every frame of a Lab run with MUSIC on (called from audioEngine)
+function lmTick(t) {
+  if (!lmGraph()) return;
+  const W = lmWant(), n = LM_SONGS.length;
+  let vol = SET.music ? LM_VOL : 0, cut = 18000;
+  if (G.state === 'play' || G.state === 'dying') {
+    lmLoadSong(W.song);
+    if (LM.cur && LM.cur.part >= 3) lmLoadSong((LM.song + 1) % n);    // the next song arrives well before the Warden
+  }
+  if (G.state === 'play') {
+    if (!LM.cur && LM.song < 0) {
+      // the run's first notes, as soon as its first part has loaded
+      if (lmBuf(W.song, W.part)) { lmSetSong(W.song, t + 0.08); lmPlay(W.part, t + 0.08, false); }
+    } else if (LM.cur && t >= LM.busy) {
+      if (W.song !== LM.song) lmHandoff(W.song, t);
+      else if (W.part !== LM.cur.part && lmBuf(LM.song, W.part)) { lmPlay(W.part, lmNextBar(t), true); LM.busy = lmNextBar(t) + 0.05; }
+    }
+    // slowed down after a hit (or anything else): muffled until you're back up to speed
+    if (!LANE.on) {
+      const r = G.speed / Math.max(1, baseSpeed(G.d));
+      if (r < 0.92) cut = 900 * Math.pow(18000 / 900, clamp((r - 0.6) / 0.32, 0, 1));
+    }
+    if (WP.rez < 0.3 && t > LM.hand + 0.5) cut = Math.min(cut, 700);   // a world gate swallows the music for a beat
+    else if (TUN.inside) cut = Math.min(cut, 2600);
+    if (paused) { cut = 450; vol *= 0.55; }
+    LM.bus.gain.setTargetAtTime(vol, t, 0.3);
+    LM.filter.frequency.setTargetAtTime(cut, t, 0.12);
+  } else if ((G.state === 'dying' || G.state === 'over') && !LM.dead) {
+    // tape stop, like the old music
+    LM.dead = true;
+    if (LM.cur) {
+      LM.cur.s.playbackRate.setTargetAtTime(0.3, t, 0.35);
+      LM.bus.gain.setTargetAtTime(0, t + 0.3, 0.5);
+      try { LM.cur.s.stop(t + 2.6); } catch (e) { /* fine */ }
+      LM.cur = null;
+    }
+  }
+}
+// analytics and the game-over line: how far through the songs did the run get?
+function lmRunEnded() {
+  const b = LM.best <= 0 ? 'none' : LM.best >= 6 ? 'song-6plus' : 'song-' + LM.best;
+  track('lab/music/' + b, 'Lab: music, the run reached ' + (LM.best ? 'song ' + LM.best : 'no music (sound off or still loading)'));
+}
+function lmStatsLine() {
+  if (LM.best <= 0) return '<br>Music <b>' + (SET.sound && SET.music ? 'still loading' : 'off (turn sound and music on in Settings)') + '</b>';
+  return '<br>Music <b>' + LM_SONGS[(LM.best - 1) % LM_SONGS.length].name + '</b>' + (LM.best > 1 ? ' (song ' + LM.best + ')' : '');
+}
+
 // ---------- HUD ----------
 function hex(x, y, r, filled, color) {
   ctx.beginPath();
@@ -9602,10 +9794,12 @@ function render() {
 }
 
 // ---------- Sound ----------
-// Sound effects come from Kenney's free sound packs and the music is "Synthwave House Loop"
-// by Fupi. Both are CC0 (public domain): free to use, no credit required. Details in audio/CREDITS.md.
+// Sound effects: the "Heavy" set made for Speeder (v0.18.0, Adrian's pick on the sound picker) for
+// shots, hits, explosions, the crash, getting hurt, power-ups and shields; the rest are from Kenney's
+// free packs. Music: "Synthwave House Loop" by Fupi; the Lab's MUSIC experiment plays Sunset Drive
+// I-V, made for Speeder. All CC0 (public domain). Details in audio/CREDITS.md.
 // Everything plays through Web Audio: sfx -> master, music -> filter -> music bus -> master.
-const SFX_FILES = ['shoot1', 'shoot2', 'shoot3', 'hit', 'pop', 'boom1', 'boom2', 'wreck', 'hurt', 'shield',
+const SFX_FILES = ['shoot1', 'shoot2', 'shoot3', 'hit', 'pop', 'boom', 'wreck', 'hurt', 'shield',
   'zap', 'jump', 'land', 'power', 'swarm', 'launch', 'pass', 'fanfare', 'ui'];
 const MUSIC_BPM = 114;
 const MUSIC_LOOP = 24 * 4 * 60 / MUSIC_BPM;   // the track is exactly 24 bars long
@@ -9613,7 +9807,7 @@ const MUSIC_VOL = 0.42;                       // music level under the sound eff
 const MUSIC_RATE_MAX = 1.14;                  // tempo at top speed: 114 -> ~130 BPM
 const AU = {
   ctx: null, master: null, sfxBus: null, musicBus: null, musicFilter: null, musicSrc: null,
-  engSrc: null, engGain: null, engFilter: null, buf: {}, last: {}, voices: 0, lastTick: 0, deadAt: 0,
+  engSrc: null, engGain: null, engFilter: null, buf: {}, last: {}, voices: 0, lastTick: 0, deadAt: 0, key: 1,
 };
 function masterLevel() { return SET.sound ? (SET.volume / 100) * 0.85 : 0; }
 
@@ -9720,17 +9914,19 @@ function play(name, vol, rate, gap) {
 const jitter = (amt) => 1 + (Math.random() * 2 - 1) * amt;
 
 const sfx = {
-  shoot() { play(pick(['shoot1', 'shoot2', 'shoot3']), 0.16, jitter(0.05), 0.09); },
-  tick() { play('hit', 0.22, jitter(0.1), 0.06); },
-  pop() { play('pop', 0.45, jitter(0.08), 0.03); },
-  boom() { play(pick(['boom1', 'boom2']), 0.7, jitter(0.06), 0.03); },
-  bigBoom() { play('wreck', 1.0, 1); play('boom2', 0.7, 0.8); },
-  hurt() { play('hurt', 0.9, 0.9); play('pop', 0.5, 0.7); },
-  shield() { play('shield', 0.7, 1.1); },
+  // v0.18.0: the Heavy set, at the volumes it was balanced to on the sound picker (r1/heavy)
+  shoot() { play(pick(['shoot1', 'shoot2', 'shoot3']), 0.088, jitter(0.05), 0.09); },
+  tick() { play('hit', 0.051, jitter(0.1), 0.06); },
+  pop() { play('pop', 0.188, jitter(0.08), 0.03); },
+  boom() { play(pick(['boom', 'boom']), 0.528, jitter(0.06), 0.03); },   // (still a pick: keeps the game's random numbers, and so every run, exactly as before)
+  bigBoom() { play('wreck', 0.88, 1); },
+  hurt() { play('hurt', 0.316, 1); },
+  // the shield and power-up sounds are chords in C; with the Lab's music on they're retuned to its key (AU.key)
+  shield() { play('shield', 0.123, AU.key); },
   zap() { play('zap', 0.26, jitter(0.08), 0.05); },
   jump() { play('jump', 0.5, 1); },
   land() { play('land', 0.45, 0.75); },
-  power() { play('power', 0.65, 1); },
+  power() { play('power', 0.583, AU.key); },
   swarm() { play('swarm', 0.6, 1); },
   launch() { play('launch', 0.2, jitter(0.1), 0.04); },
   wing() { play('launch', 0.13, 1.3 * jitter(0.08), 0.04); },
@@ -9747,6 +9943,7 @@ function audioEngine() {
   const c = AU.ctx;
   if (!c) return;
   const t = c.currentTime;
+  if (LM.on) lmTick(t);                // the Lab's MUSIC experiment runs its own music (and mutes the old track below)
   const racing = (G.state === 'play') && !paused;
   // how far into the run, 0 at the start -> 1 at top speed (the same curve the speed follows)
   const heat = G.state === 'play' || G.state === 'dying' ? Math.min(1, (1 - Math.exp(-G.d / 4500)) * (WP.on ? 1 + 0.06 * (WP.loop - 1) : 1)) : 0;
@@ -9759,7 +9956,7 @@ function audioEngine() {
   }
 
   if (AU.musicSrc) {
-    let vol = SET.music ? MUSIC_VOL : 0;
+    let vol = SET.music && !(LM.on && G.state !== 'over') ? MUSIC_VOL : 0;
     let rate = 1;
     let cut = 18000;
     if (G.state === 'play') {
@@ -12060,7 +12257,7 @@ requestAnimationFrame(frame);
 
 // handy for testing in the browser console
 // (inside: runs a test's code inside the game, where every name is reachable, e.g. tests/tutorial.mjs. Test tools only.)
-if (DEV) window.SPEEDER = { inside: (code) => eval('(' + code + ')()'), step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, LAB, LAB_EXPERIMENTS, JUMP, SKY, LANE, startLane, exitLane, LANE_SECTIONS, keys, labOn, labSet, tryHop, hopCharge, spawnSkyRamp, skyFits, addObj, addPylon, addMine, addWallSpan, addLaserFence, openPanel, closePanel, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, TUT, TUT_STEPS, HUDR, tutStart, tutGo, tutPrimary, tutFinish, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
+if (DEV) window.SPEEDER = { inside: (code) => eval('(' + code + ')()'), step: (dt, n) => { for (let i = 0; i < (n || 1); i++) update(dt); }, LAB, LAB_EXPERIMENTS, JUMP, SKY, LANE, LM, LM_SONGS, lmWant, startLane, exitLane, LANE_SECTIONS, keys, labOn, labSet, tryHop, hopCharge, spawnSkyRamp, skyFits, addObj, addPylon, addMine, addWallSpan, addLaserFence, openPanel, closePanel, WP, SKINS, cells, setMode, startBoss, enterWorld, nearMiss, chargeOD, applyPerk, spawnWarpPattern, beginSector, explode, killEnemy, addEnemy, hurt, render, shipScreen: () => [sx(player.x, VIEW_Z), sy(0.42, VIEW_Z)], G, player, objs, enemies, gates, shots, eshots, missiles, applyPower, spawnPattern, celebrate, die, get lastRun() { return lastRun; }, get shareFile() { return shareFile; }, startGame, openMenu, SET, TUT, TUT_STEPS, HUDR, tutStart, tutGo, tutPrimary, tutFinish, curves, hills, setQuality, stats: STATS, get quality() { return QUAL.name; } };
 })();
 </script>
 </body>
