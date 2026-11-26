@@ -27,7 +27,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 | Field | Value |
 |-------|-------|
 | **Current Version** | v0.18.0 |
-| **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS and HYPERLANE, and its test setup are untested on a phone) |
+| **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS, HYPERLANE and MUSIC (v0.18), and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-26 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://speeder-game.com/ (custom domain since v0.12.9; the old https://az-build.github.io/speeder/ address redirects there) |
@@ -666,8 +666,9 @@ Settings on iOS (the keyboard covered the box). Fixed by fitting the panel above
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
-- **Sound rework** (see "Where things stand"): Adrian's Round 1 pick on the sound picker, then
-  Round 2 one sound at a time.
+- **Sound and music** (see "Sound and music (v0.18.0)" above): Adrian's first runs with the Heavy
+  effects and the Lab's MUSIC; whether to turn sound back on by default; what "the Delores" meant.
+  Round 2 (one sound at a time) and Round 3 (a balance mixer) are still open if he wants them.
 - Adrian's playtest of the HYPERLANE (switch on "Start in a hyperlane"): does the v0.12.1 look
   work (contrast, zoom, effects)? Barrel rolls or Smooth
   banks? Does up/down steering feel natural? Is 11 s right, and is there too much or too little
