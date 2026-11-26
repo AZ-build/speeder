@@ -216,7 +216,7 @@ power-ups, with the speeder rolling and flipping naturally as you move.
 
 ### MUSIC: how it works
 
-**v0.20.0: Studio songs (the default).** Adrian played Sunset Drive in a run and found it too chill
+**v0.20.0: Studio songs (hidden since v0.20.1).** Adrian played Sunset Drive in a run and found it too chill
 and out of place: he liked the build-up but wanted more beat and fewer moody turns, and asked for a
 beat composer with knobs, melodies to make or pick, and guardrails to stay in key and on rhythm.
 That's the **Speeder Studio**, https://speeder-game.com/studio/ (`studio/`).
