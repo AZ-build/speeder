@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0420">
+<meta name="robots" content="noindex">
+<title>Speeder Studio</title>
+<link rel="icon" href="../icons/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
+<style>
+  /* Speeder Studio (v0.20.0): make the game's music with knobs and grids. Guardrails keep every
+     note in the song's key and every hit on the 16-step beat grid. Songs play live in the Lab. */
+  :root { --bg: #0b0420; --card: #170a33; --line: rgba(255,255,255,.14); --pink: #ff2bd6; --cyan: #29f3ff; --yellow: #ffd23c; --lime: #b6ff2e; --text: #efe6ff; --dim: #a99bcf; }
+  * { box-sizing: border-box; min-width: 0; }
+  html { background: var(--bg); }
+  body { margin: 0; color: var(--text); font: 15px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent;
+    background: radial-gradient(120% 60% at 50% -10%, #3a0d5e 0%, var(--bg) 60%) fixed; padding: env(safe-area-inset-top) 0 calc(40px + env(safe-area-inset-bottom)); }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 0 12px; }
+  header { display: flex; align-items: center; gap: 10px; padding: 12px 0 6px; }
+  header h1 { flex: 1; margin: 0; font: 800 20px 'Orbitron', system-ui, sans-serif; letter-spacing: .1em; text-shadow: 0 0 12px var(--pink); }
+  header h1 span { color: var(--cyan); }
+  a.back, button, select, input { font: inherit; color: inherit; }
+  a.back { color: var(--cyan); text-decoration: none; font-weight: 700; font-size: 14px; padding: 8px 10px; border: 1px solid rgba(41,243,255,.4); border-radius: 10px; }
+  .intro { color: var(--dim); font-size: 13px; margin: 0 0 8px; }
+  /* transport */
+  .transport { position: sticky; top: 0; z-index: 5; background: rgba(11,4,32,.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 8px 0 10px; border-bottom: 1px solid var(--line); }
+  .trow { display: flex; gap: 8px; align-items: center; }
+  .play { flex: none; width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--yellow); color: #1a0830; font-weight: 800; cursor: pointer; display: grid; place-items: center; box-shadow: 0 0 18px rgba(255,210,60,.35); }
+  .play svg { width: 24px; height: 24px; }
+  .worlds { display: flex; gap: 5px; flex: 1; flex-wrap: wrap; }
+  .chip { appearance: none; border: 1px solid var(--line); background: rgba(255,255,255,.04); border-radius: 999px; padding: 7px 11px; min-height: 36px; cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .chip.on { background: var(--pink); border-color: var(--pink); color: #fff; box-shadow: 0 0 12px rgba(255,43,214,.45); }
+  .chip.alt.on { background: var(--cyan); border-color: var(--cyan); color: #10062a; }
+  .worlds .chip { padding: 7px 0; flex: 1; min-width: 38px; text-align: center; }
+  .status { font-size: 12px; color: var(--dim); margin-top: 6px; display: flex; justify-content: space-between; gap: 8px; }
+  .status b { color: var(--text); }
+  /* cards */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-top: 12px; }
+  .card h2 { margin: 0 0 2px; font: 800 14px 'Orbitron', system-ui, sans-serif; letter-spacing: .12em; color: var(--yellow); }
+  .card .hint { color: var(--dim); font-size: 12.5px; margin: 0 0 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .label { font-size: 12px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; margin-top: 10px; }
+  .knob { display: grid; grid-template-columns: 6.6em minmax(0, 1fr) 4.6em; align-items: center; gap: 8px; margin: 8px 0; font-size: 14px; }
+  .knob output { text-align: right; font-variant-numeric: tabular-nums; color: var(--dim); font-size: 13px; }
+  input[type=range] { width: 100%; accent-color: var(--pink); height: 28px; }
+  .sw { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; font-size: 14px; }
+  .sw small { color: var(--dim); display: block; font-size: 12px; }
+  .switch { appearance: none; -webkit-appearance: none; flex: none; width: 46px; height: 26px; border-radius: 13px; background: rgba(255,255,255,.2); position: relative; cursor: pointer; transition: background .15s; }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .15s; }
+  .switch:checked { background: var(--pink); } .switch:checked::after { transform: translateX(20px); }
+  select { width: 100%; background: #0f0626; border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; min-height: 40px; font-size: 16px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* grids */
+  .grid { display: grid; gap: 3px; align-items: center; }
+  .grid .rl { font-size: 11px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 2px; }
+  .cell { appearance: none; border: 0; padding: 0; height: 30px; border-radius: 5px; background: rgba(255,255,255,.07); cursor: pointer; touch-action: manipulation; }
+  .cell.beat4 { background: rgba(255,255,255,.12); }
+  .cell.v1 { background: var(--pink); }
+  .cell.v2 { background: var(--yellow); box-shadow: 0 0 8px rgba(255,210,60,.6); }
+  .cell.now { outline: 2px solid var(--cyan); outline-offset: -2px; }
+  .mel .cell { height: 24px; }
+  .mel .cell.home { background: rgba(41,243,255,.12); }
+  .mel .cell.v1 { background: var(--cyan); }
+  .bgrid .cell { height: 34px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.4); }
+  .bgrid .cell.v1 { background: var(--lime); color: #1a2a00; }
+  .colhead { font-size: 11px; text-align: center; color: var(--dim); font-weight: 700; }
+  .chords { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 6px; }
+  .chordbtn { appearance: none; border: 1px solid var(--line); background: rgba(255,255,255,.05); border-radius: 12px; min-height: 52px; font: 800 18px 'Orbitron', system-ui, sans-serif; cursor: pointer; }
+  .chordbtn small { display: block; font: 600 10px system-ui, sans-serif; color: var(--dim); }
+  .chordbtn.sel { border-color: var(--yellow); box-shadow: 0 0 10px rgba(255,210,60,.35); }
+  .chordbtn.now { background: rgba(255,43,214,.18); }
+  .pick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding: 8px; border: 1px dashed var(--line); border-radius: 12px; }
+  .btn { appearance: none; border: 1px solid var(--line); background: rgba(255,255,255,.06); border-radius: 12px; padding: 10px 14px; min-height: 44px; cursor: pointer; font-weight: 700; }
+  .btn.primary { background: var(--yellow); border-color: var(--yellow); color: #1a0830; }
+  .btn.warn { color: #ff7a9a; border-color: rgba(255,122,154,.5); }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .name { width: 100%; background: #0f0626; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 16px; font-weight: 700; }
+  .songs { margin-top: 8px; }
+  .songs button { display: flex; width: 100%; justify-content: space-between; text-align: left; margin-top: 6px; }
+  .songs button.cur { border-color: var(--pink); }
+  .loops { display: grid; grid-template-columns: 4.5em minmax(0,1fr); gap: 6px 10px; align-items: center; margin-top: 8px; font-size: 14px; }
+  textarea { width: 100%; min-height: 70px; background: #0f0626; border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 8px; font: 12px ui-monospace, Menlo, monospace; }
+  .note { font-size: 12.5px; color: var(--dim); margin-top: 8px; }
+  .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: #2a1050; border: 1px solid var(--pink); padding: 10px 16px; border-radius: 12px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 10; }
+  .toast.show { opacity: 1; }
+  .hidden { display: none !important; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="back" href="../?lab" id="backLink">‹ Game</a>
+    <h1>SPEEDER <span>STUDIO</span></h1>
+  </header>
+  <p class="intro">Make the music for Speeder's Lab. Everything snaps to the key and the beat, so it can't go wrong. Tap ▶, pick a world, and change things while it plays.</p>
+</div>
+
+<div class="transport">
+  <div class="wrap">
+    <div class="trow">
+      <button class="play" id="play" aria-label="Play"><svg id="playIco" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></button>
+      <div class="worlds" id="worlds" role="group" aria-label="Which world to hear"></div>
+    </div>
+    <div class="status"><span id="pos">Stopped</span><span><label><input type="checkbox" id="auto" class="switch" style="vertical-align:middle"> Play the build</label></span></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="card">
+    <h2>SONG</h2>
+    <p class="hint">Your songs save on this device as you go.</p>
+    <input class="name" id="name" maxlength="40" aria-label="Song name">
+    <div class="songs" id="songs"></div>
+    <div class="label">Start a new song from</div>
+    <div class="chips" id="presets"></div>
+    <div class="btns"><button class="btn" id="dup">Duplicate</button><button class="btn warn" id="del">Delete</button></div>
+  </section>
+
+  <section class="card">
+    <h2>FEEL</h2>
+    <p class="hint">Speed, key and mood. Bright keeps it to happy chords.</p>
+    <div class="knob"><label for="bpm">Tempo</label><input type="range" id="bpm" min="80" max="140" step="1"><output id="bpmV"></output></div>
+    <div class="row2">
+      <div><div class="label">Key</div><select id="key"></select></div>
+      <div><div class="label">Mood</div><div class="chips" id="mood" style="margin:4px 0 0"></div></div>
+    </div>
+    <div class="knob"><label for="swing">Swing</label><input type="range" id="swing" min="0" max="0.5" step="0.01"><output id="swingV"></output></div>
+  </section>
+
+  <section class="card">
+    <h2>BEAT</h2>
+    <p class="hint">Tap a square to add a hit, again to make it loud (yellow), again to remove. Pick a starting beat:</p>
+    <div class="chips" id="drumPresets"></div>
+    <div class="grid" id="beat"></div>
+    <div class="knob"><label for="punch">Punch</label><input type="range" id="punch" min="0" max="1" step="0.01"><output id="punchV"></output></div>
+    <div class="knob"><label for="drums">Drum level</label><input type="range" id="drums" min="0" max="1" step="0.01"><output id="drumsV"></output></div>
+    <div class="sw"><span>Drum fills<small>A snare roll at the end of every 8 bars</small></span><input type="checkbox" class="switch" id="fills"></div>
+  </section>
+
+  <section class="card">
+    <h2>CHORDS</h2>
+    <p class="hint">Four chords, one per bar, round and round. Tap one to change it: only chords that fit the key and mood are offered.</p>
+    <div class="chips" id="chordPresets"></div>
+    <div class="chords" id="chords"></div>
+    <div class="pick hidden" id="chordPick"></div>
+    <div class="sw"><span>Rich chords<small>Adds a fourth note (a 7th) for a warmer sound</small></span><input type="checkbox" class="switch" id="rich"></div>
+    <div class="label">Pad sound</div><div class="chips" id="padSound"></div>
+    <div class="knob"><label for="bright">Brightness</label><input type="range" id="bright" min="0" max="1" step="0.01"><output id="brightV"></output></div>
+  </section>
+
+  <section class="card">
+    <h2>BASS</h2>
+    <p class="hint">The bass follows the chords. Pick its rhythm:</p>
+    <div class="chips" id="bassStyle"></div>
+    <div class="knob"><label for="bassTone">Tone</label><input type="range" id="bassTone" min="0" max="1" step="0.01"><output id="bassToneV"></output></div>
+  </section>
+
+  <section class="card">
+    <h2>MELODY</h2>
+    <p class="hint">8 bars. Tap a square to place a note (one note at a time per step); it lasts until the next one. Rows are only notes in the key. Blue rows are the home note.</p>
+    <div class="chips"><button class="chip" id="surprise">🎲 Surprise me</button><button class="chip" id="theme">Sunset theme</button><button class="chip" id="clearBar">Clear this bar</button><button class="chip" id="clearAll">Clear all</button></div>
+    <div class="chips" id="bars" role="group" aria-label="Which bar"></div>
+    <div class="grid mel" id="mel"></div>
+    <div class="sw"><span>Safe notes<small>Only the 5 notes that always sound good together</small></span><input type="checkbox" class="switch" id="safe"></div>
+    <div class="label">Melody sound</div><div class="chips" id="leadSound"></div>
+    <div class="knob"><label for="melLvl">Level</label><input type="range" id="melLvl" min="0" max="1" step="0.01"><output id="melLvlV"></output></div>
+  </section>
+
+  <section class="card">
+    <h2>SPARKLE</h2>
+    <p class="hint">A quick pattern on the chord notes, on top of everything.</p>
+    <div class="chips" id="arpStyle"></div>
+    <div class="chips" id="arpRate"></div>
+    <div class="chips" id="arpSound"></div>
+    <div class="knob"><label for="reverb">Reverb</label><input type="range" id="reverb" min="0" max="1" step="0.01"><output id="reverbV"></output></div>
+  </section>
+
+  <section class="card">
+    <h2>BUILD</h2>
+    <p class="hint">What plays in each world. In the game, every world adds what's ticked; Lane is the hyperlane. The world changes on the next bar line.</p>
+    <div class="chips" id="buildPresets"></div>
+    <div class="grid bgrid" id="build"></div>
+  </section>
+
+  <section class="card">
+    <h2>IN THE LAB</h2>
+    <p class="hint">Which song plays in each loop of a Lab run (Lab → MUSIC → Studio). After loop 5 it starts over.</p>
+    <div class="loops" id="loops"></div>
+    <div class="btns"><a class="btn primary" href="../?lab" style="text-decoration:none">Try it in the Lab</a></div>
+    <div class="label" style="margin-top:16px">Share a song</div>
+    <p class="note">Copy a code to send a song to a friend or another device; paste one to load it.</p>
+    <div class="btns"><button class="btn" id="exportBtn">Copy song code</button><button class="btn" id="importBtn">Paste a code</button></div>
+    <textarea id="importBox" class="hidden" placeholder="Paste a song code here"></textarea>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module">
+import * as E from './engine.js';
+const $ = (id) => document.getElementById(id);
+const STORE = 'speeder.studio.songs', CUR = 'speeder.studio.cur', LAB = 'speeder.studio.lab';
+const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { toast('Couldn’t save on this device'); } };
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let songs = load(STORE, []).map(E.cleanSong);
+let cur = null, bar = 0, pickSlot = -1, ctx = null, player = null, world = 0, now = { step: -1, bar: 0, s: -1 }, queue = [];
+function newId() { return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function fromPreset(p) { const s = E.cleanSong(p); s.id = newId(); s.preset = false; s.name = p.name.replace(' (punchy)', '') + ' (mine)'; return s; }
+if (!songs.length) { songs = [fromPreset(E.PRESETS[0])]; save(STORE, songs); }
+cur = songs.find((s) => s.id === load(CUR, '')) || songs[0];
+
+let saveT = 0;
+function changed(rerender = true) {
+  cur = E.cleanSong(cur);
+  const i = songs.findIndex((s) => s.id === cur.id);
+  if (i >= 0) songs[i] = cur; else songs.push(cur);
+  clearTimeout(saveT); saveT = setTimeout(() => { save(STORE, songs); save(CUR, cur.id); }, 250);
+  if (player) player.setSong(cur);
+  if (rerender) render();
+}
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 1800); }
+function chips(el, list, isOn, onPick, alt) {
+  el.innerHTML = list.map((x, i) => `<button class="chip${alt ? ' alt' : ''}${isOn(x) ? ' on' : ''}" data-i="${i}" title="${esc(x.hint || '')}">${esc(x.name)}</button>`).join('');
+  el.onclick = (e) => { const b = e.target.closest('button'); if (b) onPick(list[+b.dataset.i]); };
+}
+function knob(id, get, set, fmt) {
+  const el = $(id), out = $(id + 'V');
+  el.value = get(); out.textContent = fmt(get());
+  el.oninput = () => { set(+el.value); out.textContent = fmt(+el.value); changed(false); };
+}
+const pct = (v) => Math.round(v * 100) + '%';
+
+// ---------- render ----------
+function render() {
+  $('name').value = cur.name;
+  $('songs').innerHTML = songs.map((s) => `<button class="btn${s.id === cur.id ? ' cur' : ''}" data-id="${esc(s.id)}"><span>${esc(s.name)}</span><small style="color:var(--dim)">${s.bpm} BPM · ${E.KEYS[s.key]}</small></button>`).join('');
+  chips($('presets'), E.PRESETS, () => false, (p) => { cur = fromPreset(p); songs.push(cur); changed(); toast('New song: ' + cur.name); });
+  knob('bpm', () => cur.bpm, (v) => { cur.bpm = v; }, (v) => v + ' BPM');
+  $('key').innerHTML = E.KEYS.map((k, i) => `<option value="${i}"${i === cur.key ? ' selected' : ''}>${k} ${cur.mood === 'moody' ? 'minor' : 'major'}</option>`).join('');
+  chips($('mood'), E.MOODS, (m) => m.id === cur.mood, (m) => { cur.mood = m.id; changed(); });
+  knob('swing', () => cur.swing, (v) => { cur.swing = v; }, pct);
+  // beat
+  chips($('drumPresets'), Object.keys(E.DRUM_PRESETS).map((n) => ({ name: n })), () => false, (p) => { cur.drums = JSON.parse(JSON.stringify(E.DRUM_PRESETS[p.name])); changed(); });
+  const B = $('beat');
+  B.style.gridTemplateColumns = '4.6em repeat(16, minmax(0, 1fr))';
+  B.innerHTML = E.DRUMS.map((d) => `<div class="rl">${d.name}</div>` + cur.drums[d.id].map((v, s) => `<button class="cell${s % 4 === 0 ? ' beat4' : ''}${v ? ' v' + v : ''}" data-d="${d.id}" data-s="${s}" aria-label="${d.name} step ${s + 1}"></button>`).join('')).join('');
+  knob('punch', () => cur.mix.punch, (v) => { cur.mix.punch = v; }, pct);
+  knob('drums', () => cur.mix.drums, (v) => { cur.mix.drums = v; }, pct);
+  $('fills').checked = cur.fills;
+  // chords
+  const presets = E.CHORD_PRESETS[cur.mood];
+  chips($('chordPresets'), Object.keys(presets).map((n) => ({ name: n })), (p) => presets[p.name].join() === cur.chords.join(), (p) => { cur.chords = presets[p.name].slice(); changed(); });
+  $('chords').innerHTML = cur.chords.map((c, i) => `<button class="chordbtn${i === pickSlot ? ' sel' : ''}" data-i="${i}">${E.chordName(cur, c)}<small>bar ${i + 1}</small></button>`).join('');
+  const pick = $('chordPick');
+  pick.classList.toggle('hidden', pickSlot < 0);
+  if (pickSlot >= 0) pick.innerHTML = E.chordsAllowed(cur).map((c) => `<button class="chip${cur.chords[pickSlot] === c ? ' on' : ''}" data-c="${c}">${E.chordName(cur, c)}</button>`).join('');
+  $('rich').checked = cur.rich;
+  chips($('padSound'), E.PAD_SOUNDS, (x) => x.id === cur.pad, (x) => { cur.pad = x.id; changed(); });
+  knob('bright', () => cur.mix.bright, (v) => { cur.mix.bright = v; }, pct);
+  // bass
+  chips($('bassStyle'), E.BASS_STYLES, (x) => x.id === cur.bass, (x) => { cur.bass = x.id; changed(); });
+  knob('bassTone', () => cur.bassTone, (v) => { cur.bassTone = v; }, pct);
+  // melody
+  chips($('bars'), Array.from({ length: 8 }, (_, i) => ({ name: 'Bar ' + (i + 1), i })), (x) => x.i === bar, (x) => { bar = x.i; renderMel(); render(); }, true);
+  renderMel();
+  $('safe').checked = cur.safe;
+  chips($('leadSound'), E.LEAD_SOUNDS, (x) => x.id === cur.lead, (x) => { cur.lead = x.id; changed(); });
+  knob('melLvl', () => cur.mix.melody, (v) => { cur.mix.melody = v; }, pct);
+  // sparkle
+  chips($('arpStyle'), E.ARP_STYLES, (x) => x.id === cur.arp.style, (x) => { cur.arp.style = x.id; changed(); });
+  chips($('arpRate'), [{ name: '8th notes', v: 8 }, { name: '16th notes (faster)', v: 16 }], (x) => x.v === cur.arp.rate, (x) => { cur.arp.rate = x.v; changed(); }, true);
+  chips($('arpSound'), E.ARP_SOUNDS, (x) => x.id === cur.arp.sound, (x) => { cur.arp.sound = x.id; changed(); });
+  knob('reverb', () => cur.mix.reverb, (v) => { cur.mix.reverb = v; }, pct);
+  // build
+  chips($('buildPresets'), Object.keys(E.BUILDS).map((n) => ({ name: n })), () => false, (p) => { cur.build = E.presetBuild(p.name); changed(); });
+  const G = $('build');
+  G.style.gridTemplateColumns = '6.4em repeat(6, minmax(0, 1fr))';
+  G.innerHTML = '<div></div>' + E.WORLDS.map((w, i) => `<div class="colhead"${i === world ? ' style="color:var(--yellow)"' : ''}>${w}</div>`).join('') +
+    E.LAYERS.map((L) => `<div class="rl">${L.name}</div>` + cur.build[L.id].map((on, w) => `<button class="cell${on ? ' v1' : ''}" data-l="${L.id}" data-w="${w}" aria-label="${L.name} in ${E.WORLDS[w]}">${on ? '✓' : ''}</button>`).join('')).join('');
+  renderLoops();
+  renderWorlds();
+}
+function renderMel() {
+  const M = $('mel'), rows = E.melodyRows(cur);
+  M.style.gridTemplateColumns = '2.6em repeat(16, minmax(0, 1fr))';
+  M.innerHTML = rows.map((r) => `<div class="rl">${E.noteName(cur, r)}</div>` + cur.melody[bar].map((v, s) => `<button class="cell${r % 7 === 0 ? ' home' : ''}${s % 4 === 0 && r % 7 ? ' beat4' : ''}${v === r ? ' v1' : ''}" data-r="${r}" data-s="${s}" aria-label="${E.noteName(cur, r)} step ${s + 1}"></button>`).join('')).join('');
+  // a note hidden by "safe notes" still plays: say so
+  const hidden = cur.melody[bar].some((v) => v >= 0 && !rows.includes(v));
+  if (hidden) M.insertAdjacentHTML('beforeend', '<div class="note" style="grid-column:1/-1">This bar has notes outside the safe five: switch Safe notes off to see them.</div>');
+}
+function renderWorlds() {
+  chips($('worlds'), E.WORLDS.map((w, i) => ({ name: w, i })), (x) => x.i === world, (x) => { world = x.i; if (player) player.setWorld(world); renderWorlds(); }, false);
+}
+function renderLoops() {
+  const all = songs.concat(E.PRESETS.map((p) => Object.assign({}, p, { name: p.name + ' (built in)' })));
+  const lab = labList();
+  $('loops').innerHTML = [0, 1, 2, 3, 4].map((i) => `<label for="loop${i}">Loop ${i + 1}</label><select id="loop${i}" data-i="${i}">` +
+    all.map((s) => `<option value="${esc(s.id)}"${s.id === lab[i] ? ' selected' : ''}>${esc(s.name)}</option>`).join('') + '</select>').join('');
+}
+// the Lab's playlist: chosen here, or (if never chosen) your songs and then the built-in ones
+function labList() {
+  const ids = load(LAB, null), have = new Set(songs.map((s) => s.id).concat(E.PRESETS.map((p) => p.id)));
+  if (Array.isArray(ids) && ids.length === 5 && ids.every((id) => have.has(id))) return ids;
+  return songs.map((s) => s.id).concat(E.PRESETS.map((p) => p.id)).slice(0, 5);
+}
+
+// ---------- events ----------
+$('name').addEventListener('input', () => { cur.name = $('name').value || 'My song'; changed(false); });
+$('name').addEventListener('change', () => render());
+$('songs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; cur = songs.find((s) => s.id === b.dataset.id); save(CUR, cur.id); if (player) player.setSong(cur); render(); });
+$('dup').addEventListener('click', () => { const c = E.cleanSong(cur); c.id = newId(); c.name = (cur.name + ' copy').slice(0, 40); cur = c; songs.push(cur); changed(); toast('Copied'); });
+let delArm = 0;
+$('del').addEventListener('click', () => {
+  if (Date.now() - delArm > 3000) { delArm = Date.now(); $('del').textContent = 'Tap again to delete'; setTimeout(() => { $('del').textContent = 'Delete'; }, 3000); return; }
+  songs = songs.filter((s) => s.id !== cur.id);
+  if (!songs.length) songs = [fromPreset(E.PRESETS[0])];
+  cur = songs[0]; save(STORE, songs); save(CUR, cur.id); $('del').textContent = 'Delete'; if (player) player.setSong(cur); render(); toast('Deleted');
+});
+$('key').addEventListener('change', () => { cur.key = +$('key').value; changed(); });
+$('beat').addEventListener('click', (e) => { const b = e.target.closest('.cell'); if (!b) return; const a = cur.drums[b.dataset.d], s = +b.dataset.s; a[s] = (a[s] + 1) % 3; changed(); });
+$('fills').addEventListener('change', () => { cur.fills = $('fills').checked; changed(false); });
+$('chords').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; pickSlot = pickSlot === +b.dataset.i ? -1 : +b.dataset.i; render(); });
+$('chordPick').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; cur.chords[pickSlot] = +b.dataset.c; pickSlot = -1; changed(); });
+$('rich').addEventListener('change', () => { cur.rich = $('rich').checked; changed(); });
+$('safe').addEventListener('change', () => { cur.safe = $('safe').checked; changed(); });
+$('mel').addEventListener('click', (e) => {
+  const b = e.target.closest('.cell'); if (!b) return;
+  const r = +b.dataset.r, s = +b.dataset.s, row = cur.melody[bar];
+  row[s] = row[s] === r ? -1 : r;
+  if (row[s] >= 0) preview(r);
+  changed(false); renderMel();
+});
+$('surprise').addEventListener('click', () => { cur.melody = E.surpriseMelody(cur, Date.now() & 0xffffff); cur.safe = true; changed(); toast('New melody'); });
+$('theme').addEventListener('click', () => { const t = E.PRESETS[0]; cur.melody = JSON.parse(JSON.stringify(t.melody)); cur.safe = false; changed(); });
+$('clearBar').addEventListener('click', () => { cur.melody[bar] = new Array(16).fill(-1); changed(); });
+$('clearAll').addEventListener('click', () => { cur.melody = Array.from({ length: 8 }, () => new Array(16).fill(-1)); changed(); });
+$('build').addEventListener('click', (e) => { const b = e.target.closest('.cell'); if (!b) return; const a = cur.build[b.dataset.l], w = +b.dataset.w; a[w] = !a[w]; changed(); });
+$('loops').addEventListener('change', () => { save(LAB, [0, 1, 2, 3, 4].map((i) => $('loop' + i).value)); toast('Lab playlist saved'); });
+$('exportBtn').addEventListener('click', async () => {
+  const code = 'SPDR1:' + btoa(unescape(encodeURIComponent(JSON.stringify(cur))));
+  try { await navigator.clipboard.writeText(code); toast('Song code copied'); }
+  catch (e) { const t = $('importBox'); t.classList.remove('hidden'); t.value = code; t.select(); toast('Copy the code from the box'); }
+});
+$('importBtn').addEventListener('click', () => { const t = $('importBox'); t.classList.remove('hidden'); t.value = ''; t.focus(); });
+$('importBox').addEventListener('input', () => {
+  const v = $('importBox').value.trim();
+  if (!v.startsWith('SPDR1:')) return;
+  try {
+    const s = E.cleanSong(JSON.parse(decodeURIComponent(escape(atob(v.slice(6))))));
+    s.id = newId(); cur = s; songs.push(cur); changed(); $('importBox').classList.add('hidden'); toast('Loaded: ' + s.name);
+  } catch (e) { toast('That code didn’t work'); }
+});
+
+// ---------- sound ----------
+function ensureAudio() {
+  if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  player = new E.Player(ctx, ctx.destination, 0.6);   // (a little louder than in the game, which mixes it with the effects)
+  player.setSong(cur);
+  player.on((e) => queue.push(e));
+}
+function preview(r) {
+  ensureAudio();
+  if (player.playing) return;
+  player.setSong(cur);
+  player.lead(ctx.currentTime + 0.02, E.melodyMidi(cur, r), 0.25, 0.8);
+}
+let autoBars = 0;
+$('play').addEventListener('click', () => {
+  ensureAudio();
+  if (player.playing) { player.stop(); now = { step: -1, bar: 0, s: -1 }; queue = []; paint(); $('pos').textContent = 'Stopped'; $('playIco').innerHTML = '<path d="M7 4.5v15l13-7.5z"/>'; return; }
+  player.setSong(cur); player.start(world); autoBars = 0;
+  $('playIco').innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+});
+// the playhead: events are scheduled a little ahead, so show each when its time comes
+function frame() {
+  if (ctx) {
+    const t = ctx.currentTime;
+    while (queue.length && queue[0].time <= t) {
+      const e = queue.shift();
+      if (e.type === 'step') {
+        now = e;
+        if (e.s === 0 && $('auto').checked && !e.gate) autoStep();
+      } else if (e.type === 'world') { world = e.world; renderWorlds(); }
+      else if (e.type === 'song') { world = 0; renderWorlds(); }
+    }
+    paint();
+  }
+  requestAnimationFrame(frame);
+}
+// "Play the build": 4 bars per world, World 1 to 5, then the build-up and round again
+function autoStep() {
+  autoBars++;
+  if (autoBars % 4 !== 0) return;
+  if (world < 4) { world++; player.setWorld(world); }
+  else { player.handoff(cur); }
+  renderWorlds();
+}
+let painted = -2;
+function paint() {
+  if (now.step === painted) return;
+  painted = now.step;
+  for (const el of document.querySelectorAll('.cell.now, .chordbtn.now')) el.classList.remove('now');
+  if (!player || !player.playing || now.s < 0) return;
+  const s = now.s, b8 = now.bar % 8;
+  $('pos').innerHTML = now.gate ? '<b>Build-up</b> into the next song' : `Bar <b>${b8 + 1}</b> · <b>${E.WORLDS[now.world]}</b>`;
+  for (const el of document.querySelectorAll(`#beat .cell[data-s="${s}"]`)) el.classList.add('now');
+  if (b8 === bar) for (const el of document.querySelectorAll(`#mel .cell[data-s="${s}"]`)) el.classList.add('now');
+  const cb = $('chords').children[now.bar % 4]; if (cb) cb.classList.add('now');
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden && player && player.playing) $('play').click(); });
+render();
+requestAnimationFrame(frame);
+window.STUDIO = { E, get cur() { return cur; }, get player() { return player; }, songs: () => songs, labList };
+</script>
+</body>
+</html>

@@ -4,6 +4,29 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.20.0] — 2026-11-26
+
+### The Speeder Studio: make the music yourself
+
+- **New page: https://speeder-game.com/studio/** (Lab → MUSIC → **Open the Studio**). Adrian
+  found Sunset Drive too chill and asked for a beat composer with knobs, melodies and guardrails.
+  Pick a tempo, key and mood (Bright = happy chords only); tap out a beat on a 16-step grid (or
+  start from Four on the floor, Half-time, Disco, Breakbeat, Driving); choose four chords from
+  only the ones that fit; a bass rhythm; draw an 8-bar melody on a grid that only has in-key notes
+  (or tap Surprise me); a sparkle pattern; and a Build grid saying what plays in each world and in
+  a hyperlane. It plays while you edit, saves as you go, and can hand songs over as codes.
+- **The Lab's MUSIC now plays Studio songs live** (new option "Songs": Studio, the default, or the
+  v0.18 Sunset Drive recordings). Loop 1-5 play the songs picked on the Studio's "In the Lab"
+  card, or your songs then five punchy built-ins (Sunset Drive (punchy), Neon Pulse, Night
+  Cruise, Sky Rush, Final Lap). Same rules as before: the world changes on the next bar line, a
+  two-bar build-up after the Warden, the Lane layers in a hyperlane, muffled when slowed, a fade
+  on a crash, pickups retuned to the song's key.
+- `studio/engine.js` (the synth and sequencer, shared by the page and the game; loaded only for
+  Studio songs). New test `tests/studio.mjs`; `tests/music.mjs` now picks the Sunset Drive option.
+- Lab panel cards can carry a link (`link` in `LAB_EXPERIMENTS`).
+
+---
+
 ## [0.19.3] — 2026-11-26
 
 - Stats page: "Copy the rules block" put Adrian's ID into a comment line instead of the rule that checks it (it only replaced the first `ADMIN_UID`). Now it fills every one, and the comment no longer contains `ADMIN_UID`.

@@ -54,7 +54,7 @@ Analytics: the **Lab verdicts** section of https://speeder-game.com/stats/ (vote
 | `lab/lane/<variant>/0-barrel-rolls` / `1-4-` / `5+-` | Barrel rolls in a run (Barrel rolls style only): do people find them? |
 | `lab/lane/<variant>/died-in-lane`, `no-lanes` | The run ended inside a lane / before the first one |
 | `lab/setup/loop<N>`, `loop<N>-loaded`, `...-lane` | A run used the test setup (later loop, fully loaded, started in a hyperlane) |
-| `lab/music/song-<n>`, `song-6plus`, `none` | MUSIC: the furthest song a run reached (song n = loop n), or no music at all (sound off or still loading) |
+| `lab/music/song-<n>`, `song-6plus`, `none` (votes and plays per option: `music.studio`, `music.sunset`) | MUSIC: the furthest song a run reached (song n = loop n), or no music at all (sound off or still loading) |
 
 A **variant** is the experiment plus its options, for example `jump.flick.charges` or
 `jump.tap.free`. Votes are counted per variant, so two ways of doing the same idea can be
@@ -70,7 +70,7 @@ changes, so the counts are roughly people, not runs.
 | **JUMP** (`jump`) | v0.10.0, made bigger in v0.11.0 | In the Lab. Adrian's first note (2026-11-13): make it higher and longer. Done; needs another try. | A jump you can do anywhere. Options: gesture (flick up / second-finger tap) and fuel (2 earned charges / unlimited). |
 | **SKY RAMPS** (`ramps`) | v0.11.0 | In the Lab. No human has played it yet. | Big ramps that launch a long flight with five rings to steer through. No options yet. |
 | **HYPERLANE** (`lane`) | v0.12.0 | In the Lab. No human has played it yet. | A zero-gravity tunnel between every two worlds, steering up and down as well as sideways. Option: flying style (barrel rolls / smooth banks). |
-| **MUSIC** (`music`) | v0.18.0 | In the Lab. Adrian picked the style from sketches (2026-11-26); nobody has heard it in a run yet. | Sunset Drive I-V: a song per loop that builds world by world, changing on the beat. No options. |
+| **MUSIC** (`music`) | v0.18.0, Studio songs in v0.20.0 | In the Lab. Adrian found Sunset Drive too chill (2026-11-26) and asked for a beat composer: the Studio. | A song per loop that builds world by world, changing on the beat. Option: songs (Studio, played live / Sunset Drive recordings). |
 
 ### JUMP: how it works
 
@@ -215,6 +215,48 @@ power-ups, with the speeder rolling and flipping naturally as you move.
   between worlds that Adrian liked in v0.9, or is it a welcome change of pace?
 
 ### MUSIC: how it works
+
+**v0.20.0: Studio songs (the default).** Adrian played Sunset Drive in a run and found it too chill
+and out of place: he liked the build-up but wanted more beat and fewer moody turns, and asked for a
+beat composer with knobs, melodies to make or pick, and guardrails to stay in key and on rhythm.
+That's the **Speeder Studio**, https://speeder-game.com/studio/ (`studio/`), linked from the MUSIC
+card in the Lab panel ("Open the Studio").
+
+- **The option** `labOpt('music', 'src')`: `studio` (default) plays songs live with the Studio's
+  engine; `sunset` plays the v0.18 Sunset Drive recordings described below.
+- **The engine** (`studio/engine.js`, an ES module the game imports only when needed): a WebAudio
+  synth (kick, snare, clap, hats, shaker, crash, bass, pads, a "sparkle" arpeggio, a lead) and a
+  16-step sequencer with a look-ahead scheduler. Its own beat clock; `setWorld(w)` takes effect on
+  the next bar line; `handoff(song)` plays two bars (chord held, riser, snare roll) and starts the
+  next song on its first beat with a crash; `fadeOut()` on a crash. World 5 + the Warden adds a
+  crash every 8 bars. Output level 0.36: World 5 sits at about -15.5 dBFS RMS like the recordings.
+- **Guardrails:** every melody note is a step of the song's scale (`melodyRows`, "Safe notes" =
+  the five-note pentatonic), every hit is on the 16-step grid, chords are only those the mood
+  allows (Bright = major chords only: I, IV, V; Mixed = major key with ii, iii, vi; Moody = minor
+  key), and `cleanSong()` repairs anything out of range (tempo 80-140, chords outside the mood).
+- **Songs** live in the browser (`speeder.studio.songs`, `speeder.studio.cur`); the Lab plays the
+  five chosen on the Studio's "In the Lab" card (`speeder.studio.lab`, song ids for loops 1-5),
+  or, if none chosen, the player's own songs and then the built-in ones (`PRESETS`: Sunset Drive
+  (punchy), Neon Pulse, Night Cruise, Sky Rush, Final Lap; punchy: a kick from World 1). Song
+  codes (`SPDR1:` + base64 JSON) move a song between devices. Because songs are kept per browser,
+  an installed iPhone app only sees songs made from inside it (Lab → Open the Studio).
+- **In a run** (`stManage()`): the song is the loop's (`lmWant()`), the layers are the world's
+  (W1-W5 from `WP.theme`, the Warden = W5, a hyperlane = the Lane column), the pickups are retuned
+  to the song's key, the same muffles as below apply, and the old track is muted.
+- **The Studio page:** Play, world chips and "Play the build" (4 bars a world, then the handoff),
+  Song (library, new from a built-in, duplicate, delete), Feel (tempo, key, mood, swing), Beat (a
+  6 x 16 grid: tap = hit, again = loud, again = off; presets; punch, level, fills), Chords (4
+  bars, only fitting chords offered; presets per mood; rich 7ths; pad sound, brightness), Bass
+  (rhythm, tone), Melody (8 bars x 16 steps, one note a step, it lasts until the next; Surprise
+  me, Sunset theme, safe notes, sound, level), Sparkle (pattern, speed, sound, reverb), Build (9
+  layers x W1-W5 + Lane), In the Lab (playlist, song codes). `window.STUDIO` is there for tests.
+- **Test:** `node tests/studio.mjs "$PWD"` (engine timing, guardrails, loudness, the page, a Lab
+  run on Studio songs). `tests/music.mjs` tests the Sunset Drive option.
+- **Not known yet:** how it sounds and performs on a real phone during a run (the synth runs
+  alongside the game; nodes are made per note). If a phone struggles, lower the arpeggio to 8ths
+  or turn layers off in the busiest worlds.
+
+**v0.18.0: Sunset Drive recordings** (the `sunset` option):
 
 Adrian's brief (2026-11-25/26): more chill (his reference: his Spotify playlist "e-Jamz"), slowly
 getting more intense; a different song each loop so a 30-minute run doesn't repeat; five parts per
@@ -374,7 +416,8 @@ bash tests/same-as-before.sh     # Classic and Warp Run play exactly as in the l
 node tests/lab.mjs "$PWD"        # the Lab: screens, jump rules, gestures, no leaderboard writes
 node tests/lane.mjs "$PWD"       # HYPERLANE: steering, rolls, hits, pick-ups, in and out of a lane
 node tests/soak.mjs "$PWD"       # a bot plays three long Lab runs (lanes included); any script error fails
-node tests/music.mjs "$PWD"      # MUSIC, in real time with audio: parts on bar lines, the handoff, tape stop
+node tests/music.mjs "$PWD"      # MUSIC (Sunset Drive), in real time with audio: parts on bar lines, the handoff, tape stop
+node tests/studio.mjs "$PWD"     # MUSIC (Studio songs) and the Studio page, in real time with audio
 ```
 
 `same-as-before.sh` plays a fixed, seeded run of each main mode in the last committed

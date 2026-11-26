@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.19.0 |
+| **Current Version** | v0.20.0 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS, HYPERLANE and MUSIC (v0.18), and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-26 |
@@ -187,9 +187,10 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
   one power-up orb per lane. The road waits while you're in it. Compared: **flying style**,
   Barrel rolls (the speeder rolls its top toward where it's going, flips on dives, a fast swipe
   spins it round) vs Smooth banks (never upside down).
-- **Experiment 4, MUSIC (v0.18):** Sunset Drive I-V, a soundtrack made for Speeder: a song per
-  loop (five, then round again), five parts per song that build world by world, changes on the
-  next bar line, a two-bar handoff after the Warden. On by default. Details in `LAB.md`.
+- **Experiment 4, MUSIC (v0.18, Studio songs v0.20):** a song per loop (five, then round again)
+  that builds world by world, changes on the next bar line, a two-bar handoff after the Warden.
+  Songs: played live from the **Speeder Studio** (default; `studio/`, Adrian's own beat composer)
+  or the Sunset Drive recordings. On by default. Details in `LAB.md`.
 - **Test setup (v0.11):** a card in the Lab panel, not an experiment: **Start on loop 1-6**
   (the run begins at that loop's speed, difficulty and score multiplier) and **Fully loaded**
   (guns at level 8 and 2 shields from the start). For testing at high speed. v0.12 adds
@@ -221,6 +222,7 @@ Speeder/
 ├── stats/index.html       ← private stats page (speeder-game.com/stats/): GoatCounter API + leaderboards; not part of the game
 ├── CNAME                  ← the custom domain (speeder-game.com) for GitHub Pages; never delete
 ├── audio/                 ← sound effects, engine loop, music + CREDITS.md (all CC0); lab-music/ = Sunset Drive I-V for the Lab (v0.18.0)
+├── studio/                ← the Speeder Studio (v0.20.0): index.html (the page) and engine.js (synth + sequencer, also used by the Lab)
 ├── sound-picker/          ← page for auditioning new sounds (speeder-game.com/sound-picker/), its files and tools; see its README.md
 ├── README.md              ← how to play it locally and publish it
 ├── moderation.txt         ← the hide list: board entries, devices and name words to hide (v0.17.0); the game reads it every 10 minutes
@@ -259,7 +261,7 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 ### Testing hooks
 
-Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase), `node tests/touch.mjs "$PWD"` (a resting or creeping second finger never steers), `node tests/keyboard.mjs "$PWD"` (name boxes stay above a phone keyboard), `node tests/music.mjs "$PWD"` (the Lab's MUSIC, played in real time with audio over http). Run all nine before publishing.
+Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase), `node tests/touch.mjs "$PWD"` (a resting or creeping second finger never steers), `node tests/keyboard.mjs "$PWD"` (name boxes stay above a phone keyboard), `node tests/music.mjs "$PWD"` (the Lab's MUSIC, Sunset Drive option, played in real time with audio over http), `node tests/studio.mjs "$PWD"` (the Studio and Studio songs in the Lab). Run all ten before publishing.
 
 **Since v0.17.0 the hooks below only exist with test tools on:** add `?dev` to the address on the live site (e.g. https://speeder-game.com/?dev; it stays on for that tab and shows "TEST TOOLS ON"), or open the game from a file / localhost (the tests do). Runs with test tools on never reach a world board, and analytics is off. The game's own names (`G`, `SET`, `TUT`...) are no longer global: use `SPEEDER.inside(() => G.d)` to run code inside the game.
 
@@ -365,6 +367,7 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Music speed-up | Play the loop faster (pitch rises too) as speed climbs, capped at +14% | Simple, no extra files, and the rising pitch adds urgency. Trade-off: a pitch-preserving version would need several pre-made copies of the track. |
 | Wind warning (v0.19.0) | A light, see-through WIND sign high on the side the wind comes from, chevrons pointing the way it blows; the notice under the speeder stays | Adrian heard from several players who'd reached high loops that they never knew about the wind and thought the speeder was steering itself. His design: light, not distracting, on the wind's side. |
 | Feedback (v0.19.0) | Notes from the title screen (Ideas) and after a run, saved in Firestore; only Adrian can read, mark done or delete them, on the stats page, signed in with Google | Adrian wants feedback in one place he can work through. Firestore rules can only tell it's him through sign-in, so the stats page signs him in and the rules check his ID. Trade-off: one-time setup in the Firebase console. |
+| Beat composer (v0.20.0) | The Speeder Studio: a page of grids and knobs with guardrails (scale-only notes, 16-step grid, mood-limited chords); its songs play live in the Lab | Adrian found the composed music too chill and wanted to shape it himself. Live synthesis means what he hears in the Studio is exactly what plays in the game, with no files to render. Trade-off: code-made instruments, and the synth runs during play (phone performance unverified). |
 | Sound effects (v0.18.0) | The Heavy set from the sound picker, at its balanced volumes; sound still off by default | Adrian: "heavy got the most votes. Use that please." Turning sound back on for everyone (`SOUND_RESET`) is left for him to decide. |
 | New music (v0.18.0) | Sunset Drive I-V, made for Speeder, in the Lab first | Adrian found free packs off-target; he wants chill that builds (his Spotify "e-Jamz" is the reference) and loved the Sunset Drive sketch. Five variations, one per loop, so a 30-minute run doesn't repeat. |
 | Music sync (v0.18.0) | The music keeps its own beat; the game says which part it wants; changes wait for the next bar line; parts are layers of one 8-bar grid | Adrian asked what happens if he slows down or beats the Warden fast. Nothing can drift: a part just loops longer or the handoff comes sooner, and swaps always land on the beat. Trade-off: up to one bar's delay (2.1-2.5 s) before the music follows a new world. |
@@ -402,11 +405,19 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
+**The Studio (v0.20.0, 2026-11-26):**
+- https://speeder-game.com/studio/ (Lab → Open the Studio). The Lab's MUSIC now defaults to
+  Studio songs played live. **Ask Adrian:** does the beat feel right now, is the Studio easy to
+  use on his phone, does a Lab run stay smooth with the live synth (frame rate), and are the five
+  built-in songs a good start? Feedback setup is done (he published the rules, 2026-11-26).
+- Ideas not built: share songs through Firebase so friends can vote on them; sampled drums (CC0)
+  for a less synthetic sound; Studio songs in Warp Run/Classic if it graduates.
+
 **Wind sign and feedback (v0.19.0, 2026-11-26):**
 - WIND sign added (see CHANGELOG). Ask whether it's easy enough to notice without being distracting
   (size and opacity: `drawWindSign()`, the alpha values at its top).
-- Feedback is built but **waits on Adrian's 5-minute setup** (`FIREBASE-SETUP.md` → Feedback setup).
-  Until then the game says "not set up yet" when a note is sent. Then check a real note arrives.
+- Feedback: Adrian did the setup on 2026-11-26 (Google sign-in, authorized domain, rules with his ID).
+  Confirm a real note arrives and shows on the stats page.
 - Music: Adrian played the Lab's MUSIC and found it **too chill, out of place**; he likes the
   build-up but wants **more beat** and fewer moody (minor) turns. He asked about a **beat
   composer** for himself: knobs, melodies to make or pick from, guardrails to stay in key and on
