@@ -4,6 +4,34 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.19.0] — 2026-11-26
+
+### A WIND sign you can't miss, and feedback straight to Adrian
+
+- **Wind sign** (Warp Run and the Lab): players who'd reached high loops said they never noticed
+  the wind and thought the speeder was steering itself. Now a light, see-through **WIND** sign
+  sits high on the side the wind comes from, with three chevrons pointing the way it blows and a
+  light running along them. It blinks softly while a gust is coming and gets a little stronger
+  while it pushes (`drawWindSign()`, `WIND_SIGN_Y`). The old notice under the speeder stays. How
+  to play and Flight School now describe the sign. Classic has no wind, so no change there.
+- **Feedback.** A new **Ideas** button on the title screen and a **Send Adrian feedback** link on
+  the game-over screen open a note box (up to 1,000 characters; after a run it can include that
+  run's mode, score, distance and loop). Notes go to Firestore (`speeder_feedback`) with the
+  version and the kind of phone. One every 20 s and 10 a day per device. Nothing is sent with test
+  tools on. Analytics: `feedback/sent/menu` and `feedback/sent/run`.
+- **Stats page: Feedback card** (top of the page). Sign in with Google to read the notes, with
+  Open / Done / All tabs, **Mark done** / **Reopen** and **Delete** (tap twice). Only Adrian's
+  account can read, change or delete notes: the rules check his ID.
+- **Needs Adrian (5 minutes):** `FIREBASE-SETUP.md` → "Feedback setup": switch on Google sign-in,
+  add speeder-game.com as an authorized domain, then sign in on the stats page and paste the rules
+  block it copies for you (`firestore-rules-feedback.txt`, also added to `firestore-rules-FULL.txt`
+  and `firestore-rules-own-project.txt`). Until then, sending a note says "not set up yet".
+- Tests: `fairplay.mjs` now also sends a note from the title screen (fields match the rules,
+  empty notes and quick repeats refused) and works the stats page's Feedback card signed out and
+  signed in (list, mark done, delete with a second tap), with stand-ins for Firebase.
+
+---
+
 ## [0.18.0] — 2026-11-26
 
 ### New sound effects, and Sunset Drive in the Lab

@@ -46,6 +46,36 @@ post a made-up score with a script.
 
 ---
 
+## Feedback setup (v0.19.0, about 5 minutes)
+
+Players can send you notes from the game (title screen → **Ideas**, or **Send Adrian feedback**
+after a run). They're saved in Firebase, and only you can read them, on the stats page. These three
+steps let the stats page know it's you. Do them in the project the game uses today
+(**orbit-23921**, ORBit's); if you do Part 1 later, repeat steps 1 and 2 there (its rules already
+have the Feedback block, just put your ID in).
+
+1. **Turn on Google sign-in.** console.firebase.google.com → the **orbit-23921** project →
+   **Build → Authentication** (click **Get started** if you see it) → **Sign-in method** tab →
+   **Add new provider → Google** → switch **Enable** on, pick your email as the support email →
+   **Save**.
+2. **Let the stats page use it.** Still in Authentication: **Settings** tab → **Authorized
+   domains** → **Add domain** → type `speeder-game.com` → **Add**.
+3. **Tell the rules it's you.** Open https://speeder-game.com/stats/ → the **Feedback** card at the
+   top → **Sign in with Google** and pick your account. It will say the rules don't know you yet
+   and show your ID. Tap **Copy the rules block** (it has your ID in it). Then in the Firebase
+   console: **Firestore Database → Rules** tab. Find the last two lines of the rules (two closing
+   `}` braces). Paste the block on a new line **just above** them, and click **Publish**.
+   Reload the stats page: the notes appear. (The block is also in `firestore-rules-feedback.txt`
+   on GitHub, with `ADMIN_UID` where your ID goes.)
+
+From then on: **Mark done** moves a note to the Done tab (**Reopen** brings it back), **Delete**
+(tap twice) removes it for good.
+
+Until step 3 is done, players who send a note see "Couldn't send it right now (not set up yet)",
+so do these before telling people about it.
+
+---
+
 ## What's already done (no Firebase needed)
 
 - The console cheat no longer works: the game's insides can't be reached from the browser console,

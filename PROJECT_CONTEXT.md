@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.18.0 |
+| **Current Version** | v0.19.0 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS, HYPERLANE and MUSIC (v0.18), and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-26 |
@@ -228,6 +228,7 @@ Speeder/
 ├── firestore-rules-own-project.txt ← the whole rules page for that new project
 ├── firestore-rules-speeder.txt ← the database rules block for the Classic leaderboard
 ├── firestore-rules-warp.txt ← the database rules block for the Warp Run leaderboard
+├── firestore-rules-feedback.txt ← the rules block for player feedback (v0.19.0; ADMIN_UID = Adrian's ID, from the stats page)
 ├── firestore-rules-FULL.txt ← the whole Firebase rules page as published (ORBit + Classic + Warp Run); keep it in step whenever a block changes
 ├── LAB.md                 ← the Lab: rules, experiments, how to read results, how to add an experiment
 ├── tests/                 ← automated checks (see "Before you publish" in LAB.md); not part of the game
@@ -249,6 +250,7 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 `MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch (the Heavy set's volumes from the sound picker since v0.18.0) ·
 `PART_MAX` particle cap · `QUALS[].fx` / `QUALS[].gloss` particle amount and glossy road per graphics level · `DRONE_MESH` / `RAM_MESH` / `TURRET_BASE` / `TURRET_HEAD` enemy models · `drawGloss()` road reflections · `drawShield()` shield bubble · `G.slowmo` wreck slow motion ·
 `kmBucket()` / `WARP_KM` / `CLASSIC_KM` / `LAB_KM` the distance buckets in analytics (match the stats page) · `LOOP_CAP` highest loop number in analytics · `trackRunNumber()` the exact run counter (`runs/<mode>/<n>`) · `GC_CODE` analytics on/off (GoatCounter site code, now `speeder`; dashboard https://speeder.goatcounter.com, and our own at https://speeder-game.com/stats/) · `trackOnce()` / `trackPlayerRun()` / `trackNamed()` the once-per-device player counts · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
+`WIND_SIGN_Y` where the WIND sign sits (`drawWindSign()`) · `FEEDBACK` / `FB_MAX` / `FB_GAP` / `FB_DAY` feedback collection, note length, time between notes and notes a day per device ·
 `choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
 
 **Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `BOSS_SNIPE` how often it fires single shots under its other attacks · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
@@ -361,6 +363,8 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Speeder in the lane (v0.12) | Two styles compared: Barrel rolls (top toward the move, flips on dives, swipe to spin) vs Smooth banks | Adrian described the first; Claude's concern: flipping upside down may disorient, so the Lab compares it with a calmer one. Rolls are looks only, never change collisions. |
 | Hyperlane look (v0.12.1) | Lit blue-violet tunnel, dark hazards edged in neon, bright pickups; walls never take the next world's colour | Adrian: needs more contrast between walls and what's coming, maybe lighter walls, a bigger tunnel, zoomed in. Light-vs-dark plus cool-vs-warm keeps hazards readable at speed. |
 | Music speed-up | Play the loop faster (pitch rises too) as speed climbs, capped at +14% | Simple, no extra files, and the rising pitch adds urgency. Trade-off: a pitch-preserving version would need several pre-made copies of the track. |
+| Wind warning (v0.19.0) | A light, see-through WIND sign high on the side the wind comes from, chevrons pointing the way it blows; the notice under the speeder stays | Adrian heard from several players who'd reached high loops that they never knew about the wind and thought the speeder was steering itself. His design: light, not distracting, on the wind's side. |
+| Feedback (v0.19.0) | Notes from the title screen (Ideas) and after a run, saved in Firestore; only Adrian can read, mark done or delete them, on the stats page, signed in with Google | Adrian wants feedback in one place he can work through. Firestore rules can only tell it's him through sign-in, so the stats page signs him in and the rules check his ID. Trade-off: one-time setup in the Firebase console. |
 | Sound effects (v0.18.0) | The Heavy set from the sound picker, at its balanced volumes; sound still off by default | Adrian: "heavy got the most votes. Use that please." Turning sound back on for everyone (`SOUND_RESET`) is left for him to decide. |
 | New music (v0.18.0) | Sunset Drive I-V, made for Speeder, in the Lab first | Adrian found free packs off-target; he wants chill that builds (his Spotify "e-Jamz" is the reference) and loved the Sunset Drive sketch. Five variations, one per loop, so a 30-minute run doesn't repeat. |
 | Music sync (v0.18.0) | The music keeps its own beat; the game says which part it wants; changes wait for the next bar line; parts are layers of one 8-bar grid | Adrian asked what happens if he slows down or beats the Warden fast. Nothing can drift: a part just loops longer or the handoff comes sooner, and swaps always land on the beat. Trade-off: up to one bar's delay (2.1-2.5 s) before the music follows a new world. |
@@ -397,6 +401,16 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**Wind sign and feedback (v0.19.0, 2026-11-26):**
+- WIND sign added (see CHANGELOG). Ask whether it's easy enough to notice without being distracting
+  (size and opacity: `drawWindSign()`, the alpha values at its top).
+- Feedback is built but **waits on Adrian's 5-minute setup** (`FIREBASE-SETUP.md` → Feedback setup).
+  Until then the game says "not set up yet" when a note is sent. Then check a real note arrives.
+- Music: Adrian played the Lab's MUSIC and found it **too chill, out of place**; he likes the
+  build-up but wants **more beat** and fewer moody (minor) turns. He asked about a **beat
+  composer** for himself: knobs, melodies to make or pick from, guardrails to stay in key and on
+  rhythm. Claude proposed a plan (a "Studio" page whose songs play live in the Lab); waiting for his go-ahead.
 
 **Sound and music (v0.18.0, 2026-11-26):**
 - The Heavy effects are in the game. **Sound is still off by default**: ask Adrian whether to turn it

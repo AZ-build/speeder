@@ -631,6 +631,9 @@
   .dock-btn svg { width: 22px; height: 22px; }
   .dock-btn span { font-size: 9px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
   .dock-btn:active { transform: scale(0.95); }
+  .fb-text { text-transform: none; text-align: left; font-weight: 500; font-size: 16px; letter-spacing: 0; line-height: 1.4; resize: none; min-height: 140px; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+  .fb-count { align-self: flex-end; margin-top: -6px; font-size: 11px; color: rgba(255, 255, 255, 0.45); }
+  .fb-link { margin-top: 4px; font-size: 12px; color: #bfaee6; }
   .dock-btn.share { color: var(--cyan); border-color: rgba(41, 243, 255, 0.45); }
   .dock-btn.lab { color: var(--lime); border-color: rgba(182, 255, 46, 0.35); }
   .dock-btn.lab.sel { background: rgba(182, 255, 46, 0.14); border-color: var(--lime); }
@@ -743,6 +746,7 @@
     <button class="dock-btn" id="titleSettingsBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span></button>
     <button class="dock-btn" id="titleHelpBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9a3 3 0 0 1 5.6 1c0 2-3 2.6-3 4.2"/><path d="M12 17.6h.01"/></svg><span>Help</span></button>
     <button class="dock-btn share" id="titleShareBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg><span>Share</span></button>
+    <button class="dock-btn" id="titleFeedbackBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg><span>Ideas</span></button>
     <button class="dock-btn lab" id="titleLabBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6"/><path d="M10 3v6.5L4.6 18.4A1.7 1.7 0 0 0 6.1 21h11.8a1.7 1.7 0 0 0 1.5-2.6L14 9.5V3"/><path d="M7.5 15h9"/></svg><span>Lab</span></button>
   </div>
   <div class="status small hidden" id="titleShareStatus" aria-live="polite"></div>
@@ -781,6 +785,22 @@
     </div>
     <button class="btn ghost lab hidden" id="overLabBtn">Change the experiments</button>
     <button class="btn ghost" id="overModeBtn">Play CLASSIC instead</button>
+    <button class="linkbtn fb-link" id="overFeedbackBtn" type="button">Send Adrian feedback</button>
+  </div>
+</div>
+
+<div id="feedback" class="overlay panel has-back hidden">
+  <button class="panel-back" type="button" data-back="fbBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button>
+  <div class="panel-title">FEEDBACK</div>
+  <div class="stack">
+    <div class="status">Ideas, bugs, things you love or hate. It goes straight to Adrian, who makes Speeder.</div>
+    <textarea id="fbText" class="name-input fb-text" maxlength="1000" rows="6" placeholder="What should be better? What did you love?" enterkeyhint="enter"></textarea>
+    <div class="fb-count" id="fbCount">0 / 1000</div>
+    <div class="setting hidden" id="fbRunRow"><label for="fbRun">Include my last run</label><input type="checkbox" id="fbRun" class="switch" checked></div>
+    <div class="status small" id="fbFrom"></div>
+    <button class="btn primary" id="fbSend">Send</button>
+    <div class="status" id="fbStatus" aria-live="polite"></div>
+    <button class="btn" id="fbBack">Back</button>
   </div>
 </div>
 
@@ -876,7 +896,7 @@
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 L39 22 L22 39 L5 22 Z" fill="#0b0420" stroke="#ff5fe0" stroke-width="2.5" stroke-linejoin="round"/><text x="22" y="27" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="14" fill="#ff5fe0">P</text></svg><div class="htxt"><div class="hname">Prototypes</div><div>After each boss you choose one of two permanent upgrades for the rest of the run:<br><b>HEAVY CORE</b> +1 damage on every bullet (can be taken again)<br><b>TWIN WINGS</b> wing missiles fire in pairs<br><b>HULL +1</b> a fourth hull hex, fully repaired<br><b>AEGIS</b> a shield regrows every 20 seconds<br><b>MAGNET</b> cells fly to you, Overdrive lasts 12 seconds<br><b>CHAIN BLAST</b> every kill damages what&rsquo;s near it</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><g fill="#3d0a18" stroke="#ff2b4e" stroke-width="2" stroke-linejoin="round"><path d="M18 10 l4 -5 4 5 v8 h-8 z"/><path d="M6 24 l4 -5 4 5 v8 h-8 z"/><path d="M30 24 l4 -5 4 5 v8 h-8 z"/></g></svg><div class="htxt"><div class="hname">Neon Desert: ram packs</div><div>Wide, fast straights, and ram bikes that come at you in an arrowhead. They hold their formation, so pick a gap or shoot one open.</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="9" y="14" width="26" height="18" fill="#0a1230" stroke="#29b4ff" stroke-width="2"/><rect x="13" y="25" width="18" height="2.5" fill="#ffd23c"/><circle cx="14" cy="19" r="2.2" fill="#ffd23c"/><circle cx="30" cy="19" r="2.2" fill="#ffd23c"/></svg><div class="htxt"><div class="hname">Neon City: traffic and tunnels</div><div>Hover-trucks drive the same way you do, only slower. Weave between them. You can&rsquo;t shoot them.</div></div></div>
-<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M4 30 H16 M28 30 H40" stroke="#ffe296" stroke-width="3"/><path d="M16 30 q6 -22 12 0" stroke="#b6ff2e" stroke-width="2" fill="none" stroke-dasharray="3 3"/><path d="M6 12 h12 M10 17 h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg><div class="htxt"><div class="hname">Sky Islands: chasms and wind</div><div>Where the road is missing, a full-width ramp throws you across. When WIND shows under your speeder, a crosswind is about to push you sideways: steer against it.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M4 30 H16 M28 30 H40" stroke="#ffe296" stroke-width="3"/><path d="M16 30 q6 -22 12 0" stroke="#b6ff2e" stroke-width="2" fill="none" stroke-dasharray="3 3"/><path d="M6 12 h12 M10 17 h14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg><div class="htxt"><div class="hname">Sky Islands: chasms and wind</div><div>Where the road is missing, a full-width ramp throws you across. When a see-through <b>WIND</b> sign shows near the top, on the side the wind comes from, a crosswind is about to push you sideways (the arrows show which way): steer against it.</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M14 38 L18 20 L22 6 L26 22 L30 38 Z" fill="#12888c" stroke="#c8fff6" stroke-width="2" stroke-linejoin="round"/><path d="M22 6 L22 38" stroke="#c8fff6" stroke-width="1.5"/><path d="M4 38 H40" stroke="#6effe6" stroke-width="2"/></svg><div class="htxt"><div class="hname">Crystal Wastes: crystals</div><div>A glowing crack in the road means a crystal is about to burst out of it. Dodge it or shatter it.</div><div class="hlim">3 hits, +100</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><ellipse cx="22" cy="34" rx="14" ry="4" fill="none" stroke="#ffb347" stroke-width="2"/><path d="M36 4 L24 24" stroke="#ff9d2e" stroke-width="4" stroke-linecap="round"/><circle cx="23" cy="26" r="4.5" fill="#fff2c0" stroke="#ff9d2e" stroke-width="2"/></svg><div class="htxt"><div class="hname">Cosmic Highway: meteors</div><div>An orange ring on the road is where a meteor is about to land. It leaves a burning crater: steer around it or jump it. Jumps are longer and floatier out here.</div></div></div>
     <h3>The Lab</h3>
@@ -988,7 +1008,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.18.0';
+const VERSION = '0.19.0';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -9399,6 +9419,54 @@ function timerChip(x, y, label, color, frac) {
 }
 
 let hudBand = null, hudBandH = 0;
+// v0.19.0: a light, see-through WIND sign high on the side the wind comes from, with chevrons
+// running the way it blows. Players who'd reached high loops said they never noticed the wind and
+// thought the speeder was steering itself: the notice under the speeder is easy to miss while you
+// watch the road ahead. Blinks softly while it's coming, steadier (and stronger) while it pushes.
+const WIND_SIGN_Y = 128;          // how far below the top of the HUD it sits
+function drawWindSign(top) {
+  const blow = Math.abs(WP.wind), warn = WP.windWarn;
+  if (!warn && blow < 0.05) return;
+  const dir = warn || Math.sign(WP.wind);            // +1 = blowing to the right (it comes from the left)
+  const k = clamp(blow / 2.6, 0, 1);                 // how hard it's pushing right now
+  const coming = warn && blow < 0.15;
+  const a = coming ? 0.2 + 0.14 * (0.5 + 0.5 * Math.sin(G.t * 9)) : 0.28 + 0.24 * k;
+  const y = top + WIND_SIGN_Y;
+  ctx.save();
+  ctx.font = '900 19px ' + FONT;
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '3px';
+  ctx.textBaseline = 'middle';
+  const tw = ctx.measureText('WIND').width;
+  const CH = 3, cw = 9, gap = 13, chW = CH * gap;
+  const x0 = dir > 0 ? 18 : W - 18 - tw - 10 - chW;   // whole sign: [WIND >>>] on the left, [<<< WIND] on the right
+  const textX = dir > 0 ? x0 : x0 + chW + 10;
+  const chX = dir > 0 ? x0 + tw + 10 : x0;
+  ctx.globalAlpha = a;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+  ctx.shadowBlur = 6;
+  ctx.fillStyle = '#ffe296';
+  ctx.textAlign = 'left';
+  ctx.fillText('WIND', textX, y);
+  // chevrons: a light runs along them in the direction the wind blows
+  ctx.strokeStyle = '#ffe296';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  const run = (G.t * (1.6 + 1.6 * k)) % 1;
+  for (let i = 0; i < CH; i++) {
+    const order = dir > 0 ? i : CH - 1 - i;          // first chevron in the direction of travel lights first
+    const lit = 1 - Math.min(1, Math.abs(((order / CH) - run + 1.5) % 1 - 0.5) * 3);
+    ctx.globalAlpha = a * (0.55 + 0.45 * lit);
+    const cx = chX + i * gap + (dir > 0 ? 0 : cw);
+    ctx.beginPath();
+    ctx.moveTo(cx, y - 7);
+    ctx.lineTo(cx + dir * cw, y);
+    ctx.lineTo(cx, y + 7);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawHUD() {
   // low-hull warning glow
   if (G.state === 'play' && G.hull === 1) {
@@ -9452,6 +9520,7 @@ function drawHUD() {
   }
   ctx.fillStyle = hudBand;
   ctx.fillRect(0, 0, W, hudBandH);
+  if (WP.on && !LANE.on) drawWindSign(top);
   const left = 16;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
@@ -9994,7 +10063,7 @@ function applySound() {
 // "ui" is the panel currently on screen, or null while racing / on the title screen.
 let ui = null;
 const panelStack = [];
-const PANELS = ['menu', 'settings', 'board', 'help', 'lab', 'over', 'title'];
+const PANELS = ['menu', 'settings', 'board', 'help', 'lab', 'over', 'title', 'feedback'];
 const show = (id) => $(id).classList.remove('hidden');
 const hide = (id) => $(id).classList.add('hidden');
 const isShown = (id) => !$(id).classList.contains('hidden');
@@ -10011,6 +10080,7 @@ function openPanel(id) {
   if (id === 'board') { boardMode = boardFor(inRun() ? G.mode : SET.mode); loadBoard(boardTab); }
   if (id === 'lab') { renderLab(); $('lab').scrollTop = 0; }
   if (id === 'help') { fillHelpIcons(); $('help').scrollTop = 0; tutHelpBtnReset(); }
+  if (id === 'feedback') fillFeedback();
 }
 
 function closePanel() {
@@ -10403,6 +10473,87 @@ function setPending(list) {
   const classic = list.filter((r) => r.mode !== 'warp').slice(-10);
   const warp = list.filter((r) => r.mode === 'warp').sort((a, b) => b.score - a.score).slice(0, 5);
   storeSet('speeder.pendingRuns', JSON.stringify(classic.concat(warp)));
+}
+
+// ---------- Feedback (v0.19.0) ----------
+// Players send Adrian a note from the title screen (Ideas) or after a run. Notes go to Firestore
+// (FEEDBACK); only Adrian can read, mark done or delete them, from the stats page (rules:
+// firestore-rules-feedback.txt). Nothing is sent with test tools on.
+const FEEDBACK = 'speeder_feedback';
+const FB_MAX = 1000;            // characters in a note
+const FB_GAP = 20000;           // ms between two notes from one device
+const FB_DAY = 10;              // notes a device can send in a day
+const FBK = { run: null, from: 'menu', last: 0 };
+function feedbackSentToday() {
+  const day = new Date().toDateString();
+  const r = readJSON('speeder.fbSent', null);
+  return r && r.day === day ? r.n : 0;
+}
+function feedbackRunText(r) {
+  if (!r) return '';
+  const mode = r.mode === 'warp' ? 'Warp Run' : r.mode === 'lab' ? 'Lab' : 'Classic';
+  let s = mode + ' · ' + r.score.toLocaleString('en-US') + ' pts · ' + (r.dist / 1000).toFixed(1) + ' km';
+  if (r.loop) s += ' · loop ' + r.loop + ', world ' + (r.world || 1);
+  return s.slice(0, 120);
+}
+function feedbackDevice() {
+  const ua = navigator.userAgent || '';
+  const os = /iPhone/.test(ua) ? 'iPhone' : /iPad|Macintosh.*Mobile/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : 'other';
+  const app = window.matchMedia && matchMedia('(display-mode: standalone)').matches ? ' · installed' : '';
+  return (os + ' · ' + Math.round(screen.width) + 'x' + Math.round(screen.height) + app).slice(0, 80);
+}
+function openFeedback(from) {
+  FBK.from = from;
+  openPanel('feedback');
+}
+function fillFeedback() {
+  const showRun = FBK.from === 'run' && FBK.run;
+  $('fbRunRow').classList.toggle('hidden', !showRun);
+  if (showRun) $('fbRun').checked = true;
+  $('fbFrom').textContent = SET.name ? 'Sent as ' + SET.name + '.' : 'Sent without a name (you can set one in Settings).';
+  $('fbStatus').textContent = '';
+  $('fbSend').disabled = false;
+  fbCount();
+}
+function fbCount() {
+  const n = $('fbText').value.length;
+  $('fbCount').textContent = n + ' / ' + FB_MAX;
+}
+async function sendFeedback() {
+  const text = $('fbText').value.trim().slice(0, FB_MAX);
+  const st = $('fbStatus');
+  if (!text) { st.textContent = 'Write something first.'; $('fbText').focus(); return; }
+  if (DEV) { st.textContent = 'Test tools are on, so this one isn\u2019t sent.'; return; }
+  if (Date.now() - FBK.last < FB_GAP) { st.textContent = 'Thanks! Give it a few seconds before the next one.'; return; }
+  if (feedbackSentToday() >= FB_DAY) { st.textContent = 'That\u2019s plenty for today, thank you! Try again tomorrow.'; return; }
+  $('fbSend').disabled = true;
+  st.textContent = 'Sending\u2026';
+  try {
+    const F = await firebase();
+    const { collection, addDoc, serverTimestamp } = F.fs;
+    const run = FBK.from === 'run' && FBK.run && $('fbRun').checked ? FBK.run : null;
+    await dbCall(addDoc(collection(F.db, FEEDBACK), {
+      text,
+      name: String(SET.name || '').slice(0, 20),
+      pid: playerId(),
+      v: VERSION,
+      where: FBK.from === 'run' ? 'run' : 'menu',
+      mode: String(run ? run.mode : SET.mode || '').slice(0, 10),
+      run: feedbackRunText(run),
+      dev: feedbackDevice(),
+      t: serverTimestamp(),
+      done: false,
+    }));
+    FBK.last = Date.now();
+    storeSet('speeder.fbSent', JSON.stringify({ day: new Date().toDateString(), n: feedbackSentToday() + 1 }));
+    $('fbText').value = '';
+    fbCount();
+    st.textContent = 'Sent. Thank you!';
+    track('feedback/sent/' + (FBK.from === 'run' ? 'run' : 'menu'), 'Feedback sent');
+  } catch (e) {
+    st.textContent = 'Couldn\u2019t send it right now (' + (e && e.code === 'permission-denied' ? 'not set up yet' : 'no connection?') + '). Your note is still here: try again in a moment.';
+  }
+  $('fbSend').disabled = false;
 }
 
 async function writeRun(run) {
@@ -10945,7 +11096,7 @@ const TUT_STEPS = [
     goal: (s) => tutWorldGoal(s),
     done: 'Next: <b>Sky Islands</b>, world 3.' },
   { id: 'sky', ch: 7, sec: 2, title: 'Sky Islands',
-    body: 'The road breaks into <b>chasms</b>. A ramp across the whole road throws you over: just keep going. <b>Crosswinds</b> blow too: arrows under you warn you first, then steer against the push.',
+    body: 'The road breaks into <b>chasms</b>. A ramp across the whole road throws you over: just keep going. <b>Crosswinds</b> blow too: a <b>WIND</b> sign near the top, on the side it comes from, warns you first. Then steer against the push.',
     hint: 'Jump the chasm, then fight the wind',
     setup(s) {
       spawnWarpPattern('chasm', tutAhead(130), 1);
@@ -11425,6 +11576,7 @@ function showOver() {
   const run = { id: newRunId(), mode: G.mode, score, dist: Math.round((G.d - LAB.d0) * UNIT_M), kills: G.kills, rank: 0, isBest: score > prevBest && score > 0 };
   if (warp) { run.loop = WP.loop; run.world = WP.theme + 1; run.bosses = WP.bossKills; }
   run.t = Math.max(1, Math.round(G.runT));   // seconds played (v0.17.0; checked by the leaderboard)
+  FBK.run = run;                             // (v0.19.0: offered with feedback sent from the game-over screen)
   if (!lab) {
     run.unranked = fairCheck(run);
     if (run.unranked && run.unranked !== 'dev') track('fair/flag/' + run.unranked, 'Fair play: run kept off the board (' + run.unranked + ')');
@@ -11843,6 +11995,11 @@ $('overModeBtn').addEventListener('click', () => { audioInit(); setMode(G.mode =
 $('modeWarp').addEventListener('click', (e) => { e.stopPropagation(); audioInit(); setMode('warp'); });
 $('modeClassic').addEventListener('click', (e) => { e.stopPropagation(); audioInit(); setMode('classic'); });
 $('titleLabBtn').addEventListener('click', (e) => { e.stopPropagation(); audioInit(); openPanel('lab'); });
+$('titleFeedbackBtn').addEventListener('click', (e) => { e.stopPropagation(); openFeedback('menu'); });
+$('overFeedbackBtn').addEventListener('click', () => openFeedback('run'));
+$('fbSend').addEventListener('click', sendFeedback);
+$('fbBack').addEventListener('click', () => closePanel());
+$('fbText').addEventListener('input', fbCount);
 $('overLabBtn').addEventListener('click', () => openPanel('lab'));
 $('labBack').addEventListener('click', closePanel);
 $('labRide').addEventListener('click', () => { audioInit(); setMode('lab'); startGame(); });
@@ -12005,7 +12162,7 @@ window.addEventListener('pointerup', endDrag);
 window.addEventListener('pointercancel', endDrag);
 
 window.addEventListener('keydown', (e) => {
-  if (e.target && e.target.tagName === 'INPUT') return;
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
   if (TUT.on && tutKey(e)) return;
   if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
   if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;

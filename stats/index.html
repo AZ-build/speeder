@@ -68,6 +68,14 @@
   .btn:active { transform: translateY(1px); }
   .btn.primary { background: var(--series-1); border-color: var(--series-1); color: #fff; font-weight: 600; }
   .btn[disabled] { opacity: .5; }
+  .fbnote { border: 1px solid var(--grid); border-radius: 12px; padding: 12px; margin-top: 10px; background: var(--surface-2); }
+  .fbnote.done { opacity: .55; }
+  .fbnote .txt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.45; }
+  .fbnote .meta { color: var(--text-secondary); font-size: 12px; margin-top: 8px; line-height: 1.5; }
+  .fbnote .acts { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .fbnote .acts .btn { min-height: 36px; font-size: 13px; padding: 6px 12px; }
+  .btn.warn { color: #ff6b8b; border-color: rgba(255, 107, 139, .5); }
+  .fbid { font-family: ui-monospace, Menlo, monospace; font-size: 13px; overflow-wrap: anywhere; }
   .filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; position: sticky; top: 0; z-index: 5;
     background: var(--page); padding: 8px 0 10px; margin: 0 0 6px; }
   .chip { appearance: none; border: 1px solid var(--grid); background: transparent; color: var(--text-secondary);
@@ -200,6 +208,12 @@
       <span class="stamp" id="stamp"></span>
     </nav>
     <div id="err" class="msg hidden" role="alert"></div>
+
+    <section class="card" id="feedback">
+      <h2>Feedback</h2>
+      <p class="q">Notes players send from the game (title screen → Ideas, or after a run). Only you can read them.</p>
+      <div id="feedbackBody"><div class="skeleton">Loading…</div></div>
+    </section>
 
     <section class="card" id="players">
       <h2>Players</h2>
@@ -388,11 +402,13 @@ async function firebase() {
     const appMod = await import(FIREBASE_SDK + 'firebase-app.js');
     const fs = await import(FIREBASE_SDK + 'firebase-firestore-lite.js');
     const app = appMod.initializeApp(SPEEDER_FIREBASE || FIREBASE_CONFIG, 'speeder-stats');
+    let am = null, auth = null;   // v0.19.0: Adrian signs in to read feedback (if this fails, the boards still load)
+    try { am = await import(FIREBASE_SDK + 'firebase-auth.js'); auth = am.getAuth(app); } catch (e) { console.warn('auth', e); }
     if (APP_CHECK_KEY) {
       const ac = await import(FIREBASE_SDK + 'firebase-app-check.js');
       ac.initializeAppCheck(app, { provider: new ac.ReCaptchaV3Provider(APP_CHECK_KEY), isTokenAutoRefreshEnabled: true });
     }
-    return { db: fs.getFirestore(app), fs };
+    return { db: fs.getFirestore(app), fs, am, auth };
   })();
   FB.catch(() => { FB = null; });
   return FB;
@@ -1240,7 +1256,134 @@ async function render(forceBoards) {
     else showErr(e.message || String(e));
   }
   const b = await boardsP; renderBoards(b.r || [], b.e);
+  if (fbUser && forceBoards) loadFeedback();
   busy = false; $('refresh').disabled = false;
+}
+
+// ---------- Feedback (v0.19.0) ----------
+// Notes from the game's Ideas button and game-over screen, in Firestore (speeder_feedback). Reading,
+// marking done and deleting need Adrian signed in with Google: the rules only allow his ID
+// (firestore-rules-feedback.txt, ADMIN_UID). Not affected by the date range or the GoatCounter key.
+const FEEDBACK = 'speeder_feedback';
+let fbView = store('speeder.stats.fbView') || 'open', fbNotes = null, fbUser = null;
+async function feedbackInit() {
+  const el = $('feedbackBody');
+  try {
+    const { am, auth } = await firebase();
+    if (!am) { el.textContent = ''; el.append(empty('Couldn’t load Google sign-in. Check your connection and reload.')); return; }
+    am.onAuthStateChanged(auth, (u) => { fbUser = u; fbNotes = null; loadFeedback(); });
+  } catch (e) {
+    el.textContent = ''; el.append(empty('Couldn’t load Firebase: ' + (e.message || e)));
+  }
+}
+async function loadFeedback() {
+  const el = $('feedbackBody');
+  el.textContent = '';
+  if (!fbUser) {
+    el.append(note('Sign in with your Google account to read them. (The first time, Firebase needs two switches turned on: see “Feedback setup” in FIREBASE-SETUP.md.)'));
+    const b = h('button', 'btn primary', 'Sign in with Google');
+    b.addEventListener('click', signInFeedback);
+    el.append(b);
+    return;
+  }
+  el.append(empty('Loading notes…'));
+  const { db, fs } = await firebase();
+  try {
+    const snap = await fs.getDocs(fs.query(fs.collection(db, FEEDBACK), fs.orderBy('t', 'desc'), fs.limit(300)));
+    fbNotes = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderFeedback();
+  } catch (e) {
+    el.textContent = '';
+    if (e.code === 'permission-denied') feedbackNotAllowed(el);
+    else el.append(empty('Couldn’t load the notes: ' + (e.message || e)));
+    el.append(signOutBtn());
+  }
+}
+async function signInFeedback() {
+  const { am, auth } = await firebase();
+  try { await am.signInWithPopup(auth, new am.GoogleAuthProvider()); }
+  catch (e) {
+    const why = e.code === 'auth/operation-not-allowed' ? 'Google sign-in isn’t switched on in Firebase yet (FIREBASE-SETUP.md, Feedback setup, step 1).'
+      : e.code === 'auth/unauthorized-domain' ? 'Firebase doesn’t know this address yet: add speeder-game.com to its Authorized domains (FIREBASE-SETUP.md, Feedback setup, step 2).'
+      : e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request' ? null
+      : e.code === 'auth/popup-blocked' ? 'The browser blocked the sign-in window. Allow pop-ups for this page and try again.'
+      : (e.message || String(e));
+    if (why) showErr(why);
+  }
+}
+function signOutBtn() {
+  const b = h('button', 'btn', 'Sign out');
+  b.style.marginTop = '12px';
+  b.addEventListener('click', async () => { const F = await firebase(); F.am.signOut(F.auth); });
+  return b;
+}
+// signed in, but the rules don't know this ID yet: show it, with the rules block ready to paste
+function feedbackNotAllowed(el) {
+  el.append(note('Signed in as ' + (fbUser.email || 'you') + ', but the rules don’t let this account read feedback yet. This is your ID:'));
+  el.append(h('p', 'fbid', fbUser.uid));
+  const row = h('div', 'acts'); row.style.display = 'flex'; row.style.gap = '8px'; row.style.flexWrap = 'wrap';
+  const c1 = h('button', 'btn', 'Copy my ID');
+  c1.addEventListener('click', async () => { try { await navigator.clipboard.writeText(fbUser.uid); c1.textContent = 'Copied'; } catch (e) { c1.textContent = 'Couldn’t copy'; } });
+  const c2 = h('button', 'btn primary', 'Copy the rules block');
+  c2.addEventListener('click', async () => {
+    try {
+      const txt = await (await fetch('../firestore-rules-feedback.txt', { cache: 'no-store' })).text();
+      await navigator.clipboard.writeText(txt.replace('ADMIN_UID', fbUser.uid));
+      c2.textContent = 'Copied, with your ID in it';
+    } catch (e) { c2.textContent = 'Couldn’t copy'; }
+  });
+  row.append(c1, c2);
+  el.append(row);
+  el.append(note('In the Firebase console: Firestore Database → Rules. Paste the block just above the last two closing braces (or replace the Feedback block if it’s already there), then Publish and reload this page. FIREBASE-SETUP.md, Feedback setup, step 3, shows where.'));
+}
+function renderFeedback() {
+  const el = $('feedbackBody');
+  el.textContent = '';
+  const open = fbNotes.filter((n) => !n.done), done = fbNotes.filter((n) => n.done);
+  el.append(tiles([
+    { label: 'Open', value: fmt(open.length), sub: 'not marked done yet' },
+    { label: 'This week', value: fmt(fbNotes.filter((n) => n.t && Date.now() - n.t.toDate() < 7 * 864e5).length), sub: 'notes sent in 7 days' },
+  ]));
+  const tg = h('div', 'toggle'); tg.style.marginTop = '12px';
+  for (const [k, label] of [['open', 'Open (' + open.length + ')'], ['done', 'Done (' + done.length + ')'], ['all', 'All']]) {
+    const b = h('button', null, label);
+    b.setAttribute('aria-pressed', String(fbView === k));
+    b.addEventListener('click', () => { fbView = k; store('speeder.stats.fbView', k); renderFeedback(); });
+    tg.append(b);
+  }
+  el.append(tg);
+  const list = fbView === 'open' ? open : fbView === 'done' ? done : fbNotes;
+  if (!list.length) el.append(empty(fbView === 'open' ? 'Nothing open. 🎉' : 'Nothing here yet.'));
+  for (const n of list) el.append(feedbackCard(n));
+  el.append(signOutBtn());
+}
+function feedbackCard(n) {
+  const c = h('div', 'fbnote' + (n.done ? ' done' : ''));
+  c.append(h('div', 'txt', String(n.text || '')));
+  const when = n.t && n.t.toDate ? n.t.toDate().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+  const bits = [n.name ? String(n.name) : 'no name', when, 'v' + String(n.v || '?'), n.where === 'run' ? 'after a run' : 'from the title screen'];
+  const m = h('div', 'meta', bits.filter(Boolean).join(' · '));
+  if (n.run) { m.append(h('br')); m.append(document.createTextNode('Run: ' + String(n.run))); }
+  if (n.dev) { m.append(h('br')); m.append(document.createTextNode(String(n.dev))); }
+  c.append(m);
+  const acts = h('div', 'acts');
+  const d = h('button', 'btn', n.done ? 'Reopen' : 'Mark done');
+  d.addEventListener('click', async () => {
+    d.disabled = true;
+    try { const { db, fs } = await firebase(); await fs.updateDoc(fs.doc(db, FEEDBACK, n.id), { done: !n.done }); n.done = !n.done; renderFeedback(); }
+    catch (e) { d.disabled = false; showErr('Couldn’t update it: ' + (e.message || e)); }
+  });
+  const x = h('button', 'btn warn', 'Delete');
+  let armed = 0;
+  x.addEventListener('click', async () => {
+    if (Date.now() - armed > 3000) { armed = Date.now(); x.textContent = 'Tap again to delete'; setTimeout(() => { if (x.isConnected) x.textContent = 'Delete'; }, 3000); return; }
+    x.disabled = true;
+    try { const { db, fs } = await firebase(); await fs.deleteDoc(fs.doc(db, FEEDBACK, n.id)); fbNotes = fbNotes.filter((y) => y.id !== n.id); renderFeedback(); }
+    catch (e) { x.disabled = false; showErr('Couldn’t delete it: ' + (e.message || e)); }
+  });
+  acts.append(d, x);
+  c.append(acts);
+  return c;
 }
 
 function showSetup(msg) {
@@ -1263,6 +1406,7 @@ for (const b of document.querySelectorAll('[data-range]')) b.addEventListener('c
 $('allFilter').addEventListener('input', () => { if (lastD) renderAll(lastD); });
 
 if (store(KEY_STORE)) showMain(); else showSetup();
+feedbackInit();
 </script>
 </body>
 </html>

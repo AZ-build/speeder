@@ -28,10 +28,22 @@ export function limit(n) { return { limit: n }; }
 export function where(f, op, v) { return { gt: v }; }
 export function query(c, ...parts) { const q = { name: c.name }; for (const p of parts) if (p) Object.assign(q, p); return q; }
 export function serverTimestamp() { return 'TS'; }
+export async function addDoc(c, data) { const id = 'n' + (W.__FS.writes.length + 1); W.__FS.writes.push({ col: c.name, id, data }); (W.__FS[c.name] = W.__FS[c.name] || {})[id] = data; return { id }; }
+export async function updateDoc(ref, data) { W.__FS.writes.push({ col: ref.name, id: ref.id, data, update: true }); Object.assign(W.__FS[ref.name][ref.id], data); }
+export async function deleteDoc(ref) { W.__FS.writes.push({ col: ref.name, id: ref.id, del: true }); delete W.__FS[ref.name][ref.id]; }
 export async function setDoc(ref, data) { W.__FS.writes.push({ col: ref.name, id: ref.id, data }); W.__FS[ref.name][ref.id] = data; }
 function rows(q) { return Object.entries(W.__FS[q.name]).map(([id, d]) => ({ id, d })).sort((a, b) => b.d.score - a.d.score); }
 export async function getDocs(q) { W.__FS.reads = (W.__FS.reads || 0) + 1; W.__FS.lastLimit = q.limit; return { docs: rows(q).slice(0, q.limit || 999).map((r) => ({ id: r.id, data: () => r.d })) }; }
 export async function getCount(q) { return { data: () => ({ count: rows(q).filter((r) => r.d.score > q.gt).length }) }; }
+`;
+
+// v0.19.0: a stand-in for firebase-auth.js (the stats page signs Adrian in to read feedback)
+const FAKE_AUTH = `const W = window;
+export function getAuth() { return {}; }
+export function onAuthStateChanged(a, cb) { setTimeout(() => cb(W.__AUTH || null), 10); return () => {}; }
+export class GoogleAuthProvider {}
+export async function signInWithPopup() { W.__AUTH = { uid: 'adrian', email: 'a@example.com' }; return {}; }
+export async function signOut() {}
 `;
 
 async function openGame(query, opts = {}) {
@@ -44,6 +56,7 @@ async function openGame(query, opts = {}) {
     const url = new URL(route.request().url());
     if (url.hostname === 'www.gstatic.com' && url.pathname.endsWith('firebase-app.js')) return route.fulfill({ contentType: 'text/javascript', body: FAKE_APP });
     if (url.hostname === 'www.gstatic.com' && url.pathname.endsWith('firebase-firestore-lite.js')) return route.fulfill({ contentType: 'text/javascript', body: FAKE_FS });
+    if (url.hostname === 'www.gstatic.com' && url.pathname.endsWith('firebase-auth.js')) return route.fulfill({ contentType: 'text/javascript', body: FAKE_AUTH });
     if (url.hostname === 'speeder-game.test') {
       let p = url.pathname === '/' ? '/index.html' : url.pathname;
       if (p === '/moderation.txt' && opts.moderation != null) return route.fulfill({ contentType: 'text/plain', body: opts.moderation });
@@ -56,6 +69,7 @@ async function openGame(query, opts = {}) {
     return route.fulfill({ status: 404, body: '' });   // nothing else (analytics, fonts) in tests
   });
   if (opts.seed) await page.addInitScript((seed) => { window.__FS = seed; }, opts.seed);
+  if (opts.auth) await page.addInitScript((u) => { window.__AUTH = u; }, opts.auth);
   if (opts.storage) await page.addInitScript((st) => { if (!sessionStorage.getItem('__seeded')) { for (const [k, v] of Object.entries(st)) localStorage.setItem(k, v); sessionStorage.setItem('__seeded', '1'); } }, opts.storage);
   await page.goto(HOST + (opts.path || 'index.html') + (query || ''));
   await page.waitForTimeout(800);
@@ -177,6 +191,63 @@ const seedRows = () => ({
   ok('stats: Copy ID buttons', (await page.$$('#boardsBody button.chip')).length >= 3);
   ok('stats: no script errors', errors.length === 0, errors.join(' | '));
   await browser.close();
+}
+
+// 6. Feedback from the title screen (v0.19.0)
+{
+  const seed = seedRows();
+  const { browser, page, errors } = await openGame('', { seed, storage: { 'speeder.tutOffer': '1', 'speeder.seen': '1' } });
+  await page.click('#titleFeedbackBtn');
+  ok('feedback: panel opens from the title screen', await page.isVisible('#feedback'));
+  await page.click('#fbSend');
+  ok('feedback: empty note not sent', /Write something/.test(await page.textContent('#fbStatus')));
+  await page.fill('#fbText', 'Wind is hard to notice <b>here</b>');
+  ok('feedback: character count', /34 \/ 1000/.test(await page.textContent('#fbCount')), await page.textContent('#fbCount'));
+  await page.click('#fbSend');
+  await page.waitForFunction(() => /Sent/.test(document.getElementById('fbStatus').textContent), null, { timeout: 8000 }).catch(() => {});
+  const w = await page.evaluate(() => (window.__FS.writes || []).filter((x) => x.col === 'speeder_feedback'));
+  const d = w[0] && w[0].data;
+  ok('feedback: one note written with the fields the rules allow', w.length === 1 && d && Object.keys(d).sort().join() === 'dev,done,mode,name,pid,run,t,text,v,where' && d.where === 'menu' && d.done === false && d.run === '', JSON.stringify(w));
+  ok('feedback: box cleared and thanked', (await page.inputValue('#fbText')) === '' && /Thank you/.test(await page.textContent('#fbStatus')));
+  await page.fill('#fbText', 'again');
+  await page.click('#fbSend');
+  ok('feedback: a second note straight away waits', /few seconds/.test(await page.textContent('#fbStatus')));
+  await page.click('#fbBack');
+  ok('feedback: Back returns to the title screen', await page.isVisible('#title') && !(await page.isVisible('#feedback')));
+  ok('feedback: no script errors', errors.length === 0, errors.join(' | '));
+  await browser.close();
+}
+
+// 7. Stats page: feedback for Adrian (signed out, then signed in: read, mark done, delete)
+{
+  const seed = seedRows();
+  seed.speeder_feedback = {
+    n1: { text: 'Love the music', name: 'ACE', v: '0.19.0', where: 'run', run: 'Warp Run · 1,000 pts · 2.0 km', dev: 'iPhone', done: false, t: null },
+    n2: { text: 'Old note', name: '', v: '0.19.0', where: 'menu', run: '', dev: 'Android', done: true, t: null },
+  };
+  let r = await openGame('', { path: 'stats/index.html', seed, storage: { 'speeder.stats.key': 'test-key' } });
+  await r.page.waitForTimeout(1500);
+  ok('stats feedback: signed out shows the sign-in button', /Sign in with Google/.test(await r.page.textContent('#feedbackBody')));
+  ok('stats feedback: no script errors (signed out)', r.errors.length === 0, r.errors.join(' | '));
+  await r.browser.close();
+  r = await openGame('', { path: 'stats/index.html', seed, auth: { uid: 'adrian', email: 'a@example.com' }, storage: { 'speeder.stats.key': 'test-key' } });
+  const page = r.page;
+  await page.waitForTimeout(2000);
+  let txt = await page.textContent('#feedbackBody');
+  ok('stats feedback: open notes listed', /Love the music/.test(txt) && !/Old note/.test(txt) && /Open \(1\)/.test(txt), txt.slice(0, 200));
+  await page.click('#feedbackBody .fbnote .btn:not(.warn)');
+  await page.waitForTimeout(300);
+  ok('stats feedback: Mark done updates only "done"', await page.evaluate(() => { const u = window.__FS.writes.find((x) => x.update); return u && u.id === 'n1' && JSON.stringify(u.data) === '{"done":true}'; }));
+  await page.click('#feedbackBody .toggle button:nth-child(3)');
+  await page.waitForTimeout(200);
+  const del = '#feedbackBody .fbnote .btn.warn';
+  await page.click(del);
+  ok('stats feedback: Delete asks for a second tap', await page.evaluate(() => !window.__FS.writes.some((x) => x.del)));
+  await page.click(del);
+  await page.waitForTimeout(300);
+  ok('stats feedback: second tap deletes', await page.evaluate(() => window.__FS.writes.filter((x) => x.del).length === 1));
+  ok('stats feedback: no script errors (signed in)', r.errors.length === 0, r.errors.join(' | '));
+  await r.browser.close();
 }
 
 let fail = 0;
