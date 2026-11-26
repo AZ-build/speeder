@@ -48,7 +48,7 @@ post a made-up score with a script.
 
 ## Feedback setup (v0.19.0, about 5 minutes)
 
-Players can send you notes from the game (title screen → **Ideas**, or **Send Adrian feedback**
+Players can send you notes from the game (title screen → **Ideas**, or **Send feedback**
 after a run). They're saved in Firebase, and only you can read them, on the stats page. These three
 steps let the stats page know it's you. Do them in the project the game uses today
 (**orbit-23921**, ORBit's); if you do Part 1 later, repeat steps 1 and 2 there (its rules already

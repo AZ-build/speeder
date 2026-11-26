@@ -785,7 +785,7 @@
     </div>
     <button class="btn ghost lab hidden" id="overLabBtn">Change the experiments</button>
     <button class="btn ghost" id="overModeBtn">Play CLASSIC instead</button>
-    <button class="linkbtn fb-link" id="overFeedbackBtn" type="button">Send Adrian feedback</button>
+    <button class="linkbtn fb-link" id="overFeedbackBtn" type="button">Send feedback</button>
   </div>
 </div>
 
@@ -793,7 +793,7 @@
   <button class="panel-back" type="button" data-back="fbBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button>
   <div class="panel-title">FEEDBACK</div>
   <div class="stack">
-    <div class="status">Ideas, bugs, things you love or hate. It goes straight to Adrian, who makes Speeder.</div>
+    <div class="status">Ideas, bugs, things you love or hate. It goes straight to the person who makes Speeder.</div>
     <textarea id="fbText" class="name-input fb-text" maxlength="1000" rows="6" placeholder="What should be better? What did you love?" enterkeyhint="enter"></textarea>
     <div class="fb-count" id="fbCount">0 / 1000</div>
     <div class="setting hidden" id="fbRunRow"><label for="fbRun">Include my last run</label><input type="checkbox" id="fbRun" class="switch" checked></div>
@@ -1008,7 +1008,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.19.0';
+const VERSION = '0.19.1';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate

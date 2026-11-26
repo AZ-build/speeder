@@ -4,6 +4,12 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.19.1] — 2026-11-26
+
+- The feedback link and box no longer name Adrian ("Send feedback"; "It goes straight to the person who makes Speeder"), at his request.
+
+---
+
 ## [0.19.0] — 2026-11-26
 
 ### A WIND sign you can't miss, and feedback straight to Adrian
@@ -14,7 +20,7 @@ All notable changes are documented here, session by session. Newest entries go a
   light running along them. It blinks softly while a gust is coming and gets a little stronger
   while it pushes (`drawWindSign()`, `WIND_SIGN_Y`). The old notice under the speeder stays. How
   to play and Flight School now describe the sign. Classic has no wind, so no change there.
-- **Feedback.** A new **Ideas** button on the title screen and a **Send Adrian feedback** link on
+- **Feedback.** A new **Ideas** button on the title screen and a **Send feedback** link (v0.19.1; was "Send Adrian feedback") on
   the game-over screen open a note box (up to 1,000 characters; after a run it can include that
   run's mode, score, distance and loop). Notes go to Firestore (`speeder_feedback`) with the
   version and the kind of phone. One every 20 s and 10 a day per device. Nothing is sent with test
