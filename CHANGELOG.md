@@ -4,6 +4,12 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.19.3] — 2026-11-26
+
+- Stats page: "Copy the rules block" put Adrian's ID into a comment line instead of the rule that checks it (it only replaced the first `ADMIN_UID`). Now it fills every one, and the comment no longer contains `ADMIN_UID`.
+
+---
+
 ## [0.19.2] — 2026-11-26
 
 - Stats page: the Feedback card now shows on a browser without the GoatCounter key (it was inside the part that waits for the key), and its sign-in messages show in the card itself.

@@ -1,7 +1,7 @@
     // ---- Speeder: player feedback (new in Speeder v0.19) ----
     // Anyone playing can send a note (create only). Only Adrian can read, mark done or delete
     // them, from https://speeder-game.com/stats/ after signing in with Google there.
-    // ADMIN_UID: the ID the stats page shows after you sign in (Feedback section).
+    // Your ID goes in isAdrian() below: the one the stats page shows after you sign in (Feedback section).
     match /speeder_feedback/{noteId} {
       allow create: if validNote();
       allow read, delete: if isAdrian();

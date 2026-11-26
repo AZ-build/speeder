@@ -1332,7 +1332,7 @@ function feedbackNotAllowed(el) {
   c2.addEventListener('click', async () => {
     try {
       const txt = await (await fetch('../firestore-rules-feedback.txt', { cache: 'no-store' })).text();
-      await navigator.clipboard.writeText(txt.replace('ADMIN_UID', fbUser.uid));
+      await navigator.clipboard.writeText(txt.split('ADMIN_UID').join(fbUser.uid));   // (v0.19.3: every place, not just the first)
       c2.textContent = 'Copied, with your ID in it';
     } catch (e) { c2.textContent = 'Couldn’t copy'; }
   });
