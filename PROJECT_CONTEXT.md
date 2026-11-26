@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.20.0 |
+| **Current Version** | v0.20.1 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS, HYPERLANE and MUSIC (v0.18), and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-26 |
@@ -189,8 +189,9 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
   spins it round) vs Smooth banks (never upside down).
 - **Experiment 4, MUSIC (v0.18, Studio songs v0.20):** a song per loop (five, then round again)
   that builds world by world, changes on the next bar line, a two-bar handoff after the Warden.
-  Songs: played live from the **Speeder Studio** (default; `studio/`, Adrian's own beat composer)
-  or the Sunset Drive recordings. On by default. Details in `LAB.md`.
+  Players hear the Sunset Drive recordings. The **Speeder Studio** (`studio/`, Adrian's own beat
+  composer) is hidden (address only, v0.20.1); a device that has opened it plays its songs live
+  instead. On by default. Details in `LAB.md`.
 - **Test setup (v0.11):** a card in the Lab panel, not an experiment: **Start on loop 1-6**
   (the run begins at that loop's speed, difficulty and score multiplier) and **Fully loaded**
   (guns at level 8 and 2 shields from the start). For testing at high speed. v0.12 adds
@@ -406,8 +407,8 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 See `CHANGELOG.md` for a full session-by-session history.
 
 **The Studio (v0.20.0, 2026-11-26):**
-- https://speeder-game.com/studio/ (Lab → Open the Studio). The Lab's MUSIC now defaults to
-  Studio songs played live. **Ask Adrian:** does the beat feel right now, is the Studio easy to
+- https://speeder-game.com/studio/. **Hidden since v0.20.1** (Adrian: the Lab is public, so not yet):
+  no link in the game; only a device that has opened the Studio hears its songs in the Lab. **Ask Adrian:** does the beat feel right now, is the Studio easy to
   use on his phone, does a Lab run stay smooth with the live synth (frame rate), and are the five
   built-in songs a good start? Feedback setup is done (he published the rules, 2026-11-26).
 - Ideas not built: share songs through Firebase so friends can vote on them; sampled drums (CC0)

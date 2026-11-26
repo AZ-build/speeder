@@ -4,6 +4,20 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.20.1] — 2026-11-26
+
+### The Studio is hidden for now
+
+- Adrian: the Lab is open to everyone, so the Studio shouldn't show there yet. The Lab's MUSIC card
+  no longer has the "Songs" option or the "Open the Studio" button, How to play no longer mentions
+  it, and every player hears Sunset Drive again.
+- The Studio still works at its address, https://speeder-game.com/studio/ (not linked anywhere,
+  hidden from search engines). Opening it switches Studio songs on **for that device only**
+  (`speeder.studio.use`); its "In the Lab" card has a switch to turn that off. Runs on Studio songs
+  also send `lab/music/studio`.
+
+---
+
 ## [0.20.0] — 2026-11-26
 
 ### The Speeder Studio: make the music yourself

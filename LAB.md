@@ -54,7 +54,7 @@ Analytics: the **Lab verdicts** section of https://speeder-game.com/stats/ (vote
 | `lab/lane/<variant>/0-barrel-rolls` / `1-4-` / `5+-` | Barrel rolls in a run (Barrel rolls style only): do people find them? |
 | `lab/lane/<variant>/died-in-lane`, `no-lanes` | The run ended inside a lane / before the first one |
 | `lab/setup/loop<N>`, `loop<N>-loaded`, `...-lane` | A run used the test setup (later loop, fully loaded, started in a hyperlane) |
-| `lab/music/song-<n>`, `song-6plus`, `none` (votes and plays per option: `music.studio`, `music.sunset`) | MUSIC: the furthest song a run reached (song n = loop n), or no music at all (sound off or still loading) |
+| `lab/music/song-<n>`, `song-6plus`, `none`; `lab/music/studio` = a run on Studio songs | MUSIC: the furthest song a run reached (song n = loop n), or no music at all (sound off or still loading) |
 
 A **variant** is the experiment plus its options, for example `jump.flick.charges` or
 `jump.tap.free`. Votes are counted per variant, so two ways of doing the same idea can be
@@ -70,7 +70,7 @@ changes, so the counts are roughly people, not runs.
 | **JUMP** (`jump`) | v0.10.0, made bigger in v0.11.0 | In the Lab. Adrian's first note (2026-11-13): make it higher and longer. Done; needs another try. | A jump you can do anywhere. Options: gesture (flick up / second-finger tap) and fuel (2 earned charges / unlimited). |
 | **SKY RAMPS** (`ramps`) | v0.11.0 | In the Lab. No human has played it yet. | Big ramps that launch a long flight with five rings to steer through. No options yet. |
 | **HYPERLANE** (`lane`) | v0.12.0 | In the Lab. No human has played it yet. | A zero-gravity tunnel between every two worlds, steering up and down as well as sideways. Option: flying style (barrel rolls / smooth banks). |
-| **MUSIC** (`music`) | v0.18.0, Studio songs in v0.20.0 | In the Lab. Adrian found Sunset Drive too chill (2026-11-26) and asked for a beat composer: the Studio. | A song per loop that builds world by world, changing on the beat. Option: songs (Studio, played live / Sunset Drive recordings). |
+| **MUSIC** (`music`) | v0.18.0, Studio songs in v0.20.0 | In the Lab. Adrian found Sunset Drive too chill (2026-11-26) and asked for a beat composer: the Studio, hidden for now (v0.20.1). | A song per loop that builds world by world, changing on the beat. Players hear Sunset Drive; a device that has opened the Studio hears its songs. No options. |
 
 ### JUMP: how it works
 
@@ -219,11 +219,15 @@ power-ups, with the speeder rolling and flipping naturally as you move.
 **v0.20.0: Studio songs (the default).** Adrian played Sunset Drive in a run and found it too chill
 and out of place: he liked the build-up but wanted more beat and fewer moody turns, and asked for a
 beat composer with knobs, melodies to make or pick, and guardrails to stay in key and on rhythm.
-That's the **Speeder Studio**, https://speeder-game.com/studio/ (`studio/`), linked from the MUSIC
-card in the Lab panel ("Open the Studio").
+That's the **Speeder Studio**, https://speeder-game.com/studio/ (`studio/`).
 
-- **The option** `labOpt('music', 'src')`: `studio` (default) plays songs live with the Studio's
-  engine; `sunset` plays the v0.18 Sunset Drive recordings described below.
+- **Hidden for now (v0.20.1):** Adrian doesn't want it seen in the Lab yet, so nothing in the game
+  links to it and the MUSIC card has no option for it. It's reached by its address only (and
+  `noindex` keeps it out of search engines). **Which songs play is per device:** opening the Studio
+  sets `speeder.studio.use` to on; its "In the Lab" card has a switch for it. A device with it on
+  plays Studio songs live (`stOn()`, read at the start of each run in `lmBegin()`); every other
+  device plays the Sunset Drive recordings below. To show it to everyone later: put back a link
+  (`link` in its `LAB_EXPERIMENTS` entry is still supported) and decide the default.
 - **The engine** (`studio/engine.js`, an ES module the game imports only when needed): a WebAudio
   synth (kick, snare, clap, hats, shaker, crash, bass, pads, a "sparkle" arpeggio, a lead) and a
   16-step sequencer with a look-ahead scheduler. Its own beat clock; `setWorld(w)` takes effect on

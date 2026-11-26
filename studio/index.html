@@ -84,6 +84,8 @@
   .loops { display: grid; grid-template-columns: 4.5em minmax(0,1fr); gap: 6px 10px; align-items: center; margin-top: 8px; font-size: 14px; }
   textarea { width: 100%; min-height: 70px; background: #0f0626; border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 8px; font: 12px ui-monospace, Menlo, monospace; }
   .note { font-size: 12.5px; color: var(--dim); margin-top: 8px; }
+  .uselab { display: flex; gap: 10px; align-items: center; font-size: 14px; margin: 4px 0 12px; }
+  .uselab input { width: 20px; height: 20px; accent-color: var(--accent, #ff4fd8); }
   .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: #2a1050; border: 1px solid var(--pink); padding: 10px 16px; border-radius: 12px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 10; }
   .toast.show { opacity: 1; }
   .hidden { display: none !important; }
@@ -188,7 +190,8 @@
 
   <section class="card">
     <h2>IN THE LAB</h2>
-    <p class="hint">Which song plays in each loop of a Lab run (Lab → MUSIC → Studio). After loop 5 it starts over.</p>
+    <p class="hint">Which song plays in each loop of a Lab run with MUSIC on. After loop 5 it starts over. Only this device hears them: everyone else gets Sunset Drive.</p>
+    <label class="uselab"><input type="checkbox" id="useLab"> Play my Studio songs in the Lab on this device</label>
     <div class="loops" id="loops"></div>
     <div class="btns"><a class="btn primary" href="../?lab" style="text-decoration:none">Try it in the Lab</a></div>
     <div class="label" style="margin-top:16px">Share a song</div>
@@ -202,7 +205,14 @@
 <script type="module">
 import * as E from './engine.js';
 const $ = (id) => document.getElementById(id);
-const STORE = 'speeder.studio.songs', CUR = 'speeder.studio.cur', LAB = 'speeder.studio.lab';
+const STORE = 'speeder.studio.songs', CUR = 'speeder.studio.cur', LAB = 'speeder.studio.lab', USE = 'speeder.studio.use';
+// The Studio is hidden from the game (address only). Opening it once switches its songs on in this device's Lab.
+try { if (localStorage.getItem(USE) === null) localStorage.setItem(USE, '1'); } catch (e) { /* storage off */ }
+{
+  const box = document.getElementById('useLab');
+  try { box.checked = localStorage.getItem(USE) === '1'; } catch (e) { /* fine */ }
+  box.addEventListener('change', () => { try { localStorage.setItem(USE, box.checked ? '1' : '0'); } catch (e) { /* fine */ } });
+}
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { toast('Couldn’t save on this device'); } };
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
