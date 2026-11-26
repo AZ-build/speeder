@@ -421,7 +421,7 @@ See `CHANGELOG.md` for a full session-by-session history.
 - Music: Adrian played the Lab's MUSIC and found it **too chill, out of place**; he likes the
   build-up but wants **more beat** and fewer moody (minor) turns. He asked about a **beat
   composer** for himself: knobs, melodies to make or pick from, guardrails to stay in key and on
-  rhythm. Claude proposed a plan (a "Studio" page whose songs play live in the Lab); waiting for his go-ahead.
+  rhythm. Built in v0.20.0 as the Studio (above).
 
 **Sound and music (v0.18.0, 2026-11-26):**
 - The Heavy effects are in the game. **Sound is still off by default**: ask Adrian whether to turn it
@@ -691,6 +691,8 @@ Settings on iOS (the keyboard covered the box). Fixed by fitting the panel above
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
+- **The Studio** (v0.20.0): Adrian's first songs and a Lab run with them; tune the built-in songs
+  and the engine from what he says (see "The Studio" above).
 - **Sound and music** (see "Sound and music (v0.18.0)" above): Adrian's first runs with the Heavy
   effects and the Lab's MUSIC; whether to turn sound back on by default; what "the Delores" meant.
   Round 2 (one sound at a time) and Round 3 (a balance mixer) are still open if he wants them.
