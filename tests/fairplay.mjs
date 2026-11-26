@@ -230,6 +230,11 @@ const seedRows = () => ({
   ok('stats feedback: signed out shows the sign-in button', /Sign in with Google/.test(await r.page.textContent('#feedbackBody')));
   ok('stats feedback: no script errors (signed out)', r.errors.length === 0, r.errors.join(' | '));
   await r.browser.close();
+  // v0.19.2: a browser with no GoatCounter key still shows the Feedback card
+  r = await openGame('', { path: 'stats/index.html', seed });
+  await r.page.waitForTimeout(1500);
+  ok('stats feedback: shown without a GoatCounter key', await r.page.isVisible('#feedback') && await r.page.isVisible('#setup') && /Sign in with Google/.test(await r.page.textContent('#feedbackBody')));
+  await r.browser.close();
   r = await openGame('', { path: 'stats/index.html', seed, auth: { uid: 'adrian', email: 'a@example.com' }, storage: { 'speeder.stats.key': 'test-key' } });
   const page = r.page;
   await page.waitForTimeout(2000);

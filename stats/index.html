@@ -181,6 +181,14 @@
     <button class="btn" id="refresh" type="button" aria-label="Refresh">↻ Refresh</button>
   </header>
 
+  <!-- v0.19.2: always shown, with or without a GoatCounter key -->
+  <section class="card" id="feedback">
+    <h2>Feedback</h2>
+    <p class="q">Notes players send from the game (title screen → Ideas, or Send feedback after a run). Only you can read them.</p>
+    <div id="feedbackBody"><div class="skeleton">Loading…</div></div>
+    <p class="note hidden" id="fbMsg" role="alert" style="color:#ff6b8b"></p>
+  </section>
+
   <!-- First time: paste the GoatCounter key -->
   <section class="card hidden" id="setup">
     <h2>Connect GoatCounter</h2>
@@ -209,11 +217,6 @@
     </nav>
     <div id="err" class="msg hidden" role="alert"></div>
 
-    <section class="card" id="feedback">
-      <h2>Feedback</h2>
-      <p class="q">Notes players send from the game (title screen → Ideas, or Send feedback after a run). Only you can read them.</p>
-      <div id="feedbackBody"><div class="skeleton">Loading…</div></div>
-    </section>
 
     <section class="card" id="players">
       <h2>Players</h2>
@@ -1263,9 +1266,10 @@ async function render(forceBoards) {
 // ---------- Feedback (v0.19.0) ----------
 // Notes from the game's Ideas button and game-over screen, in Firestore (speeder_feedback). Reading,
 // marking done and deleting need Adrian signed in with Google: the rules only allow his ID
-// (firestore-rules-feedback.txt, ADMIN_UID). Not affected by the date range or the GoatCounter key.
+// (firestore-rules-feedback.txt, ADMIN_UID). Not affected by the date range, and shown with or without a GoatCounter key (v0.19.2).
 const FEEDBACK = 'speeder_feedback';
 let fbView = store('speeder.stats.fbView') || 'open', fbNotes = null, fbUser = null;
+function fbMsg(t) { const m = $('fbMsg'); m.textContent = t || ''; m.classList.toggle('hidden', !t); }
 async function feedbackInit() {
   const el = $('feedbackBody');
   try {
@@ -1308,7 +1312,7 @@ async function signInFeedback() {
       : e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request' ? null
       : e.code === 'auth/popup-blocked' ? 'The browser blocked the sign-in window. Allow pop-ups for this page and try again.'
       : (e.message || String(e));
-    if (why) showErr(why);
+    if (why) fbMsg(why);
   }
 }
 function signOutBtn() {
@@ -1371,7 +1375,7 @@ function feedbackCard(n) {
   d.addEventListener('click', async () => {
     d.disabled = true;
     try { const { db, fs } = await firebase(); await fs.updateDoc(fs.doc(db, FEEDBACK, n.id), { done: !n.done }); n.done = !n.done; renderFeedback(); }
-    catch (e) { d.disabled = false; showErr('Couldn’t update it: ' + (e.message || e)); }
+    catch (e) { d.disabled = false; fbMsg('Couldn’t update it: ' + (e.message || e)); }
   });
   const x = h('button', 'btn warn', 'Delete');
   let armed = 0;
@@ -1379,7 +1383,7 @@ function feedbackCard(n) {
     if (Date.now() - armed > 3000) { armed = Date.now(); x.textContent = 'Tap again to delete'; setTimeout(() => { if (x.isConnected) x.textContent = 'Delete'; }, 3000); return; }
     x.disabled = true;
     try { const { db, fs } = await firebase(); await fs.deleteDoc(fs.doc(db, FEEDBACK, n.id)); fbNotes = fbNotes.filter((y) => y.id !== n.id); renderFeedback(); }
-    catch (e) { x.disabled = false; showErr('Couldn’t delete it: ' + (e.message || e)); }
+    catch (e) { x.disabled = false; fbMsg('Couldn’t delete it: ' + (e.message || e)); }
   });
   acts.append(d, x);
   c.append(acts);

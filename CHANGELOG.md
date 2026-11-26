@@ -4,6 +4,12 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.19.2] — 2026-11-26
+
+- Stats page: the Feedback card now shows on a browser without the GoatCounter key (it was inside the part that waits for the key), and its sign-in messages show in the card itself.
+
+---
+
 ## [0.19.1] — 2026-11-26
 
 - The feedback link and box no longer name Adrian ("Send feedback"; "It goes straight to the person who makes Speeder"), at his request.
