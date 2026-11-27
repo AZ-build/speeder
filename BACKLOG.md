@@ -18,6 +18,8 @@ on right now. Add anything here so it doesn't get lost.
 
 ## Feature Ideas
 
+- [ ] **Game-over rank by player** (from v0.21.0): "#N IN THE WORLD" counts runs, but the board now opens on players. Count players instead, or word it "#N run in the world".
+
 > Things we might build someday. No commitment yet.
 
 - [x] ~~**Track curves and hills**~~ Done in v0.3.

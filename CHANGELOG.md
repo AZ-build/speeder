@@ -4,6 +4,32 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.21.0] — 2026-11-26
+
+### Leaderboard: top 50 players, and slimmer filters
+
+- **New default view: Players.** Adrian: more people are playing now, so the board should show the
+  top 50 *players*, each by their best score, instead of a few people filling it with runs. The old
+  list is still one tap away (**Runs**), and **Mine** is the old "This device" tab.
+- How it works: the database still keeps runs, not players (no Firebase change needed). The
+  Players view reads runs from the top down, 100 at a time, until it has 50 different players,
+  hits the end of the list, or has read 300 runs (`PLAYERS_PAGE`, `PLAYERS_MAX_READ`). A player is
+  the start of the entry ID, as for "You hold N spots". Kept on the device for 5 minutes
+  (`TOP_AGE_PLAYERS`, `speeder.w.topPlayers` / `speeder.topPlayers`); the same download refreshes
+  the Runs list and the ladder. After your own upload your row updates straight away.
+- Status line says where you stand: "Top 50 Warp Run players in the world. You're #6."
+- **Filters take far less room:** mode (Warp | Classic) and view (Players | Runs | Mine) are two
+  slim pill switches on one line (they stack on very narrow phones), a smaller title, the status
+  line moved above the list, and the list now fills the rest of the screen. The big yellow Back
+  button at the bottom is gone (the pinned Back at the top stays). On an iPhone 14-size screen the
+  board shows about 14 rows instead of 8.
+- How to play's Points entry explains the three views.
+- New test: `node tests/board.mjs "$PWD"` (Players view, read limits, small phones). `fairplay.mjs`
+  now checks moderation in both views.
+- Not changed: the game-over "#N IN THE WORLD" still counts runs (see BACKLOG).
+
+---
+
 ## [0.20.1] — 2026-11-26
 
 ### The Studio is hidden for now

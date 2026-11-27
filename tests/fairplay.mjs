@@ -25,6 +25,7 @@ export function collection(db, name) { return { name }; }
 export function doc(db, name, id) { return { name, id }; }
 export function orderBy() { return null; }
 export function limit(n) { return { limit: n }; }
+export function startAfter(d) { return { after: d.id }; }
 export function where(f, op, v) { return { gt: v }; }
 export function query(c, ...parts) { const q = { name: c.name }; for (const p of parts) if (p) Object.assign(q, p); return q; }
 export function serverTimestamp() { return 'TS'; }
@@ -33,7 +34,7 @@ export async function updateDoc(ref, data) { W.__FS.writes.push({ col: ref.name,
 export async function deleteDoc(ref) { W.__FS.writes.push({ col: ref.name, id: ref.id, del: true }); delete W.__FS[ref.name][ref.id]; }
 export async function setDoc(ref, data) { W.__FS.writes.push({ col: ref.name, id: ref.id, data }); W.__FS[ref.name][ref.id] = data; }
 function rows(q) { return Object.entries(W.__FS[q.name]).map(([id, d]) => ({ id, d })).sort((a, b) => b.d.score - a.d.score); }
-export async function getDocs(q) { W.__FS.reads = (W.__FS.reads || 0) + 1; W.__FS.lastLimit = q.limit; return { docs: rows(q).slice(0, q.limit || 999).map((r) => ({ id: r.id, data: () => r.d })) }; }
+export async function getDocs(q) { W.__FS.reads = (W.__FS.reads || 0) + 1; W.__FS.lastLimit = q.limit; let r = rows(q); if (q.after) r = r.slice(r.findIndex((x) => x.id === q.after) + 1); return { docs: r.slice(0, q.limit || 999).map((r) => ({ id: r.id, data: () => r.d })) }; }
 export async function getCount(q) { return { data: () => ({ count: rows(q).filter((r) => r.d.score > q.gt).length }) }; }
 `;
 
@@ -138,8 +139,13 @@ const seedRows = () => ({
   ok('board: hidden player is gone', !names.includes('ALT'), names.join(','));
   ok('board: word from moderation.txt is blocked', !names.some((n) => /BADWORD/.test(n)), names.join(','));
   ok('board: real names still show', names.includes('ACE') && names.includes('BOB'), names.join(','));
+  // (v0.21.0: that was the Players view, the default; the Runs view goes through the same checks)
+  await page.click('#tabRuns');
+  await page.waitForTimeout(1200);
+  const runNames = await page.$$eval('#boardList .nm', (els) => els.map((e) => e.textContent));
+  ok('board (runs): same names, same hiding', runNames.join(',') === names.join(','), runNames.join(','));
   const lim = await page.evaluate(() => window.__FS.lastLimit);
-  ok('board: classic asks for 50 + a few for hidden ones', lim > 50 && lim <= 80, String(lim));
+  ok('board: Players reads a page of 100, Runs reuses it (v0.21.0)', lim === 100, String(lim));
   ok('board: no script errors', errors.length === 0, errors.join(' | '));
   await browser.close();
 }

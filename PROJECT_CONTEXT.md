@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.20.1 |
+| **Current Version** | v0.21.0 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS, HYPERLANE and MUSIC (v0.18), and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-26 |
@@ -91,9 +91,10 @@ shot, or pick which gate to take), all with a single control.
 - **Zones (v0.3):** every 1.4 km the world blends into the next zone: Neon Desert, Neon City,
   Sky Islands, Crystal Wastes, Cosmic Highway (then repeats). Same system, different colors,
   sky objects and roadside props.
-- **World leaderboard (v0.5):** top 50 *runs* (25 until v0.9.4) (one player can hold several spots), plus a
-  "This device" tab (10 best local runs). A run uploads if it makes the top 50 or is your best.
-  If you're offline, scores wait and upload later.
+- **World leaderboard (v0.5, views v0.21):** opens on **Players**, the top 50 players by their best
+  run (v0.21.0). **Runs** is the top 50 *runs* (25 until v0.9.4; one player can hold several spots), and
+  **Mine** the 10 best runs on this device. Mode and view are two slim pill switches on one line.
+  A run uploads if it makes the top 50 runs or is your best. If you're offline, scores wait and upload later.
 - **Celebrations and sharing (v0.5):** game over shows NEW WORLD RECORD / #N IN THE WORLD /
   NEW PERSONAL BEST with confetti. "Share & challenge" sends a score picture plus a link with
   `?c=<score>&n=<name>`; opening it sets a challenge shown on the title screen.
@@ -254,7 +255,7 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 `PART_MAX` particle cap · `QUALS[].fx` / `QUALS[].gloss` particle amount and glossy road per graphics level · `DRONE_MESH` / `RAM_MESH` / `TURRET_BASE` / `TURRET_HEAD` enemy models · `drawGloss()` road reflections · `drawShield()` shield bubble · `G.slowmo` wreck slow motion ·
 `kmBucket()` / `WARP_KM` / `CLASSIC_KM` / `LAB_KM` the distance buckets in analytics (match the stats page) · `LOOP_CAP` highest loop number in analytics · `trackRunNumber()` the exact run counter (`runs/<mode>/<n>`) · `GC_CODE` analytics on/off (GoatCounter site code, now `speeder`; dashboard https://speeder.goatcounter.com, and our own at https://speeder-game.com/stats/) · `trackOnce()` / `trackPlayerRun()` / `trackNamed()` the once-per-device player counts · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
 `WIND_SIGN_Y` where the WIND sign sits (`drawWindSign()`) · `FEEDBACK` / `FB_MAX` / `FB_GAP` / `FB_DAY` feedback collection, note length, time between notes and notes a day per device ·
-`choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size.
+`choosePowers()` how often each gate appears · `BARRIERS` / `BARRIER_GAP` which patterns can't follow each other and the space after them · `BOARD_N` leaderboard size · `PLAYERS_PAGE` / `PLAYERS_MAX_READ` / `TOP_AGE_PLAYERS` how the Players view reads runs (page size, most runs read, how long it's reused).
 
 **Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `BOSS_SNIPE` how often it fires single shots under its other attacks · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
 
@@ -262,7 +263,7 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 ### Testing hooks
 
-Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase), `node tests/touch.mjs "$PWD"` (a resting or creeping second finger never steers), `node tests/keyboard.mjs "$PWD"` (name boxes stay above a phone keyboard), `node tests/music.mjs "$PWD"` (the Lab's MUSIC, Sunset Drive option, played in real time with audio over http), `node tests/studio.mjs "$PWD"` (the Studio and Studio songs in the Lab). Run all ten before publishing.
+Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase), `node tests/touch.mjs "$PWD"` (a resting or creeping second finger never steers), `node tests/keyboard.mjs "$PWD"` (name boxes stay above a phone keyboard), `node tests/music.mjs "$PWD"` (the Lab's MUSIC, Sunset Drive option, played in real time with audio over http), `node tests/studio.mjs "$PWD"` (the Studio and Studio songs in the Lab), `node tests/board.mjs "$PWD"` (the leaderboard's Players and Runs views). Run all eleven before publishing.
 
 **Since v0.17.0 the hooks below only exist with test tools on:** add `?dev` to the address on the live site (e.g. https://speeder-game.com/?dev; it stays on for that tab and shows "TEST TOOLS ON"), or open the game from a file / localhost (the tests do). Runs with test tools on never reach a world board, and analytics is off. The game's own names (`G`, `SET`, `TUT`...) are no longer global: use `SPEEDER.inside(() => G.d)` to run code inside the game.
 
@@ -320,6 +321,7 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Sound off (v0.16.3) | Off by default, and switched off once on every device (`SOUND_RESET`), while new sounds are picked | Adrian found the sound jarring. Raise `SOUND_RESET` (and set the default back on) when the new set ships, so everyone hears it. |
 | Picking sounds (v0.16.3) | A separate picker page, one round at a time: direction first, then each sound, then balance | Adrian wants to choose each sound himself. The page plays a scripted run through the game's own mix, so options are judged in context, at matched levels. |
 | Stats page (v0.16.2) | Our own page at speeder-game.com/stats/ reading GoatCounter's API, not a Claude artifact | Adrian asked for an artifact, but artifacts can't reach outside sites, so it couldn't be live. The key lives only in Adrian's browser; the page shows nothing without it. Trade-off: the address is public (harmless without the key). |
+| Players view (v0.21.0) | Board opens on top 50 players by best run; Runs and Mine one tap away. Built by reading runs top-down (up to 300) and keeping each player's first | Adrian: more people are playing, so a few grinders shouldn't fill the board. No Firebase change. Trade-off: up to 300 reads per Players download instead of ~65 (kept 5 min on the device). If one day it reads too much, a per-player "best" list in Speeder's own Firebase project is the fix. |
 | Leaderboard reads (v0.6.3) | Reuse a recent download; only re-download after a run that could make the board | Free Firebase plan is ~50k reads/day, shared with ORBit. |
 | Built-in browsers (v0.6.3) | Detect TikTok/Instagram etc. and say "Open in browser" | They can't install the game, and the game is being shared on TikTok. |
 | Visual polish (v0.7) | Particles with flashes, shockwaves and debris; 3D enemies; glossy road on High only | Adrian wanted more polish. Heavier effects are tied to the graphics level so older phones skip them. |
@@ -405,6 +407,12 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**Leaderboard by player (v0.21.0, 2026-11-26):**
+- Board opens on the top 50 players; filters on one slim line; list fills the screen. **Ask Adrian:**
+  is the Players view what he wanted, and does "Mine" read clearly (it was "This device")?
+- Open question: game over still says "#N IN THE WORLD" counting runs, so it can differ from your
+  place in the Players view. Option: count players instead (costs reads) or say "#N run".
 
 **The Studio (v0.20.0, 2026-11-26):**
 - https://speeder-game.com/studio/. **Hidden since v0.20.1** (Adrian: the Lab is public, so not yet):

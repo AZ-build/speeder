@@ -638,6 +638,20 @@
   .dock-btn.lab { color: var(--lime); border-color: rgba(182, 255, 46, 0.35); }
   .dock-btn.lab.sel { background: rgba(182, 255, 46, 0.14); border-color: var(--lime); }
   .dock-btn:focus-visible, .seg:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  /* Leaderboard (v0.21.0): a small title, both filters on one slim line, and the list fills the rest of the screen */
+  #board { justify-content: flex-start; gap: 10px; }
+  #board .panel-title { font-size: clamp(22px, 7vw, 30px); margin-bottom: 0; }
+  .board-filters { display: flex; flex-wrap: wrap; gap: 6px; width: min(360px, 100%); flex: none; }
+  .seg-group {
+    display: flex; flex: 1 1 120px; padding: 3px; box-sizing: border-box;
+    background: rgba(10, 3, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 999px;
+  }
+  .seg-group:last-child { flex: 1.6 1 190px; }
+  .seg-group .seg { min-height: 32px; min-width: 0; padding: 0 6px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+  .seg-group .seg[aria-selected="true"] { color: var(--cyan); background: rgba(41, 243, 255, 0.1); border-color: rgba(41, 243, 255, 0.7); box-shadow: 0 0 10px rgba(41, 243, 255, 0.18); }
+  #board .board-status { flex: none; margin: 0; font-size: 12.5px; line-height: 1.35; color: #cdbdf2; min-height: 1.35em; width: min(360px, 100%); }
+  #board .board-list { flex: 1 1 auto; min-height: 0; max-height: none; width: min(360px, 100%); }
+  #board .board-list li { padding: 8px 4px; }
   .btn.mode { flex: 1; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; min-height: 58px; padding: 8px 6px; opacity: 0.7; }
   .btn.mode b { font-size: 13px; letter-spacing: 0.12em; }
   .btn.mode small { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 10px; letter-spacing: 0; text-transform: none; color: #cdbdf2; line-height: 1.2; }
@@ -837,17 +851,21 @@
 <div id="board" class="overlay panel has-back hidden">
   <button class="panel-back" type="button" data-back="boardBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Back</span></button>
   <div class="panel-title">LEADERBOARD</div>
-  <div class="tabs" role="tablist" aria-label="Game mode">
-    <button class="btn" id="boardWarp" role="tab" aria-selected="true">Warp Run</button>
-    <button class="btn" id="boardClassic" role="tab" aria-selected="false">Classic</button>
+  <!-- v0.21.0: both filters on one slim line (they wrap to two on very narrow phones) -->
+  <div class="board-filters">
+    <div class="seg-group" role="tablist" aria-label="Game mode">
+      <button class="seg" id="boardWarp" role="tab" aria-selected="true">Warp</button>
+      <button class="seg" id="boardClassic" role="tab" aria-selected="false">Classic</button>
+    </div>
+    <div class="seg-group" role="tablist" aria-label="Show">
+      <button class="seg" id="tabPlayers" role="tab" aria-selected="true">Players</button>
+      <button class="seg" id="tabRuns" role="tab" aria-selected="false">Runs</button>
+      <button class="seg" id="tabLocal" role="tab" aria-selected="false">Mine</button>
+    </div>
   </div>
-  <div class="tabs" role="tablist">
-    <button class="btn" id="tabWorld" role="tab" aria-selected="true">World</button>
-    <button class="btn" id="tabLocal" role="tab" aria-selected="false">This device</button>
-  </div>
+  <div class="status board-status" id="boardStatus" aria-live="polite"></div>
   <ol class="board-list" id="boardList"></ol>
-  <div class="status" id="boardStatus" aria-live="polite"></div>
-  <div class="stack"><button class="btn primary" id="boardBack">Back</button></div>
+  <button class="hidden" id="boardBack" type="button" tabindex="-1" aria-hidden="true"></button>
 </div>
 
 <div id="help" class="overlay panel has-back hidden">
@@ -907,7 +925,7 @@
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" fill="#04010c" stroke="#ff9d2e" stroke-width="1.5"/><path d="M17 30 V13 L31 10 V27" fill="none" stroke="#ffd23c" stroke-width="2.2" stroke-linejoin="round"/><circle cx="14" cy="30" r="3.5" fill="#ff9d2e"/><circle cx="28" cy="27" r="3.5" fill="#ff9d2e"/></svg><div class="htxt"><div class="hname">Experiment: Music</div><div>Each loop gets its own song (five of them, then they come round again), from <b>Sunset Drive</b>, a soundtrack made for Speeder. <b>Every world adds a layer</b>: calm in the first world, the beat in the third, the melody in the fourth, everything for the Warden. It changes <b>on the beat</b> as you reach each world, and after the Warden it builds up and hands off to the next song. It goes muffled while you&rsquo;re slowed down after a hit.</div><div class="hlim">Needs sound and music on in Settings</div></div></div>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M8 30 a14 14 0 1 1 28 0" fill="none" stroke="#29f3ff" stroke-width="2.5"/><path d="M22 30 L32 16" stroke="#ffd23c" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="30" r="3" fill="#fff"/></svg><div class="htxt"><div class="hname">Test setup</div><div>For trying things at speed without playing for 20 minutes first. <b>Start on</b> a later loop (faster, tougher, score multiplied) and switch on <b>Fully loaded</b> to begin with guns at level 8 and 2 shields. With the hyperlane on, <b>Start in a hyperlane</b> drops you straight into one.</div></div></div>
     <h3>Score</h3>
-<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 l5 11 12 1 -9 8 3 12 -11 -7 -11 7 3 -12 -9 -8 12 -1 z" fill="none" stroke="#ffd23c" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Points</div><div>You score for distance (faster = more), plus points for everything you destroy and AIR bonuses. Each mode has its own world leaderboard, which keeps the top 50 runs, and one player can hold several spots. Share a run to challenge a friend.</div></div></div>
+<div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 5 l5 11 12 1 -9 8 3 12 -11 -7 -11 7 3 -12 -9 -8 12 -1 z" fill="none" stroke="#ffd23c" stroke-width="2" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">Points</div><div>You score for distance (faster = more), plus points for everything you destroy and AIR bonuses. Each mode has its own world leaderboard. It opens on the top 50 players (each player&rsquo;s best run); tap Runs to see the top 50 runs, where one player can hold several spots, or Mine for your best runs on this phone. Share a run to challenge a friend.</div></div></div>
     <h3 id="helpInstall">Put it on your Home Screen</h3>
     <p class="hnote">Speeder installs like an app: full screen, its own icon, and it works with no signal. It&rsquo;s free and there&rsquo;s no app store.</p>
 <div class="hrow"><svg class="hico" viewBox="0 0 44 44" aria-hidden="true"><rect x="13" y="4" width="18" height="36" rx="4" fill="none" stroke="#29f3ff" stroke-width="2"/><path d="M22 26 V14 M17 18 l5 -5 5 5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="htxt"><div class="hname">iPhone and iPad</div><div>1. Open the game in <b>Safari</b> (Chrome works too).<br>2. Tap the <b>Share</b> button (the square with an arrow). On newer iPhones it&rsquo;s inside the <b>&bull;&bull;&bull;</b> menu next to the address.<br>3. Scroll down and tap <b>Add to Home Screen</b>. If you don&rsquo;t see it, tap <b>View More</b>.<br>4. Tap <b>Add</b>. Play from the new icon.</div></div></div>
@@ -1008,7 +1026,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.20.1';
+const VERSION = '0.21.0';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -1206,7 +1224,7 @@ function versionAtLeast(a, b) {
 // A Warp Run board reset (see W_BOARD_MIN_V): forget this device's Warp Run records once.
 (function () {
   if (storeGet('speeder.w.boardV') === W_BOARD_MIN_V) return;
-  for (const k of ['best', 'local', 'onlineBest', 'myRuns', 'worldTop', 'worldTopAt', 'hidden']) storeSet('speeder.w.' + k, '');
+  for (const k of ['best', 'local', 'onlineBest', 'myRuns', 'worldTop', 'worldTopAt', 'topPlayers', 'topPlayersAt', 'hidden']) storeSet('speeder.w.' + k, '');
   try {
     const waiting = JSON.parse(storeGet('speeder.pendingRuns') || '[]');
     if (Array.isArray(waiting)) storeSet('speeder.pendingRuns', JSON.stringify(waiting.filter((r) => r && r.mode !== 'warp')));
@@ -10646,6 +10664,16 @@ async function writeRun(run) {
   top.push({ id: run.id, name: SET.name, score: run.score, dist: run.dist, loop: run.loop });
   top.sort((x, y) => y.score - x.score);
   storeSet(modeKey('worldTop', run.mode), JSON.stringify(top.slice(0, BOARD_N)));
+  // ...and the Players list (v0.21.0): your row shows your best run, under your current name
+  const pl = cachedPlayers(run.mode);
+  if (pl.length) {
+    const was = pl.find((r) => isMine(r.id));
+    const row = !was || run.score >= was.score ? { id: run.id, name: SET.name, score: run.score, dist: run.dist, loop: run.loop } : Object.assign({}, was, { name: SET.name });
+    const next = pl.filter((r) => !isMine(r.id));
+    next.push(row);
+    next.sort((x, y) => y.score - x.score);
+    storeSet(modeKey('topPlayers', run.mode), JSON.stringify(next.slice(0, BOARD_N)));
+  }
   setPending(pendingRuns().filter((r) => r.id !== run.id));
 }
 
@@ -10741,7 +10769,63 @@ async function renameOnline() {
   }
 }
 
-let boardTab = 'world';
+// v0.21.0: the Players view (the default): each player's best run, top BOARD_N players.
+// The database keeps runs, not players, so this reads runs from the top down, a page at a time,
+// until it has BOARD_N different players, reaches the end of the list, or has read PLAYERS_MAX_READ
+// runs. A player is known by the start of the entry ID (see isMine). Costs more reads than the Runs
+// view when a few players hold many spots, so it is kept on the device like the runs list.
+const PLAYERS_PAGE = 100;        // runs read per page
+const PLAYERS_MAX_READ = 300;    // most runs read for one Players download (free plan: ~50,000 reads a day)
+const TOP_AGE_PLAYERS = 5 * 60 * 1000;   // reuse a Players download this long
+function playerOf(id) { id = String(id || ''); const i = id.indexOf('_'); return i > 0 ? id.slice(0, i) : id; }
+function cachedPlayers(mode) { const t = readJSON(modeKey('topPlayers', mode), []); return Array.isArray(t) ? t : []; }
+async function fetchPlayers(maxAge, mode) {
+  const at = parseInt(storeGet(modeKey('topPlayersAt', mode)) || '0', 10) || 0;
+  if (maxAge && Date.now() - at < maxAge) {
+    const c = cachedPlayers(mode);
+    if (c.length) return c;
+  }
+  const F = await firebase();
+  await loadModeration();
+  const { collection, query, orderBy, limit, startAfter, getDocs } = F.fs;
+  const warp = mode === 'warp';
+  const keep = (r) => !modHidden(r) && (!warp || versionAtLeast(r.v, W_BOARD_MIN_V));
+  const best = new Map(), runs = [], hidden = [];
+  let last = null, read = 0;
+  while (best.size < BOARD_N && read < PLAYERS_MAX_READ) {
+    const n = Math.min(PLAYERS_PAGE, PLAYERS_MAX_READ - read);
+    const parts = [orderBy('score', 'desc')];
+    if (last) parts.push(startAfter(last));
+    parts.push(limit(n));
+    const snap = await dbCall(getDocs(query(collection(F.db, warp ? SCORES_WARP : SCORES), ...parts)));
+    read += snap.docs.length;
+    for (const d of snap.docs) {
+      const r = Object.assign({ id: d.id }, d.data());
+      if (!keep(r)) { hidden.push(Number(r.score) || 0); continue; }
+      const row = { id: r.id, name: cleanName(r.name), score: Number(r.score) || 0, dist: Number(r.dist) || 0, loop: Number(r.loop) || 0 };
+      runs.push(row);
+      const who = playerOf(r.id);
+      if (!best.has(who)) best.set(who, row);   // runs come best first, so the first one is the player's best
+    }
+    if (snap.docs.length < n || !startAfter) break;   // the end of the list
+    last = snap.docs[snap.docs.length - 1];
+  }
+  const players = [...best.values()].slice(0, BOARD_N);
+  storeSet(modeKey('topPlayers', mode), JSON.stringify(players));
+  storeSet(modeKey('topPlayersAt', mode), String(Date.now()));
+  // the same download also refreshes the Runs list and the ladder, for free
+  storeSet('speeder.hidden.' + mode, JSON.stringify(hidden));
+  storeSet(modeKey('worldTop', mode), JSON.stringify(runs.slice(0, BOARD_N)));
+  storeSet(modeKey('worldTopAt', mode), String(Date.now()));
+  if (mode === 'warp' && !boardLive('warp')) {
+    storeSet('speeder.w.live', '1');
+    retryPending().catch(() => {});
+  }
+  track('board-download/players');
+  return players;
+}
+
+let boardTab = 'players';     // 'players' | 'runs' | 'local' (v0.21.0; was 'world' | 'local')
 let boardMode = SET.mode;     // which mode's leaderboard is on screen
 function boardFor(mode) { return mode === 'lab' ? homeMode : mode; }   // (the Lab has no leaderboard of its own)
 let boardReq = 0;
@@ -10749,6 +10833,7 @@ let boardReq = 0;
 function renderRows(rows, mine, highlightId) {
   const list = $('boardList');
   list.textContent = '';
+  list.scrollTop = 0;
   rows.forEach((r, i) => {
     const li = document.createElement('li');
     if (mine && isMine(r.id)) li.classList.add('me');
@@ -10776,31 +10861,38 @@ function renderRows(rows, mine, highlightId) {
 }
 
 async function loadBoard(tab) {
+  if (tab === 'world') tab = 'players';
   boardTab = tab;
   const req = ++boardReq;
-  const mode = boardMode, mname = MODES[mode];
+  const mode = boardMode, mname = MODE_NAMES[mode];
   $('boardWarp').setAttribute('aria-selected', String(mode === 'warp'));
   $('boardClassic').setAttribute('aria-selected', String(mode === 'classic'));
-  $('tabWorld').setAttribute('aria-selected', String(tab === 'world'));
+  $('tabPlayers').setAttribute('aria-selected', String(tab === 'players'));
+  $('tabRuns').setAttribute('aria-selected', String(tab === 'runs'));
   $('tabLocal').setAttribute('aria-selected', String(tab === 'local'));
   const status = $('boardStatus');
   if (tab === 'local') {
     const rows = localBoard(mode);
     renderRows(rows, false);
-    status.textContent = rows.length ? 'Your 10 best ' + mname + ' runs on this device.' : 'No ' + mname + ' runs yet. Go ride!';
+    status.textContent = rows.length ? 'Your 10 best ' + mname + ' runs on this device.' : 'No ' + mname + ' runs on this device yet. Go ride!';
     return;
   }
+  const players = tab === 'players';
   $('boardList').textContent = '';
   status.textContent = 'Loading the ' + mname + ' world leaderboard…';
   try {
     await retryPending();
-    const rows = await fetchTop(TOP_AGE_BOARD, mode);
+    const rows = players ? await fetchPlayers(TOP_AGE_PLAYERS, mode) : await fetchTop(TOP_AGE_BOARD, mode);
     if (req !== boardReq) return;
     renderRows(rows, true, lastRun && lastRun.mode === mode && lastRun.id);
+    const myAt = rows.findIndex((r) => isMine(r.id));
     const mineN = rows.filter((r) => isMine(r.id)).length;
-    if (!rows.length) status.textContent = 'No scores yet. Be the first!';
-    else if (!SET.name) status.textContent = 'Top ' + rows.length + ' ' + mname + ' runs in the world. Finish a run to add your name.';
-    else status.textContent = 'Top ' + rows.length + ' ' + mname + ' runs in the world.' + (mineN ? ' You hold ' + mineN + (mineN === 1 ? ' spot.' : ' spots.') : '');
+    let msg = 'Top ' + rows.length + ' ' + mname + (players ? ' players' : ' runs') + ' in the world.';
+    if (!rows.length) msg = 'No scores yet. Be the first!';
+    else if (!SET.name) msg += ' Finish a run to add your name.';
+    else if (players && myAt >= 0) msg += ' You’re #' + (myAt + 1) + '.';
+    else if (!players && mineN) msg += ' You hold ' + mineN + (mineN === 1 ? ' spot.' : ' spots.');
+    status.textContent = msg;
   } catch (e) {
     if (req !== boardReq) return;
     renderRows(localBoard(mode), false);
@@ -10812,7 +10904,8 @@ async function loadBoard(tab) {
 
 $('boardWarp').addEventListener('click', () => { boardMode = 'warp'; loadBoard(boardTab); });
 $('boardClassic').addEventListener('click', () => { boardMode = 'classic'; loadBoard(boardTab); });
-$('tabWorld').addEventListener('click', () => loadBoard('world'));
+$('tabPlayers').addEventListener('click', () => loadBoard('players'));
+$('tabRuns').addEventListener('click', () => loadBoard('runs'));
 $('tabLocal').addEventListener('click', () => loadBoard('local'));
 $('boardBack').addEventListener('click', closePanel);
 
