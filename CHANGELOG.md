@@ -4,6 +4,27 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.23.2] — 2026-11-27
+
+### Performance first: Warp Run back on the old track; no audio at all while muted; Redline lighter
+
+- **Why:** Adrian: "I think it did drain battery" and "performance is priority": roll Warp Run back
+  to the old sound.
+- **Warp Run plays the old "Synthwave House Loop" again** (one looped file, as in Classic). Redline
+  stays in the Lab only (the MUSIC card, as in v0.22.0; with MUSIC off a Lab run plays the old track).
+  How to play's "Music: Redline" entry is gone again.
+- **Found a real drain, for everyone:** the game started its audio at every run even with sound
+  muted, so the whole mix (and from v0.23.0 Redline, in every Warp Run) was being made and played
+  through a volume of zero. Now with sound off no audio context is made at all, and muting pauses
+  it (`audioInit()`, `applySound()`, coming back to the app). With music off in Settings, the Lab's
+  live soundtracks (Redline, Studio songs) stop making sound too.
+- **Redline about 56% cheaper** (0.082 → 0.036 s of work per second of music in headless Chrome):
+  no live reverb (it's rendered into the pads, stabs, claps, toms and effects when they're made),
+  lead notes rendered per key like the bass, the hi-hat and shaker pairs pre-mixed (one sound per
+  step), and the scheduler wakes every 100 ms instead of 50. Loudness at every level unchanged.
+  It takes about a second longer to get ready at the start of a run (rendered in the background).
+- Sound stays off by default (v0.23.1). Gameplay unchanged (`same-as-before.sh`).
+
 ## [0.23.1] — 2026-11-27
 
 ### Sound off by default again

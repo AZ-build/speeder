@@ -70,7 +70,7 @@ changes, so the counts are roughly people, not runs.
 | **JUMP** (`jump`) | v0.10.0, made bigger in v0.11.0 | In the Lab. Adrian's first note (2026-11-13): make it higher and longer. Done; needs another try. | A jump you can do anywhere. Options: gesture (flick up / second-finger tap) and fuel (2 earned charges / unlimited). |
 | **SKY RAMPS** (`ramps`) | v0.11.0 | In the Lab. No human has played it yet. | Big ramps that launch a long flight with five rings to steer through. No options yet. |
 | **HYPERLANE** (`lane`) | v0.12.0 | In the Lab. No human has played it yet. | A zero-gravity tunnel between every two worlds, steering up and down as well as sideways. Option: flying style (barrel rolls / smooth banks). |
-| **MUSIC** (`music`) | v0.18.0, Studio songs in v0.20.0, Redline in v0.22.0 | **Redline graduated into Warp Run in v0.23.0** (Adrian: "I like it. Push the changes to the main game"); every Lab run plays it too. The card stays for trying another soundtrack in the Lab. | Music that builds world by world, changing on the beat. Option: soundtrack (Redline / Sunset Drive; My Studio songs only on a phone that opened the Studio). |
+| **MUSIC** (`music`) | v0.18.0, Studio songs in v0.20.0, Redline in v0.22.0 | In the Lab. Redline went into Warp Run in v0.23.0 and came back out in v0.23.2 (battery; performance first). Redline is the card's default. | Music that builds world by world, changing on the beat. Option: soundtrack (Redline / Sunset Drive; My Studio songs only on a phone that opened the Studio). |
 
 ### JUMP: how it works
 
@@ -216,7 +216,13 @@ power-ups, with the speeder rolling and flipping naturally as you move.
 
 ### MUSIC: how it works
 
-**v0.23.0: Redline graduated.** Warp Run plays it (`startGame()` calls `lmBegin()`), and so does every Lab run, whatever the MUSIC card says; the card now only swaps in Sunset Drive or Studio songs for Lab runs. The code stays in the MUSIC block (`LM`, `RL`, `lmTick()`): `LM.on` now means "Warp Run or Lab music is playing". Classic and Flight School keep the old track.
+**v0.23.2: back in the Lab only.** Redline was Warp Run's music in v0.23.0-0.23.1; Adrian found it
+drained his battery and put performance first, so Warp Run plays the old track again and Redline is
+the Lab's MUSIC default once more (MUSIC off = the old track). The same release made Redline ~56%
+cheaper (no live reverb: it's rendered into the sounds; lead notes rendered per key; hats and
+shaker pre-mixed; a 100 ms scheduler) and stopped all audio while sound is muted (it used to play
+through a volume of zero). Before it graduates again: measure it on a real phone (battery and frame
+rate, music on vs off).
 
 **v0.22.0: Redline (the default).** Adrian, 2026-11-27: the Studio "didn't really work for me, too
 hard to control on a phone, hard to see the whole song and change certain things". He asked Claude
@@ -250,10 +256,11 @@ or effects. And the game's sounds tuned to work with it.
   arpeggio pattern, a fill for bar 8 (roll, rev, tom, zap, stutter, drop) and an effect in bar 4
   (zap, ping, swish, arpUp), and from loop 3 the odd 4-bar breakdown (never during the Warden). The
   pool grows each loop. Its own seeded random numbers: it never touches `Math.random`.
-- **Sounds:** drums and effects (`KIT`) are rendered once per run into buffers; pads, stabs, bass
-  and arpeggio notes once per key (`prepare()`, small OfflineAudioContexts); the lead is live (three
-  oscillators a note, one for the octave-up twin). One reverb (1.8 s, mono in), one dotted-eighth
-  echo synced to the tempo, a compressor, then `out` (level 0.4: level 5 sits at about -15.5 dBFS
+- **Sounds:** drums and effects (`KIT`) are rendered once per run into buffers; pads, stabs, bass,
+  arpeggio and lead notes (`leadPitches()`, `drawLead()`) once per key (`prepare()`, small
+  OfflineAudioContexts). Since v0.23.2 there is no live reverb: it's rendered into the pads, stabs,
+  claps, toms and effects (`withVerb()`, `impulseFor()`). One dotted-eighth echo synced to the tempo,
+  a compressor, then `out` (level 0.4: level 5 sits at about -15.5 dBFS
   RMS like the Sunset Drive files) into the Lab's music filter and bus (`LM.filter`, `LM.bus`).
 - **In the game:** the RL block in index.html (`RL`, `lmSong()`, `rlState()`, `rlManage()`,
   `rlReset()`), and three guarded lines in `lmTick()`. Same muffles as Sunset Drive (slowed down,

@@ -187,11 +187,31 @@ const KIT = {
     s.connect(f); f.connect(g); g.connect(p); p.connect(o); s.start(0); s.stop(0.4);
   }],
   // air rushing past
+  // pre-mixed pairs, so a busy step plays one sound instead of two (v0.23.2: cheaper)
+  shOpen: [0.4, false, (c, o) => { const a = c.createGain(), b = c.createGain(); a.gain.value = 0.55; b.gain.value = 0.42; a.connect(o); b.connect(o); KIT.open[2](c, a); KIT.shaker[2](c, b); }],
+  shHat: [0.12, false, (c, o) => { const a = c.createGain(), b = c.createGain(); a.gain.value = 0.3; b.gain.value = 0.28; a.connect(o); b.connect(o); KIT.hat[2](c, a); KIT.shaker[2](c, b); }],
   swish: [1.2, true, (c, o) => {
     const p = c.createStereoPanner(); p.pan.setValueAtTime(0.8, 0); p.pan.linearRampToValueAtTime(-0.8, 1.1); p.connect(o);
     noiseHit(c, p, 0, 1.2, 'bandpass', 800, 1.5, (g, f) => { g.setValueAtTime(0.0001, 0); g.linearRampToValueAtTime(0.35, 0.5); g.linearRampToValueAtTime(0.0001, 1.15); f.setValueAtTime(600, 0); f.exponentialRampToValueAtTime(6000, 0.6); f.exponentialRampToValueAtTime(1500, 1.15); });
   }],
 };
+function impulseFor(c, sec, seed) {
+  const n = Math.floor(c.sampleRate * sec), b = c.createBuffer(2, n, c.sampleRate), r = rng(seed);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = b.getChannelData(ch);
+    for (let i = 0; i < n; i++) { const t = i / n; d[i] = (r() * 2 - 1) * Math.pow(1 - t, 2.6) * (0.5 + 0.5 * Math.exp(-t * 6)); }
+  }
+  return b;
+}
+// a one-shot with its reverb rendered in (no live reverb since v0.23.2)
+function withVerb(draw, sec, wet, seed) {
+  return (c, o) => {
+    const dry = c.createGain(), rv = c.createConvolver(), w = c.createGain();
+    rv.buffer = impulseFor(c, sec, seed); w.gain.value = wet;
+    dry.connect(o); dry.connect(rv); rv.connect(w); w.connect(o);
+    draw(c, dry);
+  };
+}
 // a cymbal swelling up backwards into the next bar (made from the crash)
 function reverseOf(buf, ctx) {
   const b = ctx.createBuffer(buf.numberOfChannels, Math.floor(buf.sampleRate * 1.5), buf.sampleRate);
@@ -202,9 +222,18 @@ function reverseOf(buf, ctx) {
   return b;
 }
 
+for (const [name, len, sec, wet] of [['clap', 1.3, 1.1, 0.4], ['snare', 1.0, 0.9, 0.3], ['tom', 1.1, 0.9, 0.3], ['zap', 1.2, 1.0, 0.45], ['swish', 2.0, 1.2, 0.4], ['crash', 3.0, 1.6, 0.25]]) {
+  const k = KIT[name];
+  KIT[name] = [len, true, withVerb(k[2], sec, wet, 7 + len * 13)];
+}
+
 // supersaw chord pads and stabs for one key: rendered once per key
 function drawChord(c, o, notes, len, stab) {
   const lp = c.createBiquadFilter(), g = c.createGain();
+  // the reverb is rendered into the pads and stabs here, once, instead of running live (v0.23.2: cheaper)
+  const rv = c.createConvolver(), wet = c.createGain();
+  rv.buffer = impulseFor(c, stab ? 1.2 : 2.2, 41 + notes[0]); wet.gain.value = stab ? 0.22 : 0.34;
+  g.connect(rv); rv.connect(wet); wet.connect(o);
   lp.type = 'lowpass'; lp.Q.value = stab ? 1.2 : 0.4;
   if (stab) { lp.frequency.setValueAtTime(7000, 0); lp.frequency.exponentialRampToValueAtTime(900, 0.3); }
   else lp.frequency.value = 9000;
@@ -246,6 +275,31 @@ function drawArp(c, o, m) {
   g.gain.setValueAtTime(0, 0); g.gain.linearRampToValueAtTime(0.42, 0.003); g.gain.setTargetAtTime(0, 0.01, 0.07);
   s.connect(lp); lp.connect(g); g.connect(o); s.start(0); s.stop(0.5);
 }
+// one lead note, 2.4 s long (longer notes are cut by the player): two detuned saws and a square an
+// octave down, a gentle filter, vibrato creeping in after a third of a second. thin = the octave-up twin
+const LEAD_LEN = 2.4;
+function drawLead(c, o, m, thin) {
+  const g = c.createGain(), lp = c.createBiquadFilter(), end = LEAD_LEN - 0.08;
+  lp.type = 'lowpass'; lp.Q.value = 0.8; lp.frequency.setValueAtTime(4800, 0); lp.frequency.setTargetAtTime(3000, 0.03, 0.2);
+  lp.connect(g); g.connect(o);
+  g.gain.setValueAtTime(0, 0); g.gain.linearRampToValueAtTime(0.34, 0.008); g.gain.setTargetAtTime(0.27, 0.02, 0.15);
+  g.gain.setValueAtTime(0.27, end); g.gain.linearRampToValueAtTime(0, LEAD_LEN);
+  const vib = c.createOscillator(), vg = c.createGain();
+  vib.frequency.value = 5.4; vg.gain.setValueAtTime(0, 0); vg.gain.setValueAtTime(0, 0.3); vg.gain.linearRampToValueAtTime(thin ? 8 : 14, 0.7);
+  vib.connect(vg); vib.start(0); vib.stop(LEAD_LEN);
+  for (const [type, cents, amp] of thin ? [['sawtooth', 7, 0.6]] : [['sawtooth', -10, 0.5], ['sawtooth', 10, 0.5], ['square', -1200, 0.2]]) {
+    const x = c.createOscillator(), xg = c.createGain();
+    x.type = type; x.frequency.value = mtof(m); x.detune.value = cents; vg.connect(x.detune); xg.gain.value = amp;
+    x.connect(xg); xg.connect(lp); x.start(0); x.stop(LEAD_LEN);
+  }
+}
+// every pitch the lead can play in a key (the riffs, and riff C's chord tones), and its twin an octave up
+function leadPitches(keyOff) {
+  const base = 74 + keyOff - (keyOff > 4 ? 12 : 0), set = new Set();
+  for (const r of Object.values(RIFFS)) for (const n of r) set.add(base + n.n);
+  for (const ch of Object.values(CHORDS)) for (const x of ch.tones) set.add(base + x);
+  return [...set];
+}
 // render each one-shot on its own small OfflineAudioContext: items [[name, seconds, stereo, draw]] -> { name: AudioBuffer }
 function renderBank(sampleRate, items) {
   const OC = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
@@ -281,14 +335,11 @@ export class Redline {
     this.arpF = lp(1000, null); this.arpF.Q.value = 1.4; this.arp = g(0.3, this.arpF); this.arpF.connect(this.pump);
     this.lead = g(0.36, this.mix);
     this.fx = g(0.55, this.mix);
-    // space: one reverb, one tempo-synced dotted-eighth echo
-    this.rev = c.createConvolver(); this.rev.buffer = this.impulse(1.8); this.rev.connect(this.mix);
-    this.revIn = g(0.3, this.rev); this.revIn.channelCount = 1; this.revIn.channelCountMode = 'explicit';
+    // space: a tempo-synced dotted-eighth echo; the reverb is rendered into the sounds themselves
+    // (pads, stabs, claps, toms, effects) when they're made, so none runs live (v0.23.2: battery)
     this.dly = c.createDelay(2); this.dlyFb = g(0.36); this.dlyF = lp(3200, null);
     this.dlyIn = g(0.3, this.dly); this.dly.connect(this.dlyF); this.dlyF.connect(this.dlyFb); this.dlyFb.connect(this.dly); this.dlyF.connect(this.mix);
-    for (const b of [this.padF, this.lead, this.fx]) b.connect(this.revIn);
     for (const b of [this.arpF, this.lead, this.fx]) b.connect(this.dlyIn);
-    this.clapRev = g(0.35, this.revIn);
     this.kit = null; this.banks = {}; this.ready = false;
     this.st = { loop: 1, world: 0, boss: false, lane: false, frac: 0, speed: 32, gateEta: Infinity, at: 0 };
     this.playing = false; this.timer = null; this.listeners = [];
@@ -296,14 +347,6 @@ export class Redline {
   }
   on(fn) { this.listeners.push(fn); }
   emit(e) { for (const f of this.listeners) try { f(e); } catch (x) { /* a listener's problem, not the music's */ } }
-  impulse(sec) {
-    const c = this.ctx, n = Math.floor(c.sampleRate * sec), b = c.createBuffer(2, n, c.sampleRate), r = rng(99);
-    for (let ch = 0; ch < 2; ch++) {
-      const d = b.getChannelData(ch);
-      for (let i = 0; i < n; i++) { const t = i / n; d[i] = (r() * 2 - 1) * Math.pow(1 - t, 2.6) * (0.5 + 0.5 * Math.exp(-t * 6)); }
-    }
-    return b;
-  }
   // render the drum kit (once) and the pads and stabs for a key offset; resolves when ready
   prepare(keyOff) {
     const sr = this.ctx.sampleRate, jobs = [];
@@ -316,14 +359,18 @@ export class Redline {
       const bassN = new Set(), arpN = new Set();
       for (const [id, ch] of Object.entries(CHORDS)) {
         const notes = ch.pad.map((x) => 62 + keyOff - down + x);
-        items.push(['pad' + id, 4.4, true, (c, o) => drawChord(c, o, notes, 4.4, false)]);
-        items.push(['stab' + id, 0.5, true, (c, o) => drawChord(c, o, notes.map((m) => m + 12), 0.5, true)]);
+        items.push(['pad' + id, 4.4, true, (c, o) => drawChord(c, o, notes, 3.6, false)]);
+        items.push(['stab' + id, 1.1, true, (c, o) => drawChord(c, o, notes.map((m) => m + 12), 0.5, true)]);
         const r = 38 + keyOff - down + ch.bass;
         for (const x of [0, 7, 12]) bassN.add(r + x);
         for (const m of arpTones(ch, keyOff)) arpN.add(m);
       }
       for (const m of bassN) items.push(['bass' + m, 0.5, false, (c, o) => drawBass(c, o, m)]);
       for (const m of arpN) items.push(['arp' + m, 0.5, false, (c, o) => drawArp(c, o, m)]);
+      for (const m of leadPitches(keyOff)) {
+        items.push(['lead' + m, LEAD_LEN, false, (c, o) => drawLead(c, o, m, false)]);
+        items.push(['twin' + m, LEAD_LEN, false, (c, o) => drawLead(c, o, m + 12, true)]);
+      }
       this['bankP' + keyOff] = renderBank(sr, items).then((b) => { this.banks[keyOff] = b; });
     }
     jobs.push(this['bankP' + keyOff]);
@@ -343,7 +390,7 @@ export class Redline {
     this.out.gain.cancelScheduledValues(c.currentTime); this.out.gain.setValueAtTime(this.level, c.currentTime);
     this.cut.frequency.cancelScheduledValues(c.currentTime); this.cut.frequency.setValueAtTime(18000, c.currentTime);
     this.playing = true;
-    if (!this.offline) { this.timer = setInterval(() => this.tick(), 50); this.tick(); }
+    if (!this.offline) { this.timer = setInterval(() => this.tick(), 100); this.tick(); }
   }
   stop() { if (this.timer) clearInterval(this.timer); this.timer = null; this.playing = false; }
   fadeOut(sec = 1.2) {
@@ -364,7 +411,7 @@ export class Redline {
     const now = c.currentTime;
     if (until == null) {
       if (now > this.T + 0.05) this.T += Math.ceil((now + 0.05 - this.T) / (240 / this.bpm)) * (240 / this.bpm);   // fell behind (a sleeping tab): skip ahead on the grid
-      until = now + 0.3;
+      until = now + 0.4;
     }
     while (this.playing && this.T < until) this.bar();
   }
@@ -452,9 +499,10 @@ export class Redline {
         const hatOn = lvl === 2 ? s % 4 === 2 : true;
         if (hatOn && lvl === 2) this.hit('hat', t, 0.45 + 0.25 * e);
         if (lvl >= 3) {
-          if (s % 4 === 2) this.hit('open', t, lvl >= 5 ? 0.55 : 0.42);
-          this.hit('shaker', t, (s % 2 ? 0.28 : 0.42) * (lvl >= 4 ? 1 : 0.8));
-          if (lvl >= 5 && s % 2 === 1) this.hit('hat', t, 0.3);
+          const k = lvl >= 4 ? 1 : 0.8;
+          if (s % 4 === 2) this.hit('shOpen', t, lvl >= 5 ? 1 : 0.78 * k);
+          else if (lvl >= 5 && s % 2 === 1) this.hit('shHat', t, 1);
+          else this.hit('shaker', t, (s % 2 ? 0.28 : 0.42) * k);
         }
         if (lvl >= 3 && !brk && (s === 4 || s === 12) && !(fill === 'roll' && s >= 8)) { this.hit('clap', t, lvl >= 5 ? 0.95 : 0.8); if (lvl >= 5) this.hit('snare', t, 0.45); }
         if (lvl === 2 && e > 0.6 && s === 12) this.hit('clap', t, 0.4);   // a hint of what's coming
@@ -546,7 +594,6 @@ export class Redline {
     const c = this.ctx, s = c.createBufferSource(), g = c.createGain();
     s.buffer = b; g.gain.value = v;
     s.connect(g); g.connect(dest || this.drums);
-    if (name === 'clap' || name === 'snare') g.connect(this.clapRev);
     if (name === 'zap' || name === 'swish') g.connect(this.dlyIn);
     s.start(t);
   }
@@ -610,6 +657,17 @@ export class Redline {
     }
   }
   leadNote(t, m, len, v, thin) {
+    const bank = this.banks[this.key], b = bank && bank[(thin ? 'twin' : 'lead') + (thin ? m - 12 : m)];
+    if (b) {
+      const c = this.ctx, s = c.createBufferSource(), g = c.createGain(), end = t + Math.min(LEAD_LEN - 0.1, Math.max(0.06, len * 0.92));
+      s.buffer = b;
+      g.gain.setValueAtTime(v, t); g.gain.setValueAtTime(v, end); g.gain.setTargetAtTime(0, end, 0.05);
+      s.connect(g); g.connect(this.lead); s.start(t); s.stop(Math.min(t + LEAD_LEN, end + 0.3));
+      return;
+    }
+    this.leadLive(t, m, len, v, thin);
+  }
+  leadLive(t, m, len, v, thin) {
     const c = this.ctx, g = c.createGain(), lp = c.createBiquadFilter(), end = t + Math.max(0.06, len * 0.92);
     lp.type = 'lowpass'; lp.Q.value = 0.8; lp.frequency.setValueAtTime(4800, t); lp.frequency.setTargetAtTime(3000, t + 0.03, 0.2);
     lp.connect(g); g.connect(this.lead);
@@ -680,7 +738,7 @@ export class Redline {
   tom(t, rate, v) {
     const c = this.ctx, s = c.createBufferSource(), g = c.createGain();
     s.buffer = this.kit.tom; s.playbackRate.value = rate; g.gain.value = v;
-    s.connect(g); g.connect(this.drums); g.connect(this.clapRev); s.start(t);
+    s.connect(g); g.connect(this.drums); s.start(t);
   }
   fxHit(kind, t, S) {
     if (kind === 'zap') this.hit('zap', t, 0.45, this.fx);

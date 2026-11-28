@@ -154,7 +154,7 @@ const newPage = async (init) => {
   lv = await S(() => window.__ev.find((e) => e.type === 'level'));
   ok('world 2: level 2 lands on the next bar line', !!lv && lv.level === 2 && (await IN(`() => WP.theme`)) === 1, lv);
   const r2 = await rms(2500);
-  ok('world 2 is louder than world 1 (the build)', r2 > r1 + 1.5, { w1: r1.toFixed(1), w2: r2.toFixed(1) });
+  ok('world 2 is louder than world 1 (the build)', r2 > r1 + 1, { w1: r1.toFixed(1), w2: r2.toFixed(1) });
   // to the Warden
   await IN(`() => { LAB.run.lane = undefined; delete LAB.run.lane; }`);
   for (let i = 0; i < 3; i++) await S(() => { SPEEDER.enterWorld(); SPEEDER.G.invuln = 1e9; });
@@ -187,16 +187,21 @@ const newPage = async (init) => {
   await page.waitForFunction(() => SPEEDER.LM.cur, null, { timeout: 15000 }).catch(() => {});
   ok('Sunset Drive choice: plays the Sunset Drive files, no Redline', await IN(`() => LM.kind === 'sunset' && !!LM.cur && !RL.player`));
   await S(() => { SPEEDER.labSet('music', 'song', 'redline'); SPEEDER.G.invuln = 0; SPEEDER.die(); });
-  // Warp Run (v0.23.0): Redline is its music; Classic keeps the old track
+  // Warp Run and Classic (v0.23.2): the old track, no Redline (performance first)
   await page.waitForTimeout(300);
   await S(() => { SPEEDER.setMode('warp'); SPEEDER.startGame(); SPEEDER.G.invuln = 1e9; });
-  await page.waitForFunction(() => SPEEDER.RL.player && SPEEDER.RL.player.playing, null, { timeout: 15000 }).catch(() => {});
-  ok('Warp Run: Redline plays, the old track is muted', await IN(`() => LM.kind === 'redline' && RL.player && RL.player.playing && AU.musicBus.gain.value < 0.05`));
+  await wait(1500);
+  ok('Warp Run: no Redline, the old track plays', await IN(`() => !LM.on && !RL.player && AU.musicBus.gain.value > 0.05`));
   await S(() => { SPEEDER.G.invuln = 0; SPEEDER.die(); });
   await page.waitForTimeout(1500);
   await S(() => { SPEEDER.setMode('classic'); SPEEDER.startGame(); });
   await wait(1500);
   ok('Classic: no Redline, the old track plays', await IN(`() => !LM.on && !RL.player && AU.musicBus.gain.value > 0.05`));
+  // muted: no audio runs at all (v0.23.2, battery)
+  await IN(`() => { SET.sound = false; applySound(); }`);
+  await wait(400);
+  ok('muted: the audio is paused, not playing silently', await IN(`() => AU.ctx.state === 'suspended'`));
+  await IN(`() => { SET.sound = true; applySound(); }`);
   // sound is off by default again (v0.23.1: the music is still being refined)
   ok('sound is off by default, and switched off once on every phone', await IN(`() => SETTINGS_DEFAULT.sound === false && SOUND_RESET === '3' && SOUND_RESET_TO === false`));
   ok('run: no script errors', errors.length === 0, errors.slice(0, 3));

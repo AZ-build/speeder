@@ -114,10 +114,10 @@ ok('game-over stats name the song reached', await S(() => /Sunset Drive II/.test
 // Lab off: the old music plays as before and the director stays off
 await S(() => { SPEEDER.labSet('music', 'on', false); SPEEDER.setMode('lab'); SPEEDER.startGame(); });
 await wait(1200);
-ok('MUSIC off: no Sunset Drive, Redline plays instead (v0.23.0), the old track stays muted', await IN(`() => LM.on && LM.kind === 'redline' && !LM.cur && AU.musicBus.gain.value < 0.05`));
+ok('MUSIC off: the director stays off and the old track plays', await IN(`() => !LM.on && !LM.cur && AU.musicBus.gain.value > 0.05`));
 await S(() => { SPEEDER.setMode('warp'); SPEEDER.startGame(); });
 await wait(1200);
-ok('Warp Run: Redline, no Sunset Drive', await IN(`() => LM.on && LM.kind === 'redline' && !LM.cur`));
+ok('Warp Run: no Lab music', await IN(`() => !LM.on && !LM.cur`));
 
 ok('no script errors', errors.length === 0, errors.slice(0, 5));
 await browser.close();

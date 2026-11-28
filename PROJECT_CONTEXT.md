@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.23.1 |
+| **Current Version** | v0.23.2 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS, HYPERLANE and MUSIC (v0.18; Redline v0.22), and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-27 |
@@ -155,9 +155,8 @@ Same steering, guns, power-up gates and hazards as above, plus:
   thrown back onto the road (no damage) and both rails are locked for 5 seconds. Warp Run only.
 - **Prototypes:** permanent upgrades chosen from a gate pair after each boss: HEAVY CORE,
   TWIN WINGS, HULL +1, AEGIS, MAGNET, CHAIN BLAST.
-- **Music (v0.23.0): Redline**, a live-synth track made for Speeder (`audio/redline.js`, graduated
-  from the Lab): a level a world, tempo follows the road's speed up to 128 BPM, a new key after each
-  Warden, new riffs at the top. Classic and Flight School keep the old track. Details in `LAB.md`.
+- **Music:** the old "Synthwave House Loop", like Classic. (Redline played here in v0.23.0-0.23.1;
+  rolled back in v0.23.2 for battery. It lives in the Lab: see `LAB.md`.)
 - **Own leaderboard:** Firestore list `speeder_warp_scores`; local keys under `speeder.w.`.
   It only shows runs from version `W_BOARD_MIN_V` or newer: raising that number resets the board.
 - Timing with a perfect driver: a loop takes about 4 minutes (five 40-second worlds plus the boss).
@@ -191,10 +190,10 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
   one power-up orb per lane. The road waits while you're in it. Compared: **flying style**,
   Barrel rolls (the speeder rolls its top toward where it's going, flips on dives, a fast swipe
   spins it round) vs Smooth banks (never upside down).
-- **Experiment 4, MUSIC (v0.18, Studio songs v0.20, Redline v0.22):** Redline graduated into Warp
-  Run in v0.23.0 and plays in every Lab run too. The card is now for trying another soundtrack in
-  the Lab: **Sunset Drive** (the recordings, a song per loop), or "My Studio songs" on a device that
-  has opened the hidden **Speeder Studio** (`studio/`). Details in `LAB.md`.
+- **Experiment 4, MUSIC (v0.18, Studio songs v0.20, Redline v0.22):** music that builds world by
+  world. Option **Soundtrack**: **Redline** (default; Claude's live-synth track, `audio/redline.js`;
+  it was Warp Run's music in v0.23.0-0.23.1, rolled back for battery) or **Sunset Drive** (the
+  recordings). "My Studio songs" only on a device that opened the hidden Studio. Details in `LAB.md`.
 - **Test setup (v0.11):** a card in the Lab panel, not an experiment: **Start on loop 1-6**
   (the run begins at that loop's speed, difficulty and score multiplier) and **Fully loaded**
   (guns at level 8 and 2 shields from the start). For testing at high speed. v0.12 adds
@@ -209,7 +208,7 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
 |-------|--------|-------|
 | Frontend | Plain HTML + JavaScript + Canvas 2D | One file: `index.html`. No libraries, nothing to install. |
 | 3D look | Homemade perspective math ("pseudo-3D") | Out Run-style. Everything is projected from world x/y/distance onto the screen. |
-| Sound | Web Audio playing CC0 audio files in `audio/` | Effects: the Heavy set made for Speeder (v0.18.0) plus a few from Kenney's packs, tuned to sit with the music in v0.22.0 (soft bus, ducking, limiter). Music: Warp Run and the Lab play Redline (`audio/redline.js`, synthesised live, made for Speeder; Warp Run since v0.23.0); Classic, Flight School and the menus play "Synthwave House Loop" by Fupi (tempo and brightness follow the run); the Lab's MUSIC card can swap in Sunset Drive I-V (`audio/lab-music/`). Sound off by default (v0.23.1) while Adrian refines the music. Credits in `audio/CREDITS.md`. |
+| Sound | Web Audio playing CC0 audio files in `audio/` | Effects: the Heavy set made for Speeder (v0.18.0) plus a few from Kenney's packs, tuned to sit with the music in v0.22.0 (soft bus, ducking, limiter). Music: "Synthwave House Loop" by Fupi (tempo and brightness follow the run) everywhere but the Lab's MUSIC experiment, which plays Redline (`audio/redline.js`, synthesised live, made for Speeder) or Sunset Drive I-V (`audio/lab-music/`). With sound off no audio runs at all (v0.23.2). Sound off by default (v0.23.1) while Adrian refines the music. Credits in `audio/CREDITS.md`. |
 | Offline / install | `manifest.webmanifest` + `sw.js` (service worker) | Bump `CACHE` in sw.js after each change so phones get updates. |
 | Backend / DB | Firebase Firestore, **ORBit's project `orbit-23921`**, lists `speeder_scores` (Classic) and `speeder_warp_scores` (Warp Run) | Loaded only when needed (Firestore "lite" library). Settings and local scores live in the browser's localStorage. Rules: `firestore-rules-speeder.txt` (Classic) and `firestore-rules-warp.txt` (Warp Run). v0.17.0 prepared a move to Speeder's own project plus App Check (`SPEEDER_FIREBASE`, `APP_CHECK_KEY`, `firestore-rules-own-project.txt`, `FIREBASE-SETUP.md`): not done yet, waiting on Adrian. |
 | Hosting | GitHub Pages, custom domain `speeder-game.com` | A PWA needs https to install; GitHub Pages provides it for free. Domain bought by Adrian through Squarespace (2026-11-16); its DNS records point at GitHub Pages. The `CNAME` file in the repo holds the domain: never delete it. |
@@ -377,7 +376,7 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | New music (v0.18.0) | Sunset Drive I-V, made for Speeder, in the Lab first | Adrian found free packs off-target; he wants chill that builds (his Spotify "e-Jamz" is the reference) and loved the Sunset Drive sketch. Five variations, one per loop, so a 30-minute run doesn't repeat. |
 | Redline (v0.22.0) | Claude composes one live-synth track that follows the run (levels by world, tempo by the road's speed, capped at 128 BPM, variety instead of speed at the top); default soundtrack in the Lab, Sunset Drive still a choice | Adrian found the Studio too hard on a phone and asked Claude to make the music: big, slow-building synth, starts low, speeds up with the levels but not past top speed, then new riffs and effects. Live synthesis is the only way the tempo can follow the speed without pitch changes and the riffs can vary for ever; drums and pads are pre-rendered so it costs less than the Studio engine. Trade-off: synthesised instruments, not yet measured on a real phone. |
 | Effects with the music (v0.22.0) | Rapid-fire sounds quieter, softened and following Redline's level; jump and swarm down to the others; the music dips under big sounds; a final limiter; in every mode | Adrian: the game sound shouldn't be distracting and should work with the music. Measured: world 1's music is ~8 dB under worlds 3-5, so shots were as loud as the music at the start; jump and swarm were 9-11 dB over it. Random picks untouched, so runs are identical. |
-| Redline in the main game (v0.23.0) | Warp Run only; sound switched back on for everyone | Adrian: "I like it. Push the changes to the main game". He chose Warp Run only (Classic stays as it was) and sound on for all players. |
+| Redline in the main game (v0.23.0, undone in v0.23.2) | Was Warp Run only with sound on for everyone; then sound off again (v0.23.1) and Warp Run back on the old track (v0.23.2) | Adrian liked it, then found it drained his battery: "performance is priority". It waits in the Lab until it's measured on a real phone. |
 | Music sync (v0.18.0) | The music keeps its own beat; the game says which part it wants; changes wait for the next bar line; parts are layers of one 8-bar grid | Adrian asked what happens if he slows down or beats the Warden fast. Nothing can drift: a part just loops longer or the handoff comes sooner, and swaps always land on the beat. Trade-off: up to one bar's delay (2.1-2.5 s) before the music follows a new world. |
 
 ---
@@ -412,6 +411,13 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**Performance first (v0.23.2, 2026-11-27):** Adrian: Redline in Warp Run "did drain battery";
+"performance is priority". Warp Run back on the old track; Redline back in the Lab only, ~56%
+cheaper. Found and fixed a drain for everyone: audio ran at volume zero while muted; now muted =
+no audio at all. **Before Redline goes back into the main game:** measure on a real phone (battery
+over a 10-minute run and frame rate, music on vs off), and consider Sunset Drive (file playback, cheap
+on CPU) as the main-game option. **Ask Adrian** whether the drain was with sound on or muted.
 
 **Sound off again (v0.23.1, 2026-11-27):** Adrian: "it should be muted by default, I still need to
 refine the music". Off by default and switched off once on every phone (`SOUND_RESET` '3',
@@ -732,7 +738,7 @@ Settings on iOS (the keyboard covered the box). Fixed by fitting the panel above
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
-- **Redline** (in Warp Run since v0.23.0; sound off by default again in v0.23.1): Adrian is refining the music, then sound goes back on for everyone. His runs with it;
+- **Redline** (back in the Lab only since v0.23.2, for battery; sound off by default): Adrian is refining the music. Measure battery and frame rate on a real phone before it goes back into Warp Run. His runs with it;
   tune from what they say (`LIFT`, `OPEN`, `BPM_MAX`, `RIFFS`, `POOL`, the sfx volumes). See
   "Redline and the effects mix" above.
 - **The Studio** (v0.20.0): Adrian tried it (2026-11-27) and found it too hard to control on a phone
