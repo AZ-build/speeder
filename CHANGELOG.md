@@ -4,6 +4,70 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.22.0] — 2026-11-27
+
+### Lab MUSIC: "Redline", a big synth build, plus sound effects tuned to sit with the music
+
+- **Why:** Adrian found the Speeder Studio too hard to control on a phone ("hard to see the whole
+  song and change certain things") and asked Claude to make the music instead: a slow-building,
+  big electronic synth sound that starts low, with a beat that builds slowly and speeds up with the
+  levels; once you hit top speed it shouldn't keep getting faster, but can bring in different
+  riffs or sound effects. And: tune the game's sounds so they aren't distracting and work with it.
+- **New soundtrack, Redline** (`audio/redline.js`), now the default on the Lab's MUSIC card. One
+  track that follows the whole run, synthesised live (no files):
+  - **Levels:** loop 1 climbs one level a world. 1: a dark pad, a deep drone and a heartbeat kick
+    (lub-dub; a second one halfway through the world), a soft shaker. 2: the real kick, a pulsing
+    bass, hats. 3: claps, rolling bass, open hats. 4: an arpeggio. 5: the hook (a lead riff). The
+    Warden: everything, the lead doubled an octave up. Loop 2 comes back in at level 4 and is at the
+    top from its third world; loop 3 on stays at the top.
+  - **Slow build inside each world:** the pad, bass and arpeggio filters open gradually across the
+    world, and it gets a little louder, so it keeps building between the steps.
+  - **Tempo follows the road:** 96 BPM at the start (160 km/h), about 117 at loop 1's top (450 km/h),
+    128 at 655 km/h, and never faster. It follows the speed the road is pulling you to, not your
+    actual speed, so a hit doesn't wobble it, and moves at most 1 BPM a bar.
+  - **Riser into every gate:** the bar a world gate (or the boss, or a hyperlane's exit) falls in
+    gets a riser and a snare roll; the new level lands on the bar line after it, with a crash and a
+    deep boom.
+  - **After the Warden:** two bars holding the chord, a riser and a snare roll, then the next loop in
+    a new key (D, E, F#, then round again: each handoff chord leads into the next key). The
+    power-up and shield sounds are retuned to the key, as with Sunset Drive.
+  - **At the top, variety instead of speed:** every 8 bars it picks a riff (the hook, an answer, a
+    soaring line, a staccato lead, chord stabs), sometimes a second chord progression, an arpeggio
+    pattern, an end-of-phrase fill (snare roll, reverse cymbal, toms, laser zaps, stutter,
+    drop-out) and small effects (zaps, pings, swishes), with the odd 4-bar breakdown. The pool grows
+    every loop, so long runs keep hearing new combinations.
+  - **Hyperlane:** drums and bass drop out, the pad opens up and the arpeggio floats; it drops back
+    in at the next world.
+  - **Crash:** fades out with a falling tone. Paused, slowed down, a gate or a tunnel: the same
+    muffles as Sunset Drive.
+  - **Cost:** drums, effects and the big pads and stabs are rendered once into buffers when a run
+    starts; bass and arpeggio notes are rendered per key; only the lead is live. In headless Chrome
+    it takes 7-9% of one (slow) core, about 40% less than the Studio engine at its busiest. Not
+    measured on a real phone yet.
+- **Soundtrack choice** on the MUSIC card: **Redline** (default) or **Sunset Drive**. A phone that
+  has opened the Studio also gets **My Studio songs** (nowhere else, so the Studio stays hidden).
+  Votes are now per soundtrack (`music.redline`, `music.sunset`, `music.studio`); the stats page
+  knows the names. New event `lab/music/redline/loop-<n>` (how far a Redline run got).
+- **Sound effects, tuned to sit with the music** (every mode; sound is still off by default):
+  - Measured against Redline as a phone speaker hears it. World 1 is about 8 dB quieter than worlds
+    3-5, so at the start the gunfire was as loud as the music.
+  - The rapid-fire sounds (shots, bullet hits, pops, enemy shots, missile launches) are quieter
+    (shots 0.088 → 0.06, hits 0.051 → 0.038, pops 0.188 → 0.14, enemy shots 0.26 → 0.17, launches
+    0.2 → 0.15) and go through a soft top-end filter (5.2 kHz, `SFX_SOFT_HZ`). With Redline playing
+    they also follow its level (`SFX_FOLLOW`: 60% in world 1, full from level 5).
+  - Jump (was about 9 dB over the music) 0.5 → 0.28; missile swarm (11 dB over) 0.6 → 0.3;
+    explosions 0.528 → 0.46.
+  - The music dips for a moment under the big sounds (`duckMusic()`: explosions, hurt, shield,
+    power-up, swarm, passing someone, fanfare), so they read clearly without being loud.
+  - Engine hum 0.13 → 0.085 under the Lab's music (`ENGINE_VOL_LAB`), which has its own drone.
+  - A gentle limiter at the end of the chain (`AU.limit`), so stacked explosions don't crackle.
+  - The random picks and pitches are untouched: `same-as-before.sh` still says Classic and Warp
+    Run play exactly as before.
+- New: `tests/redline.mjs` (rules, tempo cap, keys, variety, loudness, cost, a real Lab run with
+  worlds, a hyperlane, the Warden handoff, a crash, the Soundtrack choice). `music.mjs` and
+  `studio.mjs` now pick their soundtrack explicitly. `sound-picker/tools/redline/preview.mjs`
+  renders a listening preview (a whole run squeezed into 4 minutes) and prints each part's level.
+
 ## [0.21.0] — 2026-11-26
 
 ### Leaderboard: top 50 players, and slimmer filters

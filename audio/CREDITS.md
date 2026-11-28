@@ -10,6 +10,11 @@ We credit the makers anyway because they earned it.
 - `lab-music/`: **Sunset Drive I-V**, made for Speeder (v0.18.0) with `sound-picker/tools/music5/`.
   Played by the Lab's MUSIC experiment. CC0, ours.
 
+## Music: Redline (v0.22.0)
+The Lab's default soundtrack. Not a file: `audio/redline.js` synthesises it live in the browser
+(its drums, effects and pads are rendered once when a run starts). Made for Speeder. CC0, ours.
+A listening preview can be rendered with `node sound-picker/tools/redline/preview.mjs "$PWD" out.wav`.
+
 ## Sound effects: the Heavy set (v0.18.0)
 `shoot1-3`, `hit`, `pop`, `boom`, `wreck`, `hurt`, `power`, `shield` were made for Speeder with
 `sound-picker/tools/synth.py` ("E Heavy" on the sound picker, the set players voted for). CC0, ours.

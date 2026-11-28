@@ -1,6 +1,6 @@
 // Speeder service worker: lets the game load offline once it has been opened.
 // When you change the game, bump CACHE so phones pick up the new files.
-const CACHE = 'speeder-v0.21.0';
+const CACHE = 'speeder-v0.22.0';
 const ASSETS = [
   './',
   './index.html',
@@ -32,7 +32,8 @@ const ASSETS = [
   './audio/launch.mp3',
   './audio/pass.mp3',
   './audio/fanfare.mp3',
-  './audio/ui.mp3'
+  './audio/ui.mp3',
+  './audio/redline.js'
 ];
 
 self.addEventListener('install', (event) => {

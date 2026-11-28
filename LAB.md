@@ -54,7 +54,7 @@ Analytics: the **Lab verdicts** section of https://speeder-game.com/stats/ (vote
 | `lab/lane/<variant>/0-barrel-rolls` / `1-4-` / `5+-` | Barrel rolls in a run (Barrel rolls style only): do people find them? |
 | `lab/lane/<variant>/died-in-lane`, `no-lanes` | The run ended inside a lane / before the first one |
 | `lab/setup/loop<N>`, `loop<N>-loaded`, `...-lane` | A run used the test setup (later loop, fully loaded, started in a hyperlane) |
-| `lab/music/song-<n>`, `song-6plus`, `none`; `lab/music/studio` = a run on Studio songs | MUSIC: the furthest song a run reached (song n = loop n), or no music at all (sound off or still loading) |
+| `lab/music/song-<n>`, `song-6plus`, `none`; `lab/music/studio` = a run on Studio songs; `lab/music/redline/loop-<n>` = how far a Redline run got | MUSIC: the furthest song a run reached (song n = loop n), or no music at all (sound off or still loading) |
 
 A **variant** is the experiment plus its options, for example `jump.flick.charges` or
 `jump.tap.free`. Votes are counted per variant, so two ways of doing the same idea can be
@@ -70,7 +70,7 @@ changes, so the counts are roughly people, not runs.
 | **JUMP** (`jump`) | v0.10.0, made bigger in v0.11.0 | In the Lab. Adrian's first note (2026-11-13): make it higher and longer. Done; needs another try. | A jump you can do anywhere. Options: gesture (flick up / second-finger tap) and fuel (2 earned charges / unlimited). |
 | **SKY RAMPS** (`ramps`) | v0.11.0 | In the Lab. No human has played it yet. | Big ramps that launch a long flight with five rings to steer through. No options yet. |
 | **HYPERLANE** (`lane`) | v0.12.0 | In the Lab. No human has played it yet. | A zero-gravity tunnel between every two worlds, steering up and down as well as sideways. Option: flying style (barrel rolls / smooth banks). |
-| **MUSIC** (`music`) | v0.18.0, Studio songs in v0.20.0 | In the Lab. Adrian found Sunset Drive too chill (2026-11-26) and asked for a beat composer: the Studio, hidden for now (v0.20.1). | A song per loop that builds world by world, changing on the beat. Players hear Sunset Drive; a device that has opened the Studio hears its songs. No options. |
+| **MUSIC** (`music`) | v0.18.0, Studio songs in v0.20.0, Redline in v0.22.0 | In the Lab. Adrian found Sunset Drive too chill (2026-11-26), then the Studio too hard on a phone (2026-11-27), and asked Claude for a big synth build: Redline, the default since v0.22.0. Not yet heard in a real run. | Music that builds world by world, changing on the beat. Option: soundtrack (Redline / Sunset Drive; My Studio songs only on a phone that opened the Studio). |
 
 ### JUMP: how it works
 
@@ -215,6 +215,58 @@ power-ups, with the speeder rolling and flipping naturally as you move.
   between worlds that Adrian liked in v0.9, or is it a welcome change of pace?
 
 ### MUSIC: how it works
+
+**v0.22.0: Redline (the default).** Adrian, 2026-11-27: the Studio "didn't really work for me, too
+hard to control on a phone, hard to see the whole song and change certain things". He asked Claude
+for a slow-building, big electronic synth sound that starts low, with a beat that builds slowly and
+speeds up with the levels; past top speed it shouldn't get faster but can bring in different riffs
+or effects. And the game's sounds tuned to work with it.
+
+- **The engine:** `audio/redline.js`, an ES module loaded only when Redline is the soundtrack. The
+  game calls `set()` every frame with `rlState()`: loop, world, boss, lane, `frac` (how far through
+  the world), `speed` (the road's target speed, `baseSpeed(G.d)`) and `gateEta` (seconds to the next
+  world gate, to the boss in world 5, or to a hyperlane's exit; none while paused or after the
+  Warden). It keeps its own beat and decides everything on bar lines: a bar is scheduled about 0.3 s
+  before it starts (a 50 ms timer).
+- **Levels** (`levelFor()`): loop 1 = world + 1 (1-5), the Warden = 6, loop 2 = 4, 5, 6, 6, 6,
+  loop 3 on = 6. A hyperlane = 0. What each adds: 1 pad, drone, heartbeat kick, shaker · 2 kick,
+  pulsing bass, hats · 3 claps, rolling bass, open hats · 4 arpeggio · 5 the hook · 6 everything, lead
+  doubled. A new level starts a new section on the next bar line, with a crash and a boom (a swish
+  going into a lane). `OPEN` = each layer's filter at the start and end of a world (the slow build),
+  `LIFT` = output level per level, `PUMP` = how hard the kick ducks the pad and bass.
+- **Tempo** (`bpmFor()`): `BPM_MIN` 96 at 160 km/h to `BPM_MAX` 128 at 655 km/h (curve power 0.85:
+  ~117 at loop 1's 450 km/h), at most 1 BPM a bar. Slowing down (a hit) muffles it, as before, but
+  doesn't change the tempo.
+- **Gates:** the bar the gate falls in (eta between 0.2 and 1.15 bars) plays a riser and, from
+  level 2, a snare roll.
+- **Loops** (`LOOP_KEYS`): D, E, F#, then round again. When the loop number goes up (the Warden is
+  down: `rlState()` reports the next loop during `WP.phase === 'reward'`), two bars hold the old V
+  chord with a riser and a snare roll, then the next key starts with a crash. The next key's
+  sounds are rendered from world 3 on (`prepare()`); if they're late it keeps the old key.
+- **Variety at level 6** (`phrase()`, `POOL`): every 8 bars a riff (A hook, B answer, D soaring, C
+  staccato, S chord stabs), sometimes progression B (IV V I V instead of I V vi IV, from loop 3), an
+  arpeggio pattern, a fill for bar 8 (roll, rev, tom, zap, stutter, drop) and an effect in bar 4
+  (zap, ping, swish, arpUp), and from loop 3 the odd 4-bar breakdown (never during the Warden). The
+  pool grows each loop. Its own seeded random numbers: it never touches `Math.random`.
+- **Sounds:** drums and effects (`KIT`) are rendered once per run into buffers; pads, stabs, bass
+  and arpeggio notes once per key (`prepare()`, small OfflineAudioContexts); the lead is live (three
+  oscillators a note, one for the octave-up twin). One reverb (1.8 s, mono in), one dotted-eighth
+  echo synced to the tempo, a compressor, then `out` (level 0.4: level 5 sits at about -15.5 dBFS
+  RMS like the Sunset Drive files) into the Lab's music filter and bus (`LM.filter`, `LM.bus`).
+- **In the game:** the RL block in index.html (`RL`, `lmSong()`, `rlState()`, `rlManage()`,
+  `rlReset()`), and three guarded lines in `lmTick()`. Same muffles as Sunset Drive (slowed down,
+  world gate, tunnels, paused); a crash calls `fadeOut()` (a fade, a filter sweep and a falling tone).
+- **Effects with it:** the soft bus follows Redline's level (`SFX_FOLLOW`), the engine hum is lower
+  (`ENGINE_VOL_LAB`); see the sound section of index.html.
+- **Preview:** `node sound-picker/tools/redline/preview.mjs "$PWD" out.wav` renders a whole run
+  squeezed into about 4 minutes and prints each part's tempo and loudness. `PLAN='[[bars, {loop,
+  world, boss, lane, speed: [from, to]}, "label"], ...]'` renders your own plan.
+- **Test:** `node tests/redline.mjs "$PWD"`.
+- **Open questions for the playtest:** does world 1 start low enough without being boring (about
+  55 s of pad, drone and heartbeat)? Is the hook catchy, and does the Warden feel like a peak? Is
+  128 BPM the right top? Do the riff changes at the top keep it fresh over a 30-minute run? Does it
+  stay smooth on a phone (frame rate with music on vs off)? Are the effects now quiet enough, or too
+  quiet (shots especially)?
 
 **v0.20.0: Studio songs (hidden since v0.20.1).** Adrian played Sunset Drive in a run and found it too chill
 and out of place: he liked the build-up but wanted more beat and fewer moody turns, and asked for a
@@ -422,6 +474,7 @@ node tests/lane.mjs "$PWD"       # HYPERLANE: steering, rolls, hits, pick-ups, i
 node tests/soak.mjs "$PWD"       # a bot plays three long Lab runs (lanes included); any script error fails
 node tests/music.mjs "$PWD"      # MUSIC (Sunset Drive), in real time with audio: parts on bar lines, the handoff, tape stop
 node tests/studio.mjs "$PWD"     # MUSIC (Studio songs) and the Studio page, in real time with audio
+node tests/redline.mjs "$PWD"    # MUSIC (Redline): rules, tempo cap, variety, cost, and a real Lab run
 ```
 
 `same-as-before.sh` plays a fixed, seeded run of each main mode in the last committed

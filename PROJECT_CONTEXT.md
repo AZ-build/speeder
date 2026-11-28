@@ -26,10 +26,10 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.21.0 |
-| **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS, HYPERLANE and MUSIC (v0.18), and its test setup are untested on a phone) |
+| **Current Version** | v0.22.0 |
+| **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS, HYPERLANE and MUSIC (v0.18; Redline v0.22), and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
-| **Last Updated** | 2026-11-26 |
+| **Last Updated** | 2026-11-27 |
 | **GitHub Repo** | `AZ-build/speeder`, live at https://speeder-game.com/ (custom domain since v0.12.9; the old https://az-build.github.io/speeder/ address redirects there) |
 
 ---
@@ -188,11 +188,13 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
   one power-up orb per lane. The road waits while you're in it. Compared: **flying style**,
   Barrel rolls (the speeder rolls its top toward where it's going, flips on dives, a fast swipe
   spins it round) vs Smooth banks (never upside down).
-- **Experiment 4, MUSIC (v0.18, Studio songs v0.20):** a song per loop (five, then round again)
-  that builds world by world, changes on the next bar line, a two-bar handoff after the Warden.
-  Players hear the Sunset Drive recordings. The **Speeder Studio** (`studio/`, Adrian's own beat
-  composer) is hidden (address only, v0.20.1); a device that has opened it plays its songs live
-  instead. On by default. Details in `LAB.md`.
+- **Experiment 4, MUSIC (v0.18, Studio songs v0.20, Redline v0.22):** music that builds world by
+  world, changes on the next bar line, and hands off after the Warden. Option **Soundtrack**:
+  **Redline** (default since v0.22.0: one big synth track made by Claude, `audio/redline.js`, played
+  live; starts low, a level a world, tempo follows the road's speed from 96 to 128 BPM and stops
+  there, new key each loop, new riffs and fills every 8 bars at the top) or **Sunset Drive** (the
+  recordings, a song per loop). The **Speeder Studio** (`studio/`) is hidden (address only); a
+  device that has opened it also gets "My Studio songs". On by default. Details in `LAB.md`.
 - **Test setup (v0.11):** a card in the Lab panel, not an experiment: **Start on loop 1-6**
   (the run begins at that loop's speed, difficulty and score multiplier) and **Fully loaded**
   (guns at level 8 and 2 shields from the start). For testing at high speed. v0.12 adds
@@ -207,7 +209,7 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
 |-------|--------|-------|
 | Frontend | Plain HTML + JavaScript + Canvas 2D | One file: `index.html`. No libraries, nothing to install. |
 | 3D look | Homemade perspective math ("pseudo-3D") | Out Run-style. Everything is projected from world x/y/distance onto the screen. |
-| Sound | Web Audio playing CC0 audio files in `audio/` | Effects: the Heavy set made for Speeder (v0.18.0) plus a few from Kenney's packs. Music "Synthwave House Loop" by Fupi (tempo and brightness follow the run); the Lab's MUSIC experiment plays Sunset Drive I-V (`audio/lab-music/`, made for Speeder). Credits in `audio/CREDITS.md`. |
+| Sound | Web Audio playing CC0 audio files in `audio/` | Effects: the Heavy set made for Speeder (v0.18.0) plus a few from Kenney's packs, tuned to sit with the music in v0.22.0 (soft bus, ducking, limiter). Music "Synthwave House Loop" by Fupi (tempo and brightness follow the run); the Lab's MUSIC experiment plays Redline (`audio/redline.js`, synthesised live, v0.22.0) or Sunset Drive I-V (`audio/lab-music/`). All made for Speeder. Credits in `audio/CREDITS.md`. |
 | Offline / install | `manifest.webmanifest` + `sw.js` (service worker) | Bump `CACHE` in sw.js after each change so phones get updates. |
 | Backend / DB | Firebase Firestore, **ORBit's project `orbit-23921`**, lists `speeder_scores` (Classic) and `speeder_warp_scores` (Warp Run) | Loaded only when needed (Firestore "lite" library). Settings and local scores live in the browser's localStorage. Rules: `firestore-rules-speeder.txt` (Classic) and `firestore-rules-warp.txt` (Warp Run). v0.17.0 prepared a move to Speeder's own project plus App Check (`SPEEDER_FIREBASE`, `APP_CHECK_KEY`, `firestore-rules-own-project.txt`, `FIREBASE-SETUP.md`): not done yet, waiting on Adrian. |
 | Hosting | GitHub Pages, custom domain `speeder-game.com` | A PWA needs https to install; GitHub Pages provides it for free. Domain bought by Adrian through Squarespace (2026-11-16); its DNS records point at GitHub Pages. The `CNAME` file in the repo holds the domain: never delete it. |
@@ -223,9 +225,9 @@ Speeder/
 ├── social/                ← card-bg.jpg (score card artwork, 1080x1350) and share-wide.jpg (link preview, 1200x630)
 ├── stats/index.html       ← private stats page (speeder-game.com/stats/): GoatCounter API + leaderboards; not part of the game
 ├── CNAME                  ← the custom domain (speeder-game.com) for GitHub Pages; never delete
-├── audio/                 ← sound effects, engine loop, music + CREDITS.md (all CC0); lab-music/ = Sunset Drive I-V for the Lab (v0.18.0)
+├── audio/                 ← sound effects, engine loop, music + CREDITS.md (all CC0); lab-music/ = Sunset Drive I-V for the Lab (v0.18.0); redline.js = the Redline synth and arrangement (v0.22.0)
 ├── studio/                ← the Speeder Studio (v0.20.0): index.html (the page) and engine.js (synth + sequencer, also used by the Lab)
-├── sound-picker/          ← page for auditioning new sounds (speeder-game.com/sound-picker/), its files and tools; see its README.md
+├── sound-picker/          ← page for auditioning new sounds (speeder-game.com/sound-picker/), its files and tools; see its README.md; tools/redline/preview.mjs renders a Redline listening preview
 ├── README.md              ← how to play it locally and publish it
 ├── moderation.txt         ← the hide list: board entries, devices and name words to hide (v0.17.0); the game reads it every 10 minutes
 ├── FIREBASE-SETUP.md      ← Adrian's steps for Speeder's own Firebase project and App Check (prepared in v0.17.0)
@@ -251,7 +253,7 @@ Speeder/
 from what distance · speed curve in `update()` (`32 + 58 * (1 - exp(-d / 4500))`) ·
 steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun levels ·
 `MULT_TIME` 2X duration · `EDGE_START` / `EDGE_BANK` / `EDGE_HALF_W` / `EDGE_YAW` the edge bank and how skinny it gets · `VIEW_TAN` / `CAM_VIEWS` (the Camera setting's levels) / `FIT_WIDE` / `VIEW_MAX_H` camera angle, how close it is, and big-screen fit (`fitView()`) · `CAM_TRACK` how much the camera follows your sideways move · `CAM_FOLLOW` how quickly it eases after you · `AIM_AHEAD` how far it looks into turns · `STEER_EASE` how quickly the speeder glides to your thumb · `LEAN_MAX` / `LEAN_GAIN` the small lean while moving · `SWARM_N` missiles per MISSILES pickup ·
-`MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch (the Heavy set's volumes from the sound picker since v0.18.0) ·
+`MUSIC_VOL` / `MUSIC_RATE_MAX` music level and top tempo · `sfx` (in the Sound section) each effect's file, volume and pitch (retuned in v0.22.0; `true` as the last argument = the soft bus) · `SFX_SOFT_HZ` / `SFX_FOLLOW` the soft bus's top end and how it follows Redline's level · `duckMusic()` how far and how long the music dips under a big sound · `ENGINE_VOL` / `ENGINE_VOL_LAB` engine hum, and under the Lab's music · `AU.limit` the final limiter · (the Heavy set's volumes from the sound picker since v0.18.0) ·
 `PART_MAX` particle cap · `QUALS[].fx` / `QUALS[].gloss` particle amount and glossy road per graphics level · `DRONE_MESH` / `RAM_MESH` / `TURRET_BASE` / `TURRET_HEAD` enemy models · `drawGloss()` road reflections · `drawShield()` shield bubble · `G.slowmo` wreck slow motion ·
 `kmBucket()` / `WARP_KM` / `CLASSIC_KM` / `LAB_KM` the distance buckets in analytics (match the stats page) · `LOOP_CAP` highest loop number in analytics · `trackRunNumber()` the exact run counter (`runs/<mode>/<n>`) · `GC_CODE` analytics on/off (GoatCounter site code, now `speeder`; dashboard https://speeder.goatcounter.com, and our own at https://speeder-game.com/stats/) · `trackOnce()` / `trackPlayerRun()` / `trackNamed()` the once-per-device player counts · `TOP_AGE_*` how long a downloaded leaderboard is reused ·
 `WIND_SIGN_Y` where the WIND sign sits (`drawWindSign()`) · `FEEDBACK` / `FB_MAX` / `FB_GAP` / `FB_DAY` feedback collection, note length, time between notes and notes a day per device ·
@@ -259,11 +261,11 @@ steering sensitivity in `steerSensitivity()` · `GUN_MAX` / `GUN_PERKS` gun leve
 
 **Warp Run knobs:** `SETTINGS_DEFAULT.mode` which mode new players start on · `W_WORLD_T` seconds a world lasts · `W_SECTOR` the shortest a world can be · `REZ_T` / `REZ_AT` how long a new world takes to load in and when each part of the sky switches on · `GATE_H` / `GATE_DEP` / `GATE_PW` the world gate's size · `RAIL_HOT_T` / `RAIL_COOL_T` / `RAIL_X` rail riding: seconds before overload, seconds locked, how close to the edge counts · `BOSS_PACE` the boss's rest between attacks per stage · `BOSS_SNIPE` how often it fires single shots under its other attacks · `W_BOARD_MIN_V` oldest version whose scores the Warp board shows · `sp` / `v` / `ml` in `spawnPattern` (how patterns stretch with speed) · `W_SPEED_STEP` / `W_SPEED_MAX` top speed per loop and its cap · `W_LVL_STEP` pattern difficulty per loop · `OD_NEED` / `OD_TIME` cells for OVERDRIVE and how long it lasts · `BOSS_TOUGH` / `BOSS_PTS` / `BOSS_SEQ` boss health, reward and attack order for each of its three stages · `SKINS` each world's colors, obstacle look, `curve` (bendiness), `float` (jump length), `pat` (how often ordinary patterns appear) and `sig` (its own patterns) and `extra` (its own roadside props) · `drawRoadside()` the lamps, lanterns and beacons along each world's road · `drawTower()` / `buildWindowTex()` buildings · `TRAFFIC_CLOSE` how fast you catch traffic · `POWERS` entries starting `p_` are the prototypes · `NEAR_TYPES` what counts for close calls · `TUN_W` / `TUN_H` tunnel size.
 
-**Lab knobs:** `LAB_EXPERIMENTS` the list of experiments (the Lab panel, saved switches, votes and analytics build themselves from it) · JUMP: `HOP_H` / `HOP_T` how high and how long a jump is · `HOP_MAX` charges you can hold · `HOP_PER_CLOSE` charge earned per close call · `HOP_OVER` which obstacles a hop clears · `FLICK_PX` / `FLICK_MS` / `FLICK_RATIO` what counts as a flick up · `TAP_MS` / `TAP_PX` what counts as a one-finger tap · SKY RAMPS: `SKY_W` / `SKY_LEN` / `SKY_H` the ramp's size · `SKY_PEAK` / `SKY_T` how high and how long the flight is · `SKY_RINGS` / `RING_R` how many rings and how big · `RING_PTS` / `RING_PERFECT` points · `SKY_EVERY` seconds between sky ramps · HYPERLANE: `LANE_T` seconds in a lane · `LANE_R` / `LANE_LIM` tunnel size and how far you can go · `LANE_SPEEDUP` / `LANE_MIN_V` speed · `LANE_CAM_Z` / `LANE_ZOOM` / `LANE_FOLLOW` camera · `LANE_PANEL` / `LANE_LIT` / `LANE_PULSE` / `LT_PULSE` the walls' colours and light pulses · `LANE_WARP` / `LANE_STREAKS` light-speed ripple and streaks · `LANE_CAM_UP` / `LANE_FOLLOW_Y` keep the speeder below the far end · `LANE_BEND` how much it snakes · `LANE_GAP` space between sections · `ROLL_V` / `LANE_ROLL_RATE` / `LANE_BANK` how the speeder rolls · `SPIN_V` / `SPIN_T` barrel roll swipe and length · `LROCK_HP` / `LRING_PTS` / `LRING_PERFECT` / `LIRIS_HOLE` hazards and points · `LANE_SECTIONS` what's in a lane · MUSIC: `LM_SONGS` (tempo and key of each song) · `LM_BARS` loop length · `LM_VOL` level · `LM_FADE` crossfade · `LM_ROLL` run-in/out in each file · test setup: `LAB_LOOPS` the highest starting loop offered.
+**Lab knobs:** `LAB_EXPERIMENTS` the list of experiments (the Lab panel, saved switches, votes and analytics build themselves from it) · JUMP: `HOP_H` / `HOP_T` how high and how long a jump is · `HOP_MAX` charges you can hold · `HOP_PER_CLOSE` charge earned per close call · `HOP_OVER` which obstacles a hop clears · `FLICK_PX` / `FLICK_MS` / `FLICK_RATIO` what counts as a flick up · `TAP_MS` / `TAP_PX` what counts as a one-finger tap · SKY RAMPS: `SKY_W` / `SKY_LEN` / `SKY_H` the ramp's size · `SKY_PEAK` / `SKY_T` how high and how long the flight is · `SKY_RINGS` / `RING_R` how many rings and how big · `RING_PTS` / `RING_PERFECT` points · `SKY_EVERY` seconds between sky ramps · HYPERLANE: `LANE_T` seconds in a lane · `LANE_R` / `LANE_LIM` tunnel size and how far you can go · `LANE_SPEEDUP` / `LANE_MIN_V` speed · `LANE_CAM_Z` / `LANE_ZOOM` / `LANE_FOLLOW` camera · `LANE_PANEL` / `LANE_LIT` / `LANE_PULSE` / `LT_PULSE` the walls' colours and light pulses · `LANE_WARP` / `LANE_STREAKS` light-speed ripple and streaks · `LANE_CAM_UP` / `LANE_FOLLOW_Y` keep the speeder below the far end · `LANE_BEND` how much it snakes · `LANE_GAP` space between sections · `ROLL_V` / `LANE_ROLL_RATE` / `LANE_BANK` how the speeder rolls · `SPIN_V` / `SPIN_T` barrel roll swipe and length · `LROCK_HP` / `LRING_PTS` / `LRING_PERFECT` / `LIRIS_HOLE` hazards and points · `LANE_SECTIONS` what's in a lane · MUSIC: Redline (in `audio/redline.js`): `levelFor()` layers by loop and world, `bpmFor()` / `BPM_MIN` / `BPM_MAX` tempo, `LOOP_KEYS` keys, `OPEN` filter build per level, `LIFT` level per level, `PUMP` kick ducking, `RIFFS` / `PROG_A` / `PROG_B` the tunes, `POOL` what varies at the top each loop, `KIT` drums and effects · Sunset Drive: `LM_SONGS` (tempo and key of each song) · `LM_BARS` loop length · `LM_VOL` level · `LM_FADE` crossfade · `LM_ROLL` run-in/out in each file · test setup: `LAB_LOOPS` the highest starting loop offered.
 
 ### Testing hooks
 
-Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase), `node tests/touch.mjs "$PWD"` (a resting or creeping second finger never steers), `node tests/keyboard.mjs "$PWD"` (name boxes stay above a phone keyboard), `node tests/music.mjs "$PWD"` (the Lab's MUSIC, Sunset Drive option, played in real time with audio over http), `node tests/studio.mjs "$PWD"` (the Studio and Studio songs in the Lab), `node tests/board.mjs "$PWD"` (the leaderboard's Players and Runs views). Run all eleven before publishing.
+Automated checks live in `tests/`: `bash tests/same-as-before.sh` (Classic and Warp Run play exactly as in the last commit), `node tests/lab.mjs "$PWD"` (the Lab), `node tests/lane.mjs "$PWD"` (the hyperlane), `node tests/soak.mjs "$PWD"` (a bot plays long Lab runs), `node tests/tutorial.mjs "$PWD"` (an autopilot plays all of Flight School), `node tests/fairplay.mjs` (anti-cheat, name filter, hide list; serves the game at a pretend web address with a stand-in Firebase), `node tests/touch.mjs "$PWD"` (a resting or creeping second finger never steers), `node tests/keyboard.mjs "$PWD"` (name boxes stay above a phone keyboard), `node tests/music.mjs "$PWD"` (the Lab's MUSIC, Sunset Drive option, played in real time with audio over http), `node tests/studio.mjs "$PWD"` (the Studio and Studio songs in the Lab), `node tests/board.mjs "$PWD"` (the leaderboard's Players and Runs views). `node tests/redline.mjs "$PWD"` (the Lab's Redline soundtrack: rules, tempo cap, variety, cost, a real run). Run all twelve before publishing.
 
 **Since v0.17.0 the hooks below only exist with test tools on:** add `?dev` to the address on the live site (e.g. https://speeder-game.com/?dev; it stays on for that tab and shows "TEST TOOLS ON"), or open the game from a file / localhost (the tests do). Runs with test tools on never reach a world board, and analytics is off. The game's own names (`G`, `SET`, `TUT`...) are no longer global: use `SPEEDER.inside(() => G.d)` to run code inside the game.
 
@@ -373,6 +375,8 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | Beat composer (v0.20.0) | The Speeder Studio: a page of grids and knobs with guardrails (scale-only notes, 16-step grid, mood-limited chords); its songs play live in the Lab | Adrian found the composed music too chill and wanted to shape it himself. Live synthesis means what he hears in the Studio is exactly what plays in the game, with no files to render. Trade-off: code-made instruments, and the synth runs during play (phone performance unverified). |
 | Sound effects (v0.18.0) | The Heavy set from the sound picker, at its balanced volumes; sound still off by default | Adrian: "heavy got the most votes. Use that please." Turning sound back on for everyone (`SOUND_RESET`) is left for him to decide. |
 | New music (v0.18.0) | Sunset Drive I-V, made for Speeder, in the Lab first | Adrian found free packs off-target; he wants chill that builds (his Spotify "e-Jamz" is the reference) and loved the Sunset Drive sketch. Five variations, one per loop, so a 30-minute run doesn't repeat. |
+| Redline (v0.22.0) | Claude composes one live-synth track that follows the run (levels by world, tempo by the road's speed, capped at 128 BPM, variety instead of speed at the top); default soundtrack in the Lab, Sunset Drive still a choice | Adrian found the Studio too hard on a phone and asked Claude to make the music: big, slow-building synth, starts low, speeds up with the levels but not past top speed, then new riffs and effects. Live synthesis is the only way the tempo can follow the speed without pitch changes and the riffs can vary for ever; drums and pads are pre-rendered so it costs less than the Studio engine. Trade-off: synthesised instruments, not yet measured on a real phone. |
+| Effects with the music (v0.22.0) | Rapid-fire sounds quieter, softened and following Redline's level; jump and swarm down to the others; the music dips under big sounds; a final limiter; in every mode | Adrian: the game sound shouldn't be distracting and should work with the music. Measured: world 1's music is ~8 dB under worlds 3-5, so shots were as loud as the music at the start; jump and swarm were 9-11 dB over it. Random picks untouched, so runs are identical. |
 | Music sync (v0.18.0) | The music keeps its own beat; the game says which part it wants; changes wait for the next bar line; parts are layers of one 8-bar grid | Adrian asked what happens if he slows down or beats the Warden fast. Nothing can drift: a part just loops longer or the handoff comes sooner, and swaps always land on the beat. Trade-off: up to one bar's delay (2.1-2.5 s) before the music follows a new world. |
 
 ---
@@ -407,6 +411,22 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**Redline and the effects mix (v0.22.0, 2026-11-27):**
+- Adrian: the Studio "didn't really work for me... too hard to control on a phone, hard to see the
+  whole song and change certain things". He asked Claude to make the music: slow-building, big
+  electronic synth, starts low, a beat that builds slowly and speeds up with the levels, not faster
+  past top speed but different riffs or sound effects; and the game sound tuned to work with it.
+- Built Redline (`audio/redline.js`), now the Lab's default soundtrack (Soundtrack: Redline / Sunset
+  Drive). A listening preview (a whole run in 4 minutes) was sent in the chat; render it again with
+  `sound-picker/tools/redline/preview.mjs`. Effects retuned in every mode (see CHANGELOG).
+- **Ask Adrian:** does it start low enough without being dull? Is the hook catchy? Does the Warden
+  feel like the peak? Is 128 BPM the right top? Do the riff changes keep a long run fresh? Are the
+  effects right against it now (shots especially), and does the game stay smooth with it on his
+  phone (Show frame rate, music on vs off)?
+- Sound is still off by default (`SOUND_RESET`): turning it on for everyone is still his call.
+- Ideas not built: laser fences pulsing on Redline's beat (the old "Delores" idea); Redline in Warp
+  Run and Classic if it graduates (Classic could use distance for the levels).
 
 **Leaderboard by player (v0.21.0, 2026-11-26):**
 - Board opens on the top 50 players; filters on one slim line; list fills the screen. **Ask Adrian:**
@@ -700,6 +720,8 @@ Settings on iOS (the keyboard covered the box). Fixed by fitting the panel above
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
+- **Redline** (v0.22.0): Adrian's first runs with it and the retuned effects; tune from what he says
+  (`LIFT`, `OPEN`, `BPM_MAX`, `RIFFS`, `POOL`, the sfx volumes). See "Redline and the effects mix" above.
 - **The Studio** (v0.20.0): Adrian's first songs and a Lab run with them; tune the built-in songs
   and the engine from what he says (see "The Studio" above).
 - **Sound and music** (see "Sound and music (v0.18.0)" above): Adrian's first runs with the Heavy

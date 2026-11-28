@@ -128,7 +128,7 @@ const newPage = async (init, arg) => {
   const mine = { id: 'mine1', name: 'Test Track', bpm: 120, key: 0, mood: 'bright' };
   const { page, errors } = await newPage((s) => {
     localStorage.setItem('speeder.soundReset', '1');
-    localStorage.setItem('speeder.lab.cfg', JSON.stringify({ jump: { on: false }, ramps: { on: false }, lane: { on: false }, music: { on: true } }));
+    localStorage.setItem('speeder.lab.cfg', JSON.stringify({ jump: { on: false }, ramps: { on: false }, lane: { on: false }, music: { on: true, song: 'studio' } }));
     localStorage.setItem('speeder.studio.use', '1');
     localStorage.setItem('speeder.studio.songs', JSON.stringify([s]));
   }, mine);
@@ -137,7 +137,7 @@ const newPage = async (init, arg) => {
   const IN = (code) => page.evaluate((c) => SPEEDER.inside(c), code);
   await page.evaluate(() => { SPEEDER.SET.sound = true; SPEEDER.SET.music = true; SPEEDER.SET.volume = 80; });
   await IN(`() => { audioInit(); }`);
-  ok('lab: MUSIC shows no Studio option to players', await page.evaluate(() => !SPEEDER.LAB_EXPERIMENTS.find((x) => x.id === 'music').opts));
+  ok('lab: the Studio choice is only offered on a phone that opened the Studio', await page.evaluate(() => { const c = SPEEDER.LAB_EXPERIMENTS.find((x) => x.id === 'music').opts[0].choices.find((ch) => ch.id === 'studio'); return !!c && typeof c.only === 'function' && c.only() === true; }));
   await page.evaluate(() => { SPEEDER.setMode('lab'); SPEEDER.startGame(); SPEEDER.G.invuln = 1e9; });
   await page.waitForFunction(() => SPEEDER.ST.player && SPEEDER.ST.player.playing, null, { timeout: 15000 });
   let s = await IN(`() => ({ name: ST.player.song.name, list: ST.list.map((x) => x.name), w: ST.player.world, old: AU.musicBus.gain.value, files: !!LM.cur })`);
@@ -160,7 +160,7 @@ const newPage = async (init, arg) => {
   ok('lab: a crash fades it out', await IN(`() => !ST.player || !ST.player.playing`));
   await page.waitForFunction(() => SPEEDER.G.state === 'over', null, { timeout: 8000 }).catch(() => {});
   ok('lab: game-over names the song', await page.evaluate(() => /Sunset Drive \(punchy\)/.test(document.getElementById('over').innerHTML)));
-  ok('lab: the Lab panel does not link to the Studio', await page.evaluate(() => { SPEEDER.openPanel('lab'); return !document.querySelector('#lab a[href*="studio"]') && !/Studio/.test(document.getElementById('lab').innerText); }));
+  ok('lab: the Lab panel does not link to the Studio', await page.evaluate(() => { SPEEDER.openPanel('lab'); return !document.querySelector('#lab a[href*="studio"]'); }));
   ok('lab: no script errors', errors.length === 0, errors.slice(0, 3));
   await page.context().close();
 }
