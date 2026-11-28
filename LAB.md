@@ -274,11 +274,12 @@ beat composer with knobs, melodies to make or pick, and guardrails to stay in ke
 That's the **Speeder Studio**, https://speeder-game.com/studio/ (`studio/`).
 
 - **Hidden for now (v0.20.1):** Adrian doesn't want it seen in the Lab yet, so nothing in the game
-  links to it and the MUSIC card has no option for it. It's reached by its address only (and
-  `noindex` keeps it out of search engines). **Which songs play is per device:** opening the Studio
-  sets `speeder.studio.use` to on; its "In the Lab" card has a switch for it. A device with it on
-  plays Studio songs live (`stOn()`, read at the start of each run in `lmBegin()`); every other
-  device plays the Sunset Drive recordings below. To show it to everyone later: put back a link
+  links to it. It's reached by its address only (and `noindex` keeps it out of search engines).
+  **Which songs play is per device:** opening the Studio sets `speeder.studio.use` to on; its "In
+  the Lab" card has a switch for it. Since v0.22.0 a device with it on also gets a third Soundtrack
+  choice, **My Studio songs** (`only: () => stWanted()` on the choice; no other phone sees it), and
+  plays Studio songs live when that's picked (`lmSong()`, read at the start of each run in
+  `lmBegin()`). Until v0.22.0 such a device always played Studio songs; everyone else Sunset Drive. To show it to everyone later: put back a link
   (`link` in its `LAB_EXPERIMENTS` entry is still supported) and decide the default.
 - **The engine** (`studio/engine.js`, an ES module the game imports only when needed): a WebAudio
   synth (kick, snare, clap, hats, shaker, crash, bass, pads, a "sparkle" arpeggio, a lead) and a
