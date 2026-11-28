@@ -127,7 +127,7 @@ const newPage = async (init, arg) => {
 {
   const mine = { id: 'mine1', name: 'Test Track', bpm: 120, key: 0, mood: 'bright' };
   const { page, errors } = await newPage((s) => {
-    localStorage.setItem('speeder.soundReset', '2');
+    localStorage.setItem('speeder.soundReset', '3');
     localStorage.setItem('speeder.lab.cfg', JSON.stringify({ jump: { on: false }, ramps: { on: false }, lane: { on: false }, music: { on: true, song: 'studio' } }));
     localStorage.setItem('speeder.studio.use', '1');
     localStorage.setItem('speeder.studio.songs', JSON.stringify([s]));

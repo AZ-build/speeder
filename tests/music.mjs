@@ -31,7 +31,7 @@ if (existsSync(exe)) launch.executablePath = exe;
 const browser = await chromium.launch(launch);
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 await ctx.addInitScript(() => {
-  localStorage.setItem('speeder.soundReset', '2');
+  localStorage.setItem('speeder.soundReset', '3');
   localStorage.setItem('speeder.lab.cfg', JSON.stringify({ jump: { on: false }, ramps: { on: false }, lane: { on: false }, music: { on: true, song: 'sunset' } }));
 });
 const page = await ctx.newPage();

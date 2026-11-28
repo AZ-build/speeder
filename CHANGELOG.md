@@ -4,6 +4,15 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.23.1] — 2026-11-27
+
+### Sound off by default again
+
+- Adrian: "it should be muted by default, I still need to refine the music". Sound is off for new
+  players (`SETTINGS_DEFAULT.sound`) and switched off once on every phone (`SOUND_RESET` '3',
+  `SOUND_RESET_TO` false), including those v0.23.0 switched on. Anyone can turn it on in Settings.
+- Redline stays Warp Run's music, for anyone with sound on. Nothing else changed.
+
 ## [0.23.0] — 2026-11-27
 
 ### Redline goes into Warp Run, and sound is on for everyone

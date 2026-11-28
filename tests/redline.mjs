@@ -97,7 +97,7 @@ const newPage = async (init) => {
 // ---- 2. a Lab run ----
 {
   const { page, errors } = await newPage(() => {
-    localStorage.setItem('speeder.soundReset', '2');
+    localStorage.setItem('speeder.soundReset', '3');
     localStorage.setItem('speeder.lab.cfg', JSON.stringify({ jump: { on: false }, ramps: { on: false }, lane: { on: true }, music: { on: true } }));
   });
   await page.goto(base + '/?dev');
@@ -197,8 +197,8 @@ const newPage = async (init) => {
   await S(() => { SPEEDER.setMode('classic'); SPEEDER.startGame(); });
   await wait(1500);
   ok('Classic: no Redline, the old track plays', await IN(`() => !LM.on && !RL.player && AU.musicBus.gain.value > 0.05`));
-  // sound is on by default again (v0.23.0)
-  ok('sound is on by default, and switched on once on every phone', await IN(`() => SETTINGS_DEFAULT.sound === true && SOUND_RESET === '2' && SOUND_RESET_TO === true`));
+  // sound is off by default again (v0.23.1: the music is still being refined)
+  ok('sound is off by default, and switched off once on every phone', await IN(`() => SETTINGS_DEFAULT.sound === false && SOUND_RESET === '3' && SOUND_RESET_TO === false`));
   ok('run: no script errors', errors.length === 0, errors.slice(0, 3));
 }
 

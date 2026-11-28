@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.23.0 |
+| **Current Version** | v0.23.1 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS, HYPERLANE and MUSIC (v0.18; Redline v0.22), and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-27 |
@@ -209,7 +209,7 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
 |-------|--------|-------|
 | Frontend | Plain HTML + JavaScript + Canvas 2D | One file: `index.html`. No libraries, nothing to install. |
 | 3D look | Homemade perspective math ("pseudo-3D") | Out Run-style. Everything is projected from world x/y/distance onto the screen. |
-| Sound | Web Audio playing CC0 audio files in `audio/` | Effects: the Heavy set made for Speeder (v0.18.0) plus a few from Kenney's packs, tuned to sit with the music in v0.22.0 (soft bus, ducking, limiter). Music: Warp Run and the Lab play Redline (`audio/redline.js`, synthesised live, made for Speeder; Warp Run since v0.23.0); Classic, Flight School and the menus play "Synthwave House Loop" by Fupi (tempo and brightness follow the run); the Lab's MUSIC card can swap in Sunset Drive I-V (`audio/lab-music/`). Sound on by default again since v0.23.0. Credits in `audio/CREDITS.md`. |
+| Sound | Web Audio playing CC0 audio files in `audio/` | Effects: the Heavy set made for Speeder (v0.18.0) plus a few from Kenney's packs, tuned to sit with the music in v0.22.0 (soft bus, ducking, limiter). Music: Warp Run and the Lab play Redline (`audio/redline.js`, synthesised live, made for Speeder; Warp Run since v0.23.0); Classic, Flight School and the menus play "Synthwave House Loop" by Fupi (tempo and brightness follow the run); the Lab's MUSIC card can swap in Sunset Drive I-V (`audio/lab-music/`). Sound off by default (v0.23.1) while Adrian refines the music. Credits in `audio/CREDITS.md`. |
 | Offline / install | `manifest.webmanifest` + `sw.js` (service worker) | Bump `CACHE` in sw.js after each change so phones get updates. |
 | Backend / DB | Firebase Firestore, **ORBit's project `orbit-23921`**, lists `speeder_scores` (Classic) and `speeder_warp_scores` (Warp Run) | Loaded only when needed (Firestore "lite" library). Settings and local scores live in the browser's localStorage. Rules: `firestore-rules-speeder.txt` (Classic) and `firestore-rules-warp.txt` (Warp Run). v0.17.0 prepared a move to Speeder's own project plus App Check (`SPEEDER_FIREBASE`, `APP_CHECK_KEY`, `firestore-rules-own-project.txt`, `FIREBASE-SETUP.md`): not done yet, waiting on Adrian. |
 | Hosting | GitHub Pages, custom domain `speeder-game.com` | A PWA needs https to install; GitHub Pages provides it for free. Domain bought by Adrian through Squarespace (2026-11-16); its DNS records point at GitHub Pages. The `CNAME` file in the repo holds the domain: never delete it. |
@@ -412,6 +412,11 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 ## Session Notes
 
 See `CHANGELOG.md` for a full session-by-session history.
+
+**Sound off again (v0.23.1, 2026-11-27):** Adrian: "it should be muted by default, I still need to
+refine the music". Off by default and switched off once on every phone (`SOUND_RESET` '3',
+`SOUND_RESET_TO` false). Redline stays in Warp Run for anyone with sound on. When the music is
+ready: raise `SOUND_RESET` to '4' with `SOUND_RESET_TO = true` and set the default on.
 
 **Redline in Warp Run, sound on (v0.23.0, 2026-11-27):**
 - Adrian liked Redline and asked for it in the main game: Warp Run only, and sound on for everyone
@@ -727,7 +732,7 @@ Settings on iOS (the keyboard covered the box). Fixed by fitting the panel above
 - Adrian is waiting for feedback from friends before making more changes.
 
 **Next session focus:**
-- **Redline** (in Warp Run since v0.23.0, sound on for everyone): Adrian's and players' runs with it;
+- **Redline** (in Warp Run since v0.23.0; sound off by default again in v0.23.1): Adrian is refining the music, then sound goes back on for everyone. His runs with it;
   tune from what they say (`LIFT`, `OPEN`, `BPM_MAX`, `RIFFS`, `POOL`, the sfx volumes). See
   "Redline and the effects mix" above.
 - **The Studio** (v0.20.0): Adrian tried it (2026-11-27) and found it too hard to control on a phone

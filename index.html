@@ -1027,7 +1027,7 @@ const JUMP_G = 16;           // gravity while airborne
 const JUMP_VY = (JUMP_G * JUMP_T * JUMP_T / 2 - RAMP_H) / JUMP_T;   // launch speed that lands after JUMP_T
 const UNIT_M = 1.4;         // one world unit, in "meters", for display only
 const FONT = 'Orbitron, system-ui, -apple-system, sans-serif';
-const VERSION = '0.23.0';
+const VERSION = '0.23.1';
 
 // Game modes (v0.8). CLASSIC is the original endless run, exactly as it was in v0.7.7.
 // WARP RUN is the new one: five worlds with their own look and hazards, a warp gate
@@ -1346,7 +1346,7 @@ function vibrate(p) {
 }
 
 // ---------- Settings (saved on this device) ----------
-const SETTINGS_DEFAULT = { sound: true, volume: 70, music: true, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true, cam: 'normal', mode: 'warp', fps: false };
+const SETTINGS_DEFAULT = { sound: false, volume: 70, music: true, engine: true, haptics: true, sens: 100, name: '', gfx: 'auto', shake: true, cam: 'normal', mode: 'warp', fps: false };
 function loadSettings() {
   let saved = {};
   try { saved = JSON.parse(storeGet('speeder.settings') || '{}') || {}; } catch (e) { saved = {}; }
@@ -1357,10 +1357,10 @@ function loadSettings() {
 }
 const SET = loadSettings();
 // v0.16.2: sound was switched off on every device while it was reworked ('1').
-// v0.23.0: the new sound (Heavy effects, retuned, and Redline) is ready, so it's switched back ON
-// once on every device ('2'); anyone can still turn it off in Settings. Raise SOUND_RESET (and set
-// SOUND_RESET_TO) to switch everyone once again.
-const SOUND_RESET = '2', SOUND_RESET_TO = true;
+// v0.23.0 switched it back ON once on every device ('2').
+// v0.23.1: OFF again by default and once on every device ('3'): Adrian is still refining the music.
+// Anyone can turn it on in Settings. Raise SOUND_RESET (and set SOUND_RESET_TO) to switch everyone again.
+const SOUND_RESET = '3', SOUND_RESET_TO = false;
 if (storeGet('speeder.soundReset') !== SOUND_RESET) {
   SET.sound = SOUND_RESET_TO;
   storeSet('speeder.soundReset', SOUND_RESET);
