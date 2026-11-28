@@ -97,7 +97,7 @@ const newPage = async (init) => {
 // ---- 2. a Lab run ----
 {
   const { page, errors } = await newPage(() => {
-    localStorage.setItem('speeder.soundReset', '1');
+    localStorage.setItem('speeder.soundReset', '2');
     localStorage.setItem('speeder.lab.cfg', JSON.stringify({ jump: { on: false }, ramps: { on: false }, lane: { on: true }, music: { on: true } }));
   });
   await page.goto(base + '/?dev');
@@ -187,11 +187,18 @@ const newPage = async (init) => {
   await page.waitForFunction(() => SPEEDER.LM.cur, null, { timeout: 15000 }).catch(() => {});
   ok('Sunset Drive choice: plays the Sunset Drive files, no Redline', await IN(`() => LM.kind === 'sunset' && !!LM.cur && !RL.player`));
   await S(() => { SPEEDER.labSet('music', 'song', 'redline'); SPEEDER.G.invuln = 0; SPEEDER.die(); });
-  // Warp Run: no Redline
+  // Warp Run (v0.23.0): Redline is its music; Classic keeps the old track
   await page.waitForTimeout(300);
-  await S(() => { SPEEDER.setMode('warp'); SPEEDER.startGame(); });
-  await wait(800);
-  ok('Warp Run: no Redline, the old track plays', await IN(`() => !RL.player && !LM.on`));
+  await S(() => { SPEEDER.setMode('warp'); SPEEDER.startGame(); SPEEDER.G.invuln = 1e9; });
+  await page.waitForFunction(() => SPEEDER.RL.player && SPEEDER.RL.player.playing, null, { timeout: 15000 }).catch(() => {});
+  ok('Warp Run: Redline plays, the old track is muted', await IN(`() => LM.kind === 'redline' && RL.player && RL.player.playing && AU.musicBus.gain.value < 0.05`));
+  await S(() => { SPEEDER.G.invuln = 0; SPEEDER.die(); });
+  await page.waitForTimeout(1500);
+  await S(() => { SPEEDER.setMode('classic'); SPEEDER.startGame(); });
+  await wait(1500);
+  ok('Classic: no Redline, the old track plays', await IN(`() => !LM.on && !RL.player && AU.musicBus.gain.value > 0.05`));
+  // sound is on by default again (v0.23.0)
+  ok('sound is on by default, and switched on once on every phone', await IN(`() => SETTINGS_DEFAULT.sound === true && SOUND_RESET === '2' && SOUND_RESET_TO === true`));
   ok('run: no script errors', errors.length === 0, errors.slice(0, 3));
 }
 

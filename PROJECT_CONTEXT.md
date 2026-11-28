@@ -26,7 +26,7 @@ vote. **Read `LAB.md` before adding or changing an experiment.**
 
 | Field | Value |
 |-------|-------|
-| **Current Version** | v0.22.0 |
+| **Current Version** | v0.23.0 |
 | **Phase** | Prototype / Exploration (friends playing; Warp Run reworked in v0.9 after Adrian's first playtest, needs another; the Lab added in v0.10; its experiments, JUMP, SKY RAMPS, HYPERLANE and MUSIC (v0.18; Redline v0.22), and its test setup are untested on a phone) |
 | **Started** | 2026-10-30 |
 | **Last Updated** | 2026-11-27 |
@@ -155,6 +155,9 @@ Same steering, guns, power-up gates and hazards as above, plus:
   thrown back onto the road (no damage) and both rails are locked for 5 seconds. Warp Run only.
 - **Prototypes:** permanent upgrades chosen from a gate pair after each boss: HEAVY CORE,
   TWIN WINGS, HULL +1, AEGIS, MAGNET, CHAIN BLAST.
+- **Music (v0.23.0): Redline**, a live-synth track made for Speeder (`audio/redline.js`, graduated
+  from the Lab): a level a world, tempo follows the road's speed up to 128 BPM, a new key after each
+  Warden, new riffs at the top. Classic and Flight School keep the old track. Details in `LAB.md`.
 - **Own leaderboard:** Firestore list `speeder_warp_scores`; local keys under `speeder.w.`.
   It only shows runs from version `W_BOARD_MIN_V` or newer: raising that number resets the board.
 - Timing with a perfect driver: a loop takes about 4 minutes (five 40-second worlds plus the boss).
@@ -188,13 +191,10 @@ Full guide, experiment list, results guide and the recipe for adding one: **`LAB
   one power-up orb per lane. The road waits while you're in it. Compared: **flying style**,
   Barrel rolls (the speeder rolls its top toward where it's going, flips on dives, a fast swipe
   spins it round) vs Smooth banks (never upside down).
-- **Experiment 4, MUSIC (v0.18, Studio songs v0.20, Redline v0.22):** music that builds world by
-  world, changes on the next bar line, and hands off after the Warden. Option **Soundtrack**:
-  **Redline** (default since v0.22.0: one big synth track made by Claude, `audio/redline.js`, played
-  live; starts low, a level a world, tempo follows the road's speed from 96 to 128 BPM and stops
-  there, new key each loop, new riffs and fills every 8 bars at the top) or **Sunset Drive** (the
-  recordings, a song per loop). The **Speeder Studio** (`studio/`) is hidden (address only); a
-  device that has opened it also gets "My Studio songs". On by default. Details in `LAB.md`.
+- **Experiment 4, MUSIC (v0.18, Studio songs v0.20, Redline v0.22):** Redline graduated into Warp
+  Run in v0.23.0 and plays in every Lab run too. The card is now for trying another soundtrack in
+  the Lab: **Sunset Drive** (the recordings, a song per loop), or "My Studio songs" on a device that
+  has opened the hidden **Speeder Studio** (`studio/`). Details in `LAB.md`.
 - **Test setup (v0.11):** a card in the Lab panel, not an experiment: **Start on loop 1-6**
   (the run begins at that loop's speed, difficulty and score multiplier) and **Fully loaded**
   (guns at level 8 and 2 shields from the start). For testing at high speed. v0.12 adds
@@ -377,6 +377,7 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 | New music (v0.18.0) | Sunset Drive I-V, made for Speeder, in the Lab first | Adrian found free packs off-target; he wants chill that builds (his Spotify "e-Jamz" is the reference) and loved the Sunset Drive sketch. Five variations, one per loop, so a 30-minute run doesn't repeat. |
 | Redline (v0.22.0) | Claude composes one live-synth track that follows the run (levels by world, tempo by the road's speed, capped at 128 BPM, variety instead of speed at the top); default soundtrack in the Lab, Sunset Drive still a choice | Adrian found the Studio too hard on a phone and asked Claude to make the music: big, slow-building synth, starts low, speeds up with the levels but not past top speed, then new riffs and effects. Live synthesis is the only way the tempo can follow the speed without pitch changes and the riffs can vary for ever; drums and pads are pre-rendered so it costs less than the Studio engine. Trade-off: synthesised instruments, not yet measured on a real phone. |
 | Effects with the music (v0.22.0) | Rapid-fire sounds quieter, softened and following Redline's level; jump and swarm down to the others; the music dips under big sounds; a final limiter; in every mode | Adrian: the game sound shouldn't be distracting and should work with the music. Measured: world 1's music is ~8 dB under worlds 3-5, so shots were as loud as the music at the start; jump and swarm were 9-11 dB over it. Random picks untouched, so runs are identical. |
+| Redline in the main game (v0.23.0) | Warp Run only; sound switched back on for everyone | Adrian: "I like it. Push the changes to the main game". He chose Warp Run only (Classic stays as it was) and sound on for all players. |
 | Music sync (v0.18.0) | The music keeps its own beat; the game says which part it wants; changes wait for the next bar line; parts are layers of one 8-bar grid | Adrian asked what happens if he slows down or beats the Warden fast. Nothing can drift: a part just loops longer or the handoff comes sooner, and swaps always land on the beat. Trade-off: up to one bar's delay (2.1-2.5 s) before the music follows a new world. |
 
 ---
@@ -412,6 +413,12 @@ Warp Run hooks: `SPEEDER.setMode('warp')`, `SPEEDER.WP` (run state: `loop`, `sec
 
 See `CHANGELOG.md` for a full session-by-session history.
 
+**Redline in Warp Run, sound on (v0.23.0, 2026-11-27):**
+- Adrian liked Redline and asked for it in the main game: Warp Run only, and sound on for everyone
+  (`SOUND_RESET` '2'). The Lab's MUSIC card is now only for trying Sunset Drive / Studio songs.
+- Watch: players turning sound off (no event for it yet), and frame rate on real phones now that the
+  synth runs in every Warp Run. Ask Adrian how it feels across a full run.
+
 **Redline and the effects mix (v0.22.0, 2026-11-27):**
 - Adrian: the Studio "didn't really work for me... too hard to control on a phone, hard to see the
   whole song and change certain things". He asked Claude to make the music: slow-building, big
@@ -424,7 +431,7 @@ See `CHANGELOG.md` for a full session-by-session history.
   feel like the peak? Is 128 BPM the right top? Do the riff changes keep a long run fresh? Are the
   effects right against it now (shots especially), and does the game stay smooth with it on his
   phone (Show frame rate, music on vs off)?
-- Sound is still off by default (`SOUND_RESET`): turning it on for everyone is still his call.
+- (v0.23.0: sound is now on for everyone.)
 - Ideas not built: laser fences pulsing on Redline's beat (the old "Delores" idea); Redline in Warp
   Run and Classic if it graduates (Classic could use distance for the levels).
 

@@ -70,7 +70,7 @@ changes, so the counts are roughly people, not runs.
 | **JUMP** (`jump`) | v0.10.0, made bigger in v0.11.0 | In the Lab. Adrian's first note (2026-11-13): make it higher and longer. Done; needs another try. | A jump you can do anywhere. Options: gesture (flick up / second-finger tap) and fuel (2 earned charges / unlimited). |
 | **SKY RAMPS** (`ramps`) | v0.11.0 | In the Lab. No human has played it yet. | Big ramps that launch a long flight with five rings to steer through. No options yet. |
 | **HYPERLANE** (`lane`) | v0.12.0 | In the Lab. No human has played it yet. | A zero-gravity tunnel between every two worlds, steering up and down as well as sideways. Option: flying style (barrel rolls / smooth banks). |
-| **MUSIC** (`music`) | v0.18.0, Studio songs in v0.20.0, Redline in v0.22.0 | In the Lab. Adrian found Sunset Drive too chill (2026-11-26), then the Studio too hard on a phone (2026-11-27), and asked Claude for a big synth build: Redline, the default since v0.22.0. Not yet heard in a real run. | Music that builds world by world, changing on the beat. Option: soundtrack (Redline / Sunset Drive; My Studio songs only on a phone that opened the Studio). |
+| **MUSIC** (`music`) | v0.18.0, Studio songs in v0.20.0, Redline in v0.22.0 | **Redline graduated into Warp Run in v0.23.0** (Adrian: "I like it. Push the changes to the main game"); every Lab run plays it too. The card stays for trying another soundtrack in the Lab. | Music that builds world by world, changing on the beat. Option: soundtrack (Redline / Sunset Drive; My Studio songs only on a phone that opened the Studio). |
 
 ### JUMP: how it works
 
@@ -215,6 +215,8 @@ power-ups, with the speeder rolling and flipping naturally as you move.
   between worlds that Adrian liked in v0.9, or is it a welcome change of pace?
 
 ### MUSIC: how it works
+
+**v0.23.0: Redline graduated.** Warp Run plays it (`startGame()` calls `lmBegin()`), and so does every Lab run, whatever the MUSIC card says; the card now only swaps in Sunset Drive or Studio songs for Lab runs. The code stays in the MUSIC block (`LM`, `RL`, `lmTick()`): `LM.on` now means "Warp Run or Lab music is playing". Classic and Flight School keep the old track.
 
 **v0.22.0: Redline (the default).** Adrian, 2026-11-27: the Studio "didn't really work for me, too
 hard to control on a phone, hard to see the whole song and change certain things". He asked Claude

@@ -4,6 +4,28 @@ All notable changes are documented here, session by session. Newest entries go a
 
 ---
 
+## [0.23.0] — 2026-11-27
+
+### Redline goes into Warp Run, and sound is on for everyone
+
+- **Why:** Adrian liked Redline ("I like it. Push the changes to the main game"). He chose Warp Run
+  only (Classic keeps its old track, as decided when Warp Run was made) and to turn sound back on
+  for every player.
+- **Warp Run plays Redline** (`startGame()` calls `lmBegin()` after `startWarpRun()`). Everything
+  from v0.22.0 comes with it: a level a world, the tempo following the road's speed up to 128 BPM,
+  risers into gates, a new key after each Warden, new riffs at the top, the pickups in key, the
+  muffles, the fade on a crash, the soft effects bus following its level and the lower engine hum.
+  The old "Synthwave House Loop" is muted during a Warp Run and still plays on the title screen,
+  game over, in Classic and in Flight School (which starts Warp Run its own way).
+- **The Lab:** every Lab run plays Redline too (Warp Run's rules). The MUSIC card is now for trying a
+  different soundtrack in the Lab (Sunset Drive, or My Studio songs on a phone that opened the
+  Studio); with it off you hear Redline. Its votes and analytics are unchanged.
+- **Sound on:** on by default for new players (`SETTINGS_DEFAULT.sound`), and switched on once on
+  every phone (`SOUND_RESET` '2', `SOUND_RESET_TO`). Anyone can turn it off in Settings.
+- How to play: a new "Music: Redline" entry under Warp Run; the Lab's Music entry rewritten.
+- Classic and Warp Run gameplay unchanged (`same-as-before.sh`). Tests updated for Redline in Warp
+  Run (`redline.mjs`, `music.mjs`).
+
 ## [0.22.0] — 2026-11-27
 
 ### Lab MUSIC: "Redline", a big synth build, plus sound effects tuned to sit with the music
